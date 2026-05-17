@@ -108,29 +108,43 @@
             </div>
           </div>
           <!-- CPU/RAM (bottom) -->
-          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5"
+          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-1.5"
                x-show="(liveStats||{}).gw_cpu != null || (liveStats||{}).gw_mem != null">
-            <div class="flex items-center justify-between gap-3" x-show="(liveStats||{}).gw_cpu != null">
-              <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="CPU">
-                <rect x="4" y="4" width="16" height="16" rx="2"/>
-                <rect x="9" y="9" width="6" height="6"/>
-                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
-              </svg>
-              <span class="font-mono text-xs"
-                    :class="(liveStats||{}).gw_cpu > 80 ? 'text-red-400' : (liveStats||{}).gw_cpu > 50 ? 'text-amber-400' : 'text-slate-300'"
-                    x-text="(liveStats||{}).gw_cpu + '%'"></span>
+            <div x-show="(liveStats||{}).gw_cpu != null">
+              <div class="flex items-center justify-between gap-3">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="CPU">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                  <rect x="9" y="9" width="6" height="6"/>
+                  <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
+                </svg>
+                <span class="font-mono text-xs"
+                      :class="(liveStats||{}).gw_cpu > 80 ? 'text-red-400' : (liveStats||{}).gw_cpu > 50 ? 'text-amber-400' : 'text-slate-300'"
+                      x-text="(liveStats||{}).gw_cpu + '%'"></span>
+              </div>
+              <div class="h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     :style="`width: ${Math.min((liveStats||{}).gw_cpu, 100)}%`"
+                     :class="(liveStats||{}).gw_cpu > 80 ? 'bg-red-400' : (liveStats||{}).gw_cpu > 50 ? 'bg-amber-400' : 'bg-slate-500'"></div>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3" x-show="(liveStats||{}).gw_mem != null">
-              <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="RAM">
-                <rect x="2" y="7" width="20" height="10" rx="1"/>
-                <line x1="6" y1="10" x2="6" y2="14"/>
-                <line x1="10" y1="10" x2="10" y2="14"/>
-                <line x1="14" y1="10" x2="14" y2="14"/>
-                <line x1="18" y1="10" x2="18" y2="14"/>
-              </svg>
-              <span class="font-mono text-xs"
-                    :class="(liveStats||{}).gw_mem > 85 ? 'text-red-400' : (liveStats||{}).gw_mem > 65 ? 'text-amber-400' : 'text-slate-300'"
-                    x-text="(liveStats||{}).gw_mem + '%'"></span>
+            <div x-show="(liveStats||{}).gw_mem != null">
+              <div class="flex items-center justify-between gap-3">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="RAM">
+                  <rect x="2" y="7" width="20" height="10" rx="1"/>
+                  <line x1="6" y1="10" x2="6" y2="14"/>
+                  <line x1="10" y1="10" x2="10" y2="14"/>
+                  <line x1="14" y1="10" x2="14" y2="14"/>
+                  <line x1="18" y1="10" x2="18" y2="14"/>
+                </svg>
+                <span class="font-mono text-xs"
+                      :class="(liveStats||{}).gw_mem > 85 ? 'text-red-400' : (liveStats||{}).gw_mem > 65 ? 'text-amber-400' : 'text-slate-300'"
+                      x-text="(liveStats||{}).gw_mem + '%'"></span>
+              </div>
+              <div class="h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     :style="`width: ${Math.min((liveStats||{}).gw_mem, 100)}%`"
+                     :class="(liveStats||{}).gw_mem > 85 ? 'bg-red-400' : (liveStats||{}).gw_mem > 65 ? 'bg-amber-400' : 'bg-slate-500'"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -223,29 +237,43 @@
             </div>
           </div>
           <!-- Hardware stats (bottom) -->
-          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5"
+          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-1.5"
                x-show="xdev.cpu != null || xdev.mem != null || xdev.signal != null || xdev.rsrp != null">
-            <div class="flex items-center justify-between gap-3" x-show="xdev.cpu != null">
-              <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="CPU">
-                <rect x="4" y="4" width="16" height="16" rx="2"/>
-                <rect x="9" y="9" width="6" height="6"/>
-                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
-              </svg>
-              <span class="font-mono text-xs"
-                    :class="xdev.cpu > 80 ? 'text-red-400' : xdev.cpu > 50 ? 'text-amber-400' : 'text-slate-300'"
-                    x-text="xdev.cpu + '%'"></span>
+            <div x-show="xdev.cpu != null">
+              <div class="flex items-center justify-between gap-3">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="CPU">
+                  <rect x="4" y="4" width="16" height="16" rx="2"/>
+                  <rect x="9" y="9" width="6" height="6"/>
+                  <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
+                </svg>
+                <span class="font-mono text-xs"
+                      :class="xdev.cpu > 80 ? 'text-red-400' : xdev.cpu > 50 ? 'text-amber-400' : 'text-slate-300'"
+                      x-text="xdev.cpu + '%'"></span>
+              </div>
+              <div class="h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     :style="`width: ${Math.min(xdev.cpu, 100)}%`"
+                     :class="xdev.cpu > 80 ? 'bg-red-400' : xdev.cpu > 50 ? 'bg-amber-400' : 'bg-slate-500'"></div>
+              </div>
             </div>
-            <div class="flex items-center justify-between gap-3" x-show="xdev.mem != null">
-              <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="RAM">
-                <rect x="2" y="7" width="20" height="10" rx="1"/>
-                <line x1="6" y1="10" x2="6" y2="14"/>
-                <line x1="10" y1="10" x2="10" y2="14"/>
-                <line x1="14" y1="10" x2="14" y2="14"/>
-                <line x1="18" y1="10" x2="18" y2="14"/>
-              </svg>
-              <span class="font-mono text-xs"
-                    :class="xdev.mem > 85 ? 'text-red-400' : xdev.mem > 65 ? 'text-amber-400' : 'text-slate-300'"
-                    x-text="xdev.mem + '%'"></span>
+            <div x-show="xdev.mem != null">
+              <div class="flex items-center justify-between gap-3">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="RAM">
+                  <rect x="2" y="7" width="20" height="10" rx="1"/>
+                  <line x1="6" y1="10" x2="6" y2="14"/>
+                  <line x1="10" y1="10" x2="10" y2="14"/>
+                  <line x1="14" y1="10" x2="14" y2="14"/>
+                  <line x1="18" y1="10" x2="18" y2="14"/>
+                </svg>
+                <span class="font-mono text-xs"
+                      :class="xdev.mem > 85 ? 'text-red-400' : xdev.mem > 65 ? 'text-amber-400' : 'text-slate-300'"
+                      x-text="xdev.mem + '%'"></span>
+              </div>
+              <div class="h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     :style="`width: ${Math.min(xdev.mem, 100)}%`"
+                     :class="xdev.mem > 85 ? 'bg-red-400' : xdev.mem > 65 ? 'bg-amber-400' : 'bg-slate-500'"></div>
+              </div>
             </div>
             <div class="flex items-center justify-between gap-3"
                  x-show="xdev.signal != null || xdev.rsrp != null"
