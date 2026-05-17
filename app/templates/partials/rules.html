@@ -19,6 +19,11 @@
               :class="newRule.rule_type === 'qbittorrent' ? 'bg-green-500/20 border-green-500/50 text-green-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         qBittorrent
       </button>
+      <button @click="newRule.rule_type = 'emby'; newRule.action = 'set_bitrate_limit'; newRule.container = ''"
+              class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'emby' ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        Emby
+      </button>
     </div>
 
     <!-- Docker form -->
@@ -60,6 +65,27 @@
       <input x-model="newRule.name" type="text" :placeholder="newRule.command || 'Name (optional)'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition">
       <button @click="addRule()" class="md:col-span-4 bg-violet-500 hover:bg-violet-400 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
+    </div>
+
+    <!-- Emby form -->
+    <div x-show="newRule.rule_type === 'emby'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+        <option value="set_bitrate_limit">Set bitrate limit</option>
+        <option value="clear_bitrate_limit">Clear bitrate limit (unlimited)</option>
+      </select>
+      <input x-show="newRule.action === 'set_bitrate_limit'"
+             x-model="newRule.container" type="number" min="1" placeholder="Mbps (e.g. 2)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)"
+             :class="newRule.action === 'set_bitrate_limit' ? '' : 'md:col-span-2'"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
 
     <!-- qBittorrent form -->
@@ -108,8 +134,8 @@
           <tr class="border-t border-slate-800">
             <td class="pl-4 pr-2 py-3 w-8">
               <span class="w-6 h-6 flex items-center justify-center rounded shrink-0"
-                    :class="r.rule_type === 'host_command' ? 'bg-violet-500/20 text-violet-400' : r.rule_type === 'qbittorrent' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'"
-                    :title="r.rule_type === 'host_command' ? 'Host Command' : r.rule_type === 'qbittorrent' ? 'qBittorrent' : 'Docker Container'">
+                    :class="r.rule_type === 'host_command' ? 'bg-violet-500/20 text-violet-400' : r.rule_type === 'qbittorrent' ? 'bg-green-500/20 text-green-400' : r.rule_type === 'emby' ? 'bg-sky-500/20 text-sky-400' : 'bg-blue-500/20 text-blue-400'"
+                    :title="r.rule_type === 'host_command' ? 'Host Command' : r.rule_type === 'qbittorrent' ? 'qBittorrent' : r.rule_type === 'emby' ? 'Emby' : 'Docker Container'">
                 <template x-if="r.rule_type === 'docker'">
                   <svg class="w-3.5 h-3.5" viewBox="0 0 50 42" fill="currentColor">
                     <rect x="2"  y="17" width="8" height="7" rx="1.5"/>
@@ -133,19 +159,24 @@
                     <rect x="18" y="15" width="4" height="5" rx="1.5"/>
                   </svg>
                 </template>
+                <template x-if="r.rule_type === 'emby'">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 3l7 9-7 9h2.5l5.5-7 5.5 7H20L13 12l7-9h-2.5L12 10 6.5 3H4z"/>
+                  </svg>
+                </template>
               </span>
             </td>
             <td class="pl-4 pr-5 py-3 border-l border-slate-800">
               <div class="text-sm font-medium text-slate-100"
-                   x-text="r.name || (r.rule_type === 'host_command' ? r.command : r.rule_type === 'qbittorrent' ? ('qB: ' + r.action) : r.container)"></div>
+                   x-text="r.name || (r.rule_type === 'host_command' ? r.command : r.rule_type === 'qbittorrent' ? ('qB: ' + r.action) : r.rule_type === 'emby' ? ('Emby: ' + r.action) : r.container)"></div>
               <div class="text-xs text-slate-500 font-mono mt-0.5"
                    x-show="r.name"
-                   x-text="r.rule_type === 'host_command' ? r.command : r.rule_type === 'qbittorrent' ? r.action : r.container"></div>
+                   x-text="r.rule_type === 'host_command' ? r.command : r.rule_type === 'qbittorrent' ? r.action : r.rule_type === 'emby' ? r.action : r.container"></div>
             </td>
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
                 x-text="({failover:'→ On failover', restored:'→ On restored', down:'→ On WAN down', high_latency:'→ On high latency'})[r.trigger] || ('→ ' + r.trigger)"></td>
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
-                x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.action"></td>
+                x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.rule_type === 'emby' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited'})[r.action] || r.action : r.action"></td>
             <td class="px-4 py-3 border-l border-slate-800 text-center">
               <button @click="toggleRule(r.id)" class="px-2.5 py-1 rounded-full text-xs font-medium transition"
                       :class="r.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-500'"

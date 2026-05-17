@@ -19,6 +19,7 @@ EXPORT_KEYS = (
     "ntfy_url", "ntfy_topic", "ntfy_token",
     "ntfy_on_failover", "ntfy_on_restored", "ntfy_on_high_latency", "ntfy_on_error",
     "qb_url", "qb_username", "qb_password",
+    "emby_url", "emby_token",
 )
 
 

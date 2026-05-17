@@ -55,3 +55,8 @@ class QbSettingsIn(BaseModel):
     qb_url: str = ""
     qb_username: str = ""
     qb_password: Optional[str] = None
+
+
+class EmbySettingsIn(BaseModel):
+    emby_url: str = ""
+    emby_token: Optional[str] = None

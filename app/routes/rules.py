@@ -5,7 +5,8 @@ from ..auth import require_auth
 from ..db import db, log_event
 from ..models import RuleIn, VALID_ACTIONS, VALID_TRIGGERS
 
-VALID_QB_ACTIONS = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
+VALID_QB_ACTIONS   = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
+VALID_EMBY_ACTIONS = ("set_bitrate_limit", "clear_bitrate_limit")
 
 router = APIRouter(prefix="/api/rules")
 
@@ -24,8 +25,11 @@ def _validate(payload: RuleIn):
     elif payload.rule_type == "qbittorrent":
         if payload.action not in VALID_QB_ACTIONS:
             raise HTTPException(400, f"action must be one of {VALID_QB_ACTIONS}")
+    elif payload.rule_type == "emby":
+        if payload.action not in VALID_EMBY_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_EMBY_ACTIONS}")
     else:
-        raise HTTPException(400, "rule_type must be 'docker', 'host_command', or 'qbittorrent'")
+        raise HTTPException(400, "rule_type must be 'docker', 'host_command', 'qbittorrent', or 'emby'")
 
 
 def _default_name(payload: RuleIn) -> str:
@@ -36,6 +40,8 @@ def _default_name(payload: RuleIn) -> str:
         return payload.container
     if payload.rule_type == "qbittorrent":
         return f"qB: {payload.action}"
+    if payload.rule_type == "emby":
+        return f"Emby: {payload.action}"
     return payload.command.strip()
 
 
@@ -99,6 +105,9 @@ async def run_rule(rule_id: int, _: bool = Depends(require_auth)):
     elif rule["rule_type"] == "qbittorrent":
         from ..watcher import _qb_action
         ok, msg = await _qb_action(rule["action"], rule["container"])
+    elif rule["rule_type"] == "emby":
+        from ..watcher import _emby_action
+        ok, msg = await _emby_action(rule["action"], rule["container"])
     else:
         from ..docker_ops import container_action
         ok, msg = container_action(rule["container"], rule["action"])

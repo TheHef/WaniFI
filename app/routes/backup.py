@@ -22,6 +22,7 @@ SETTINGS_KEYS = (
     "ntfy_on_failover", "ntfy_on_restored",
     "ntfy_on_error", "ntfy_on_high_latency",
     "qb_url", "qb_username", "qb_password",
+    "emby_url", "emby_token",
 )
 
 

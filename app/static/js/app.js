@@ -19,7 +19,9 @@ window.app = function () {
       ntfy_on_failover: true, ntfy_on_restored: true,
       ntfy_on_error: false, ntfy_on_high_latency: false,
     },
-    qbSettings: { qb_url: '', qb_username: '', qb_password: '', qb_password_set: false },
+    qbSettings:   { qb_url: '', qb_username: '', qb_password: '', qb_password_set: false },
+    embySettings: { emby_url: '', emby_token: '', emby_token_set: false },
+    embyMsg: '',
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '' },
     confirmModal: { open: false, label: '', confirm: () => {} },
@@ -63,6 +65,7 @@ window.app = function () {
       await this.loadSettings();
       await this.loadNotifySettings();
       await this.loadQbSettings();
+      await this.loadEmbySettings();
       await this.refreshLive();
       await this.refreshLiveStats();
       this.timer     = setInterval(() => this.refreshLive(),     5000);
@@ -280,6 +283,44 @@ window.app = function () {
       setTimeout(() => this.qbMsg = '', 5000);
     },
 
+    // ---- Emby -------------------------------------------------------------
+    async loadEmbySettings() {
+      const d = await fetch('/api/emby-settings').then(r => r.json());
+      this.embySettings = { ...d, emby_token: '' };
+    },
+
+    async saveEmbySettings() {
+      try {
+        const payload = { emby_url: this.embySettings.emby_url };
+        if (this.embySettings.emby_token) payload.emby_token = this.embySettings.emby_token;
+        const r = await fetch('/api/emby-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const d = await r.json().catch(() => ({}));
+        this.embyMsg = (r.ok && d.ok) ? '✓ Saved' : '✗ ' + (d.detail || d.error || 'Error');
+        await this.loadEmbySettings();
+        setTimeout(() => this.embyMsg = '', 3000);
+      } catch (e) {
+        this.embyMsg = '✗ ' + e.message;
+        setTimeout(() => this.embyMsg = '', 4000);
+      }
+    },
+
+    async testEmby() {
+      await this.saveEmbySettings();
+      this.embyMsg = 'Testing…';
+      try {
+        const r = await fetch('/api/test-emby', { method: 'POST' });
+        const d = await r.json().catch(() => ({}));
+        this.embyMsg = d.ok ? '✓ ' + (d.message || 'Connected') : '✗ ' + (d.error || 'Failed');
+      } catch (e) {
+        this.embyMsg = '✗ ' + e.message;
+      }
+      setTimeout(() => this.embyMsg = '', 5000);
+    },
+
     // ---- Notifications ----------------------------------------------------
     async loadNotifySettings() {
       const d = await fetch('/api/notify-settings').then(r => r.json());
@@ -343,6 +384,7 @@ window.app = function () {
                 await this.loadSettings();
                 await this.loadNotifySettings();
                 await this.loadQbSettings();
+                await this.loadEmbySettings();
                 await this.refreshLive();
               } else {
                 this.importMsg = '✗ ' + (d.detail || d.error || 'Restore failed');

@@ -129,6 +129,23 @@ async def _qb_action(action: str, value: str = "") -> tuple[bool, str]:
         await client.close()
 
 
+async def _emby_action(action: str, value: str = "") -> tuple[bool, str]:
+    from .emby import EmbyClient
+    url   = get_setting("emby_url", "")
+    token = get_setting("emby_token", "")
+    if not (url and token):
+        return False, "Emby not configured"
+    client = EmbyClient(url, token)
+    try:
+        if action == "set_bitrate_limit":
+            return await client.set_bitrate_limit(int(value) if value else 0)
+        if action == "clear_bitrate_limit":
+            return await client.clear_bitrate_limit()
+        return False, f"Unknown Emby action: {action}"
+    finally:
+        await client.close()
+
+
 async def fire_trigger(trigger: str):
     from .db import db
     from .docker_ops import container_action
@@ -151,6 +168,12 @@ async def fire_trigger(trigger: str):
             await a_log_event(
                 "info" if ok else "error",
                 f"Rule: qB {rule['action']} on {trigger} -> {msg}",
+            )
+        elif rule["rule_type"] == "emby":
+            ok, msg = await _emby_action(rule["action"], rule["container"])
+            await a_log_event(
+                "info" if ok else "error",
+                f"Rule: Emby {rule['action']} on {trigger} -> {msg}",
             )
         else:
             ok, msg = container_action(rule["container"], rule["action"])

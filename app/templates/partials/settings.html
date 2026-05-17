@@ -225,6 +225,35 @@
       </div>
     </div>
 
+    <!-- Emby -->
+    <div class="pt-6 border-t border-slate-800 mb-6">
+      <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Emby</div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
+          <input x-model="embySettings.emby_url" placeholder="http://192.168.1.10:8096"
+                 autocomplete="off" spellcheck="false"
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm mt-1.5 text-slate-200 focus:outline-none focus:border-sky-500 transition">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">API Token
+            <span x-show="embySettings.emby_token_set" class="text-emerald-500 normal-case font-normal ml-1">(already saved)</span>
+          </label>
+          <input type="password" x-model="embySettings.emby_token" placeholder="••••••••••••••••"
+                 autocomplete="new-password"
+                 class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm mt-1.5 text-slate-200 focus:outline-none focus:border-sky-500 transition">
+          <p class="text-xs text-slate-600 mt-1">Emby Dashboard → API Keys → New API Key</p>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-4 flex-wrap items-center">
+        <button @click="saveEmbySettings()" class="bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl px-5 py-2 text-sm transition">Save</button>
+        <button @click="testEmby()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-5 py-2 text-sm transition">Test Connection</button>
+        <span class="text-sm font-medium"
+              :class="embyMsg.startsWith('✓') ? 'text-emerald-400' : embyMsg === 'Testing…' ? 'text-slate-400' : 'text-red-400'"
+              x-show="embyMsg" x-text="embyMsg"></span>
+      </div>
+    </div>
+
     <!-- ntfy -->
     <div class="pt-6 border-t border-slate-800">
       <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">ntfy Notifications</div>
