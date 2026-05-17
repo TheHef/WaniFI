@@ -184,12 +184,21 @@ async def api_probe_cellular(_: bool = Depends(require_auth)):
     client = UniFiClient(host, api_key, site)
 
     candidates = [
-        "/proxy/network/api/s/{site}/rest/device",
-        "/proxy/network/api/s/{site}/stat/devicestats",
+        # v1 integration API (newer UniFi OS)
+        "/proxy/network/integration/v1/sites",
+        "/proxy/network/api/v1/sites",
+        "/proxy/network/integration/v1/sites/{site}/devices",
+        "/proxy/network/api/v1/sites/{site}/devices",
+        # Widget variants
+        "/proxy/network/api/s/{site}/stat/widget/lte",
+        "/proxy/network/api/s/{site}/stat/widget/wan",
+        "/proxy/network/api/s/{site}/stat/widget/health",
+        # Device manager commands
+        "/proxy/network/api/s/{site}/cmd/devmgr",
+        # Per-device stats
+        "/proxy/network/api/s/{site}/stat/devicedetail",
+        # Original from previous probe (keep for completeness)
         "/proxy/network/api/s/{site}/stat/widget/cellular",
-        "/proxy/network/api/s/{site}/stat/cellular",
-        "/proxy/network/api/s/{site}/stat/cellularsignal",
-        "/proxy/network/api/s/{site}/stat/device-basic",
     ]
 
     results: dict = {}
