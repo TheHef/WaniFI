@@ -4,7 +4,8 @@
     <h2 class="text-base font-semibold text-slate-200 mb-4">Add rule</h2>
 
     <div class="flex gap-2 mb-4">
-      <button @click="newRule.rule_type = 'host_command'"
+      <button x-show="integrations.host_command"
+              @click="newRule.rule_type = 'host_command'"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'host_command' ? 'bg-violet-500/20 border-violet-500/50 text-violet-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Host Command

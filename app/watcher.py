@@ -162,10 +162,10 @@ async def fire_trigger(trigger: str):
         rtype = rule["rule_type"]
         # Skip if integration is disabled
         integration_key = {
-            "docker": "integration_docker",
-            "host_command": "integration_docker",
-            "qbittorrent": "integration_qb",
-            "emby": "integration_emby",
+            "docker":       "integration_docker",
+            "host_command": "integration_host_command",
+            "qbittorrent":  "integration_qb",
+            "emby":         "integration_emby",
         }.get(rtype)
         if integration_key and get_setting(integration_key, "1") != "1":
             await a_log_event("info", f"Rule '{rule['name']}' skipped (integration disabled)")

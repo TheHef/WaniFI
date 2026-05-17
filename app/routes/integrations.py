@@ -6,12 +6,12 @@ from ..db import get_setting, set_setting
 
 router = APIRouter(prefix="/api/integrations")
 
-INTEGRATION_KEYS = ("docker", "qb", "emby", "ntfy")
+INTEGRATION_KEYS = ("host_command", "docker", "qb", "emby", "ntfy")
 
 
 @router.get("")
 async def get_integrations(_: bool = Depends(require_auth)):
-    return {k: get_setting(f"integration_{k}", "1") == "1" for k in INTEGRATION_KEYS}
+    return {k: get_setting(f"integration_{k}", "0") == "1" for k in INTEGRATION_KEYS}
 
 
 @router.post("/{name}/toggle")

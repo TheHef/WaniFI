@@ -22,7 +22,7 @@ window.app = function () {
     qbSettings:   { qb_url: '', qb_username: '', qb_password: '', qb_password_set: false },
     embySettings: { emby_url: '', emby_token: '', emby_token_set: false },
     embyMsg: '',
-    integrations: { docker: true, qb: true, emby: true, ntfy: true },
+    integrations: { host_command: false, docker: false, qb: false, emby: false, ntfy: false },
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '' },
     confirmModal: { open: false, label: '', confirm: () => {} },
