@@ -19,7 +19,7 @@ async def toggle_integration(name: str, _: bool = Depends(require_auth)):
     if name not in INTEGRATION_KEYS:
         from fastapi import HTTPException
         raise HTTPException(400, f"Unknown integration: {name}")
-    current = get_setting(f"integration_{name}", "1")
+    current = get_setting(f"integration_{name}", "0")
     new_val = "0" if current == "1" else "1"
     set_setting(f"integration_{name}", new_val)
     return {"ok": True, "enabled": new_val == "1"}
