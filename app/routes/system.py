@@ -173,6 +173,62 @@ async def api_debug_wan(_: bool = Depends(require_auth)):
         await client.close()
 
 
+@router.get("/api/probe-cellular")
+async def api_probe_cellular(_: bool = Depends(require_auth)):
+    """Try several UniFi endpoints to locate cellular signal data."""
+    host    = get_setting("unifi_host")
+    api_key = get_setting("unifi_api_key")
+    site    = get_setting("unifi_site", "default")
+    if not (host and api_key):
+        return JSONResponse({"ok": False, "error": "Missing UniFi host or API key"}, status_code=400)
+    client = UniFiClient(host, api_key, site)
+
+    candidates = [
+        "/proxy/network/api/s/{site}/rest/device",
+        "/proxy/network/api/s/{site}/stat/devicestats",
+        "/proxy/network/api/s/{site}/stat/widget/cellular",
+        "/proxy/network/api/s/{site}/stat/cellular",
+        "/proxy/network/api/s/{site}/stat/cellularsignal",
+        "/proxy/network/api/s/{site}/stat/device-basic",
+    ]
+
+    results: dict = {}
+    try:
+        # Find the U5G Max device id from /stat/device
+        device_data = await client._get(f"/proxy/network/api/s/{client.site}/stat/device")
+        umbb = next((d for d in device_data.get("data", [])
+                     if d.get("type", "").lower() == "umbb"
+                     or "UMBB" in d.get("model", "")
+                     or "U5G" in (d.get("name", "") or "")), None)
+        results["found_device"] = {
+            "name": umbb.get("name") if umbb else None,
+            "model": umbb.get("model") if umbb else None,
+            "mac": umbb.get("mac") if umbb else None,
+            "_id": umbb.get("_id") if umbb else None,
+        } if umbb else None
+
+        if umbb:
+            mac = umbb.get("mac", "")
+            dev_id = umbb.get("_id", "")
+            for tpl in candidates:
+                for suffix in ("", f"/{mac}", f"/{dev_id}"):
+                    path = tpl.format(site=client.site) + suffix
+                    try:
+                        r = await client.client.get(path)
+                        results[path] = {
+                            "status": r.status_code,
+                            "size": len(r.content),
+                            "snippet": r.text[:500] if r.status_code < 400 else None,
+                        }
+                    except Exception as e:
+                        results[path] = {"error": str(e)}
+        return results
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+    finally:
+        await client.close()
+
+
 @router.get("/healthz")
 async def healthz():
     return {"ok": True, "version": APP_VERSION}
