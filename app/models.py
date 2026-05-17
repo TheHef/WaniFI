@@ -49,3 +49,9 @@ class NotifySettingsIn(BaseModel):
     ntfy_on_restored: bool = True
     ntfy_on_error: bool = False
     ntfy_on_high_latency: bool = False
+
+
+class QbSettingsIn(BaseModel):
+    qb_url: str = ""
+    qb_username: str = ""
+    qb_password: Optional[str] = None

@@ -10,7 +10,7 @@
     <div class="mb-3">
       <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</label>
       <input x-model="editModal.rule.name" type="text"
-             :placeholder="editModal.rule.rule_type === 'host_command' ? editModal.rule.command : editModal.rule.container"
+             :placeholder="editModal.rule.rule_type === 'host_command' ? editModal.rule.command : editModal.rule.rule_type === 'qbittorrent' ? editModal.rule.action : editModal.rule.container"
              class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
     </div>
     <div class="mb-3">
@@ -49,6 +49,26 @@
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Command</label>
         <input x-model="editModal.rule.command" type="text"
                class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-violet-500 transition">
+      </div>
+    </template>
+    <template x-if="editModal.rule.rule_type === 'qbittorrent'">
+      <div class="mb-3">
+        <div class="mb-3">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
+          <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500">
+            <option value="alt_speed_on">Enable alt speed (turtle)</option>
+            <option value="alt_speed_off">Disable alt speed</option>
+            <option value="set_dl_limit">Set download limit</option>
+            <option value="set_ul_limit">Set upload limit</option>
+            <option value="pause_all">Pause all torrents</option>
+            <option value="resume_all">Resume all torrents</option>
+          </select>
+        </div>
+        <div x-show="editModal.rule.action === 'set_dl_limit' || editModal.rule.action === 'set_ul_limit'">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Speed KB/s <span class="normal-case font-normal text-slate-600">(0 = unlimited)</span></label>
+          <input x-model="editModal.rule.container" type="number" min="0"
+                 class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500 transition">
+        </div>
       </div>
     </template>
     <div class="flex gap-3 justify-end mt-5">

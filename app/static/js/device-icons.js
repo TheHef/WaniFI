@@ -13,8 +13,11 @@ const ICONS = {
   'UDMPROMAX': '/static/devices/UDM.png',
   'UDMSE':     '/static/devices/UDM-SE.png',
   'UDMPROSE':  '/static/devices/UDM-SE.png',
+  'UDR':       '/static/devices/UDR.png',
   'UX':        '/static/devices/UX.avif',
   'UNIEXPRESS':'/static/devices/UX.avif',
+  'UXGPRO':    '/static/devices/UXGPRO.png',
+  'UXGMAX':    '/static/devices/UXGMAX.png',
 };
 
 const NAMES = {

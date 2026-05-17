@@ -100,6 +100,35 @@ async def execute_host_command(command: str, timeout: int = 30) -> tuple[bool, s
         return False, str(e)
 
 
+async def _qb_action(action: str, value: str = "") -> tuple[bool, str]:
+    from .qbittorrent import QBittorrentClient
+    url  = get_setting("qb_url", "")
+    user = get_setting("qb_username", "")
+    pw   = get_setting("qb_password", "")
+    if not (url and user):
+        return False, "qBittorrent not configured"
+    client = QBittorrentClient(url, user, pw or "")
+    try:
+        ok, err = await client.login()
+        if not ok:
+            return False, f"qB login failed: {err}"
+        if action == "alt_speed_on":
+            return await client.set_alt_speed(True)
+        if action == "alt_speed_off":
+            return await client.set_alt_speed(False)
+        if action == "set_dl_limit":
+            return await client.set_download_limit(int(value) if value else 0)
+        if action == "set_ul_limit":
+            return await client.set_upload_limit(int(value) if value else 0)
+        if action == "pause_all":
+            return await client.pause_all()
+        if action == "resume_all":
+            return await client.resume_all()
+        return False, f"Unknown qB action: {action}"
+    finally:
+        await client.close()
+
+
 async def fire_trigger(trigger: str):
     from .db import db
     from .docker_ops import container_action
@@ -116,6 +145,12 @@ async def fire_trigger(trigger: str):
             await a_log_event(
                 "info" if ok else "error",
                 f"Rule: host `{rule['command']}` on {trigger} -> {msg}",
+            )
+        elif rule["rule_type"] == "qbittorrent":
+            ok, msg = await _qb_action(rule["action"], rule["container"])
+            await a_log_event(
+                "info" if ok else "error",
+                f"Rule: qB {rule['action']} on {trigger} -> {msg}",
             )
         else:
             ok, msg = container_action(rule["container"], rule["action"])

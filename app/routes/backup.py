@@ -21,6 +21,7 @@ SETTINGS_KEYS = (
     "ntfy_url", "ntfy_topic", "ntfy_token",
     "ntfy_on_failover", "ntfy_on_restored",
     "ntfy_on_error", "ntfy_on_high_latency",
+    "qb_url", "qb_username", "qb_password",
 )
 
 

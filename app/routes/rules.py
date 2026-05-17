@@ -5,6 +5,8 @@ from ..auth import require_auth
 from ..db import db, log_event
 from ..models import RuleIn, VALID_ACTIONS, VALID_TRIGGERS
 
+VALID_QB_ACTIONS = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
+
 router = APIRouter(prefix="/api/rules")
 
 
@@ -19,15 +21,22 @@ def _validate(payload: RuleIn):
     elif payload.rule_type == "host_command":
         if not payload.command.strip():
             raise HTTPException(400, "command required for host_command rules")
+    elif payload.rule_type == "qbittorrent":
+        if payload.action not in VALID_QB_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_QB_ACTIONS}")
     else:
-        raise HTTPException(400, "rule_type must be 'docker' or 'host_command'")
+        raise HTTPException(400, "rule_type must be 'docker', 'host_command', or 'qbittorrent'")
 
 
 def _default_name(payload: RuleIn) -> str:
     name = payload.name.strip()
     if name:
         return name
-    return payload.container if payload.rule_type == "docker" else payload.command.strip()
+    if payload.rule_type == "docker":
+        return payload.container
+    if payload.rule_type == "qbittorrent":
+        return f"qB: {payload.action}"
+    return payload.command.strip()
 
 
 @router.get("")

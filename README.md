@@ -197,16 +197,6 @@ docker compose up -d
 Schema migrations run automatically on startup. New image versions are
 published to `ghcr.io/thehef/wanifi` on every push to `main`.
 
-## Known limitations
-
-- **No cellular signal strength (RSRP / RSRQ / dBm).** The UniFi controller
-  shows signal data for cellular modems like the U5G-Max in its own UI, but
-  exposes it only over an undocumented WebSocket telemetry stream. The
-  documented REST and v1 integration APIs don't include it. A workaround
-  used by other projects is to SSH into the modem and run `qmicli`, but
-  that requires storing SSH credentials and significantly widens the attack
-  surface; it's deliberately out of scope here.
-
 ## Troubleshooting
 
 - **Stuck on `/setup` after restart:** the bcrypt hash lives in

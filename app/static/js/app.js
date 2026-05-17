@@ -19,13 +19,14 @@ window.app = function () {
       ntfy_on_failover: true, ntfy_on_restored: true,
       ntfy_on_error: false, ntfy_on_high_latency: false,
     },
+    qbSettings: { qb_url: '', qb_username: '', qb_password: '', qb_password_set: false },
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '' },
     confirmModal: { open: false, label: '', confirm: () => {} },
     editModal:    { open: false, rule: {} },
 
     manualContainer: '',
-    manualMsg: '', settingsMsg: '', notifyMsg: '', importMsg: '', debugMsg: '',
+    manualMsg: '', settingsMsg: '', notifyMsg: '', qbMsg: '', importMsg: '', debugMsg: '',
 
     eventsLimit: 20, eventsSearch: '', eventsLevel: '',
 
@@ -60,6 +61,7 @@ window.app = function () {
 
       await this.loadSettings();
       await this.loadNotifySettings();
+      await this.loadQbSettings();
       await this.refreshLive();
       await this.refreshLiveStats();
       this.timer     = setInterval(() => this.refreshLive(),     5000);
@@ -158,13 +160,15 @@ window.app = function () {
     async addRule() {
       if (this.newRule.rule_type === 'docker'       && !this.newRule.container) return;
       if (this.newRule.rule_type === 'host_command' && !this.newRule.command.trim()) return;
+      if (this.newRule.rule_type === 'qbittorrent'  && !this.newRule.action) return;
       await fetch('/api/rules', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.newRule),
       });
       const keep_type = this.newRule.rule_type, keep_trigger = this.newRule.trigger;
-      this.newRule = { rule_type: keep_type, name: '', container: '', trigger: keep_trigger, action: 'stop', command: '' };
+      const default_action = keep_type === 'qbittorrent' ? 'alt_speed_on' : 'stop';
+      this.newRule = { rule_type: keep_type, name: '', container: '', trigger: keep_trigger, action: default_action, command: '' };
       await this.refreshLive();
     },
 
@@ -188,7 +192,9 @@ window.app = function () {
     deleteRule(id) {
       const rule = this.rules.find(r => r.id === id);
       const label = rule
-        ? (rule.rule_type === 'host_command' ? rule.command : `${rule.action} ${rule.container} → ${rule.trigger}`)
+        ? (rule.rule_type === 'host_command' ? rule.command
+          : rule.rule_type === 'qbittorrent' ? `qB: ${rule.action} → ${rule.trigger}`
+          : `${rule.action} ${rule.container} → ${rule.trigger}`)
         : `Rule #${id}`;
       this.confirmModal = {
         open: true, label,
@@ -226,6 +232,33 @@ window.app = function () {
           await this.refreshLive();
         },
       };
+    },
+
+    // ---- qBittorrent ------------------------------------------------------
+    async loadQbSettings() {
+      const d = await fetch('/api/qb-settings').then(r => r.json());
+      this.qbSettings = { ...d, qb_password: '' };
+    },
+
+    async saveQbSettings() {
+      const payload = { ...this.qbSettings };
+      if (!payload.qb_password) delete payload.qb_password;
+      const r = await fetch('/api/qb-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      this.qbMsg = r.ok ? '✓ Saved' : '✗ Error';
+      await this.loadQbSettings();
+      setTimeout(() => this.qbMsg = '', 3000);
+    },
+
+    async testQb() {
+      await this.saveQbSettings();
+      this.qbMsg = 'Testing…';
+      const d = await fetch('/api/test-qb', { method: 'POST' }).then(r => r.json());
+      this.qbMsg = d.ok ? '✓ Connected' : '✗ ' + (d.error || 'Failed');
+      setTimeout(() => this.qbMsg = '', 5000);
     },
 
     // ---- Notifications ----------------------------------------------------
@@ -290,6 +323,7 @@ window.app = function () {
                 this.importMsg = `✓ Restored ${c.settings || 0} settings, ${c.rules || 0} rules, ${c.events || 0} events`;
                 await this.loadSettings();
                 await this.loadNotifySettings();
+                await this.loadQbSettings();
                 await this.refreshLive();
               } else {
                 this.importMsg = '✗ ' + (d.detail || d.error || 'Restore failed');
