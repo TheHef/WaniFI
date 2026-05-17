@@ -17,6 +17,7 @@ from .routes import events as events_routes
 from .routes import manual as manual_routes
 from .routes import notify as notify_routes
 from .routes import emby as emby_routes
+from .routes import integrations as integrations_routes
 from .routes import qbittorrent as qb_routes
 from .routes import rules as rules_routes
 from .routes import settings as settings_routes
@@ -64,6 +65,7 @@ app.include_router(qb_routes.router)
 app.include_router(qb_routes.test_router)
 app.include_router(emby_routes.router)
 app.include_router(emby_routes.test_router)
+app.include_router(integrations_routes.router)
 app.include_router(backup_routes.router)
 
 

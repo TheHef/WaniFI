@@ -23,6 +23,7 @@ SETTINGS_KEYS = (
     "ntfy_on_error", "ntfy_on_high_latency",
     "qb_url", "qb_username", "qb_password",
     "emby_url", "emby_token",
+    "integration_docker", "integration_qb", "integration_emby", "integration_ntfy",
 )
 
 

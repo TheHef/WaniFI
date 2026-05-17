@@ -22,6 +22,7 @@ window.app = function () {
     qbSettings:   { qb_url: '', qb_username: '', qb_password: '', qb_password_set: false },
     embySettings: { emby_url: '', emby_token: '', emby_token_set: false },
     embyMsg: '',
+    integrations: { docker: true, qb: true, emby: true, ntfy: true },
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '' },
     confirmModal: { open: false, label: '', confirm: () => {} },
@@ -66,6 +67,7 @@ window.app = function () {
       await this.loadNotifySettings();
       await this.loadQbSettings();
       await this.loadEmbySettings();
+      await this.loadIntegrations();
       await this.refreshLive();
       await this.refreshLiveStats();
       this.timer     = setInterval(() => this.refreshLive(),     5000);
@@ -321,6 +323,17 @@ window.app = function () {
       setTimeout(() => this.embyMsg = '', 5000);
     },
 
+    // ---- Integrations -----------------------------------------------------
+    async loadIntegrations() {
+      this.integrations = await fetch('/api/integrations').then(r => r.json());
+    },
+
+    async toggleIntegration(name) {
+      const r = await fetch(`/api/integrations/${name}/toggle`, { method: 'POST' });
+      const d = await r.json().catch(() => ({}));
+      if (d.ok) this.integrations[name] = d.enabled;
+    },
+
     // ---- Notifications ----------------------------------------------------
     async loadNotifySettings() {
       const d = await fetch('/api/notify-settings').then(r => r.json());
@@ -385,6 +398,7 @@ window.app = function () {
                 await this.loadNotifySettings();
                 await this.loadQbSettings();
                 await this.loadEmbySettings();
+                await this.loadIntegrations();
                 await this.refreshLive();
               } else {
                 this.importMsg = '✗ ' + (d.detail || d.error || 'Restore failed');

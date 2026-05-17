@@ -9,17 +9,20 @@
               :class="newRule.rule_type === 'host_command' ? 'bg-violet-500/20 border-violet-500/50 text-violet-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Host Command
       </button>
-      <button @click="newRule.rule_type = 'docker'"
+      <button x-show="integrations.docker"
+              @click="newRule.rule_type = 'docker'"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'docker' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Docker Container
       </button>
-      <button @click="newRule.rule_type = 'qbittorrent'; newRule.action = 'alt_speed_on'; newRule.container = ''"
+      <button x-show="integrations.qb"
+              @click="newRule.rule_type = 'qbittorrent'; newRule.action = 'alt_speed_on'; newRule.container = ''"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'qbittorrent' ? 'bg-green-500/20 border-green-500/50 text-green-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         qBittorrent
       </button>
-      <button @click="newRule.rule_type = 'emby'; newRule.action = 'set_bitrate_limit'; newRule.container = ''"
+      <button x-show="integrations.emby"
+              @click="newRule.rule_type = 'emby'; newRule.action = 'set_bitrate_limit'; newRule.container = ''"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'emby' ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Emby

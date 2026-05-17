@@ -159,19 +159,31 @@ async def fire_trigger(trigger: str):
     if not rules:
         return
     for rule in rules:
-        if rule["rule_type"] == "host_command":
+        rtype = rule["rule_type"]
+        # Skip if integration is disabled
+        integration_key = {
+            "docker": "integration_docker",
+            "host_command": "integration_docker",
+            "qbittorrent": "integration_qb",
+            "emby": "integration_emby",
+        }.get(rtype)
+        if integration_key and get_setting(integration_key, "1") != "1":
+            await a_log_event("info", f"Rule '{rule['name']}' skipped (integration disabled)")
+            continue
+
+        if rtype == "host_command":
             ok, msg = await execute_host_command(rule["command"])
             await a_log_event(
                 "info" if ok else "error",
                 f"Rule: host `{rule['command']}` on {trigger} -> {msg}",
             )
-        elif rule["rule_type"] == "qbittorrent":
+        elif rtype == "qbittorrent":
             ok, msg = await _qb_action(rule["action"], rule["container"])
             await a_log_event(
                 "info" if ok else "error",
                 f"Rule: qB {rule['action']} on {trigger} -> {msg}",
             )
-        elif rule["rule_type"] == "emby":
+        elif rtype == "emby":
             ok, msg = await _emby_action(rule["action"], rule["container"])
             await a_log_event(
                 "info" if ok else "error",
