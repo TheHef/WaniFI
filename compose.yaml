@@ -1,14 +1,17 @@
 services:
   wanifi:
-    image: ghcr.io/thehef/wanifi:latest
+    image: ghcr.io/thehef/wanifi:dev
     container_name: wanifi
     restart: unless-stopped
     ports:
       - "8765:8000"
     environment:
       TZ: "Europe/Copenhagen"
+      PORT: "8000"
     privileged: true
     pid: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/data
       - /var/run/docker.sock:/var/run/docker.sock

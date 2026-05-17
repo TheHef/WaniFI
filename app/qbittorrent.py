@@ -22,11 +22,15 @@ class QBittorrentClient:
             r = await client.post(
                 f"{self.base}/api/v2/auth/login",
                 data={"username": self.username, "password": self.password},
+                headers={"Referer": self.base},
             )
-            if r.text.strip() == "Ok.":
+            body = r.text.strip()
+            if body == "Ok.":
                 self._sid = r.cookies.get("SID")
                 return True, "ok"
-            return False, "Invalid credentials"
+            if body == "Banned":
+                return False, "IP temporarily banned by qBittorrent (too many failed logins)"
+            return False, f"qBittorrent: {body or f'HTTP {r.status_code}'}"
         except Exception as e:
             return False, str(e)
 
