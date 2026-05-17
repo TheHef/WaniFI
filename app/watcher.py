@@ -141,6 +141,8 @@ async def _emby_action(action: str, value: str = "") -> tuple[bool, str]:
             return await client.set_bitrate_limit(int(value) if value else 0)
         if action == "clear_bitrate_limit":
             return await client.clear_bitrate_limit()
+        if action == "stop_all_sessions":
+            return await client.stop_all_sessions()
         return False, f"Unknown Emby action: {action}"
     finally:
         await client.close()

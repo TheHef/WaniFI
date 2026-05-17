@@ -60,6 +60,29 @@ class EmbyClient:
     async def clear_bitrate_limit(self) -> tuple[bool, str]:
         return await self.set_bitrate_limit(0)
 
+    async def stop_all_sessions(self) -> tuple[bool, str]:
+        client = await self._get_client()
+        try:
+            r = await client.get(f"{self.base}/Sessions", headers=self._headers())
+            if r.status_code != 200:
+                return False, f"Could not fetch sessions: HTTP {r.status_code}"
+            sessions = [s for s in r.json() if s.get("NowPlayingItem")]
+            if not sessions:
+                return True, "No active sessions"
+            stopped = 0
+            for s in sessions:
+                sid = s.get("Id", "")
+                if not sid:
+                    continue
+                await client.post(
+                    f"{self.base}/Sessions/{sid}/Playing/Stop",
+                    headers=self._headers(),
+                )
+                stopped += 1
+            return True, f"Stopped {stopped} session{'s' if stopped != 1 else ''}"
+        except Exception as e:
+            return False, str(e)
+
     async def close(self):
         if self._client:
             await self._client.aclose()

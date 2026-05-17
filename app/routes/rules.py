@@ -6,7 +6,7 @@ from ..db import db, log_event
 from ..models import RuleIn, VALID_ACTIONS, VALID_TRIGGERS
 
 VALID_QB_ACTIONS   = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
-VALID_EMBY_ACTIONS = ("set_bitrate_limit", "clear_bitrate_limit")
+VALID_EMBY_ACTIONS = ("set_bitrate_limit", "clear_bitrate_limit", "stop_all_sessions")
 
 router = APIRouter(prefix="/api/rules")
 

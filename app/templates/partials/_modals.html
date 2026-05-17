@@ -78,6 +78,7 @@
           <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
             <option value="set_bitrate_limit">Set bitrate limit</option>
             <option value="clear_bitrate_limit">Clear bitrate limit (unlimited)</option>
+            <option value="stop_all_sessions">Stop all sessions</option>
           </select>
         </div>
         <div x-show="editModal.rule.action === 'set_bitrate_limit'">
