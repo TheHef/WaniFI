@@ -97,8 +97,8 @@
           <th class="text-left pl-4 pr-5 py-3 border-l border-slate-800">Rule</th>
           <th class="text-left px-4 py-3 border-l border-slate-800">Trigger</th>
           <th class="text-left px-4 py-3 border-l border-slate-800">Action</th>
-          <th class="text-center px-4 py-3 border-l border-slate-800">Run</th>
           <th class="text-center px-4 py-3 border-l border-slate-800">Enabled</th>
+          <th class="text-center px-4 py-3 border-l border-slate-800">Run</th>
           <th class="text-center px-4 py-3 border-l border-slate-800">Edit</th>
           <th class="text-center px-4 py-3 border-l border-slate-800">Delete</th>
         </tr>
@@ -147,6 +147,11 @@
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
                 x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.action"></td>
             <td class="px-4 py-3 border-l border-slate-800 text-center">
+              <button @click="toggleRule(r.id)" class="px-2.5 py-1 rounded-full text-xs font-medium transition"
+                      :class="r.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-500'"
+                      x-text="r.enabled ? 'Yes' : 'No'"></button>
+            </td>
+            <td class="px-4 py-3 border-l border-slate-800 text-center">
               <div class="flex flex-col items-center gap-1">
                 <button @click="runRule(r.id)"
                         class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-emerald-400 hover:bg-emerald-500/10 transition"
@@ -160,11 +165,6 @@
                       :class="runMsg && runMsg.ok ? 'text-emerald-400' : 'text-red-400'"
                       x-text="runMsg ? runMsg.text : ''"></span>
               </div>
-            </td>
-            <td class="px-4 py-3 border-l border-slate-800 text-center">
-              <button @click="toggleRule(r.id)" class="px-2.5 py-1 rounded-full text-xs font-medium transition"
-                      :class="r.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-500'"
-                      x-text="r.enabled ? 'Yes' : 'No'"></button>
             </td>
             <td class="px-4 py-3 border-l border-slate-800 text-center">
               <button @click="editRule(r.id)" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-slate-600 hover:text-blue-400 hover:bg-blue-500/10 transition" title="Edit rule">
@@ -189,24 +189,4 @@
     </table>
   </div>
 
-  <!-- Manual control -->
-  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
-    <h2 class="text-base font-semibold text-slate-200 mb-4">Manual Control</h2>
-    <div class="grid md:grid-cols-3 gap-3">
-      <select x-model="manualContainer" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
-        <option value="">— select container —</option>
-        <template x-for="c in containers" :key="c.name">
-          <option :value="c.name" x-text="c.name + ' (' + c.status + ')'"></option>
-        </template>
-      </select>
-      <div class="flex gap-2 md:col-span-2">
-        <button @click="manual('stop')"    class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl py-2 text-sm font-medium transition">Stop</button>
-        <button @click="manual('start')"   class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-xl py-2 text-sm font-medium transition">Start</button>
-        <button @click="manual('restart')" class="flex-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl py-2 text-sm font-medium transition">Restart</button>
-        <button @click="manual('pause')"   class="flex-1 bg-slate-700/60 hover:bg-slate-700 text-slate-300 rounded-xl py-2 text-sm font-medium transition">Pause</button>
-        <button @click="manual('unpause')" class="flex-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 rounded-xl py-2 text-sm font-medium transition">Unpause</button>
-      </div>
-      <div class="text-sm text-slate-400 md:col-span-3" x-text="manualMsg"></div>
-    </div>
-  </div>
 </section>

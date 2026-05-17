@@ -16,6 +16,9 @@ EXPORT_KEYS = (
     "primary_wan_name", "failover_wan_name",
     "poll_interval", "event_retention_days",
     "latency_threshold_ms", "latency_cooldown_min",
+    "ntfy_url", "ntfy_topic", "ntfy_token",
+    "ntfy_on_failover", "ntfy_on_restored", "ntfy_on_high_latency", "ntfy_on_error",
+    "qb_url", "qb_username", "qb_password",
 )
 
 
