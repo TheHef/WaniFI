@@ -1,5 +1,7 @@
 # WaniFi
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/thehef)
+
 Self-hosted dashboard for UniFi WAN failover monitoring with rule-based automation.
 
 When your UniFi gateway switches to a failover WAN, WaniFi can automatically
@@ -206,6 +208,12 @@ published to `ghcr.io/thehef/wanifi` on every push to `main`.
   match the `subsystem` field shown in the discovered chips.
 - **Container `not found`:** rule containers must match `docker ps` names,
   not Compose service names.
+
+## Support
+
+If WaniFi saved you some 5G data or just made your homelab a little nicer,
+you can [buy me a coffee](https://buymeacoffee.com/thehef). Completely
+optional, deeply appreciated.
 
 ## License
 
