@@ -51,8 +51,6 @@ That's it. Docker pulls the pre-built image from GitHub Container Registry
 If you'd rather paste it yourself:
 
 ```yaml
-name: wanifi
-
 services:
   wanifi:
     image: ghcr.io/thehef/wanifi:latest
