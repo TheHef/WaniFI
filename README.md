@@ -18,17 +18,6 @@ pausing qBittorrent on 5G failover so you don't burn through mobile data.
 >
 > Not affiliated with Ubiquiti in any way. Just a UniFi user (and fan).
 
-> ⚠️ **LAN only. Do not expose this to the public internet.**
->
-> WaniFi needs root-equivalent access to your Docker host to function
-> (`privileged: true`, `pid: host`, mounted Docker socket). It is built to
-> live behind your firewall on a trusted LAN and nothing else. There is no
-> rate limiting, no MFA, no audit logging, and the host-command feature lets
-> the admin run arbitrary shell as root. If you absolutely must reach it
-> from outside, use a VPN (WireGuard, Tailscale) — do **not** port-forward
-> `8765`, and do **not** stick it directly behind a reverse proxy without
-> additional authentication. You have been warned.
-
 ![Overview](docs/screenshots/overview.png)
 
 ## Features
@@ -168,6 +157,17 @@ A background task polls the UniFi controller, updates live stats for the
 dashboard every 2 seconds, and detects WAN state changes to fire your rules.
 
 ## Security notes
+
+> ⚠️ **LAN only. Do not expose this to the public internet.**
+>
+> WaniFi needs root-equivalent access to your Docker host to function
+> (`privileged: true`, `pid: host`, mounted Docker socket). It is built to
+> live behind your firewall on a trusted LAN and nothing else. There is no
+> rate limiting, no MFA, no audit logging, and the host-command feature lets
+> the admin run arbitrary shell as root. If you absolutely must reach it
+> from outside, use a VPN (WireGuard, Tailscale). Do **not** port-forward
+> `8765`, and do **not** stick it directly behind a reverse proxy without
+> additional authentication. You have been warned.
 
 WaniFi is designed to run **inside your network**, full stop. The threat
 model assumes only trusted users can reach the UI.
