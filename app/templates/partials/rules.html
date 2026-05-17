@@ -49,14 +49,14 @@
 
     <!-- Host command form -->
     <div x-show="newRule.rule_type === 'host_command'" class="grid md:grid-cols-4 gap-3">
-      <input x-model="newRule.command" type="text" placeholder="e.g. systemctl restart myservice"
-             class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition">
       <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500">
         <option value="failover">On failover</option>
         <option value="restored">On restored</option>
         <option value="down">On WAN down</option>
         <option value="high_latency">On high latency</option>
       </select>
+      <input x-model="newRule.command" type="text" placeholder="e.g. systemctl restart myservice"
+             class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition">
       <input x-model="newRule.name" type="text" :placeholder="newRule.command || 'Name (optional)'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 transition">
       <button @click="addRule()" class="md:col-span-4 bg-violet-500 hover:bg-violet-400 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
