@@ -87,9 +87,28 @@
         <div class="flex flex-col items-center bg-slate-800 border rounded-xl p-2 shrink-0 w-28 transition-colors"
              x-show="(liveStats||{}).gw_model"
              :class="status.active_wan === 'primary' ? 'border-emerald-500/50' : 'border-slate-700'">
-          <img x-show="deviceIcon((liveStats||{}).gw_model)" :src="deviceIcon((liveStats||{}).gw_model)"
-               class="w-10 h-10 object-contain" :alt="(liveStats||{}).gw_model">
-          <span class="text-xs text-slate-400 font-medium mt-0.5" x-text="fmtModel((liveStats||{}).gw_model) || (liveStats||{}).gw_model"></span>
+          <!-- Throughput (top) -->
+          <div class="w-full space-y-0.5"
+               x-show="(liveStats||{}).active_wan_rx_mbps != null">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-slate-500 text-xs">↓</span>
+              <span class="font-mono text-xs font-bold text-emerald-400"
+                    x-text="fmtSpeed(status.active_wan === 'primary' ? (liveStats||{}).active_wan_rx_mbps : 0)"></span>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-slate-500 text-xs">↑</span>
+              <span class="font-mono text-xs font-bold text-sky-400"
+                    x-text="fmtSpeed(status.active_wan === 'primary' ? (liveStats||{}).active_wan_tx_mbps : 0)"></span>
+            </div>
+          </div>
+          <!-- Device icon + name (middle) -->
+          <div class="flex flex-col items-center w-full mt-1.5 pt-1.5 border-t border-slate-700/60"
+               :class="{ 'border-t-0 pt-0 mt-0': (liveStats||{}).active_wan_rx_mbps == null }">
+            <img x-show="deviceIcon((liveStats||{}).gw_model)" :src="deviceIcon((liveStats||{}).gw_model)"
+                 class="w-10 h-10 object-contain" :alt="(liveStats||{}).gw_model">
+            <span class="text-xs text-slate-400 font-medium mt-0.5" x-text="fmtModel((liveStats||{}).gw_model) || (liveStats||{}).gw_model"></span>
+          </div>
+          <!-- CPU/RAM (bottom) -->
           <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5"
                x-show="(liveStats||{}).gw_cpu != null || (liveStats||{}).gw_mem != null">
             <div class="flex items-center justify-between gap-3" x-show="(liveStats||{}).gw_cpu != null">
@@ -113,19 +132,6 @@
               <span class="font-mono text-xs"
                     :class="(liveStats||{}).gw_mem > 85 ? 'text-red-400' : (liveStats||{}).gw_mem > 65 ? 'text-amber-400' : 'text-slate-300'"
                     x-text="(liveStats||{}).gw_mem + '%'"></span>
-            </div>
-          </div>
-          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5"
-               x-show="(liveStats||{}).active_wan_rx_mbps != null">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-slate-500 text-xs">↓</span>
-              <span class="font-mono text-xs font-bold text-emerald-400"
-                    x-text="fmtSpeed(status.active_wan === 'primary' ? (liveStats||{}).active_wan_rx_mbps : 0)"></span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-slate-500 text-xs">↑</span>
-              <span class="font-mono text-xs font-bold text-sky-400"
-                    x-text="fmtSpeed(status.active_wan === 'primary' ? (liveStats||{}).active_wan_tx_mbps : 0)"></span>
             </div>
           </div>
         </div>
@@ -194,11 +200,30 @@
         <div class="flex flex-col items-center bg-slate-800 border rounded-xl p-2 shrink-0 w-28 transition-colors"
              x-show="((liveStats||{}).extra_devices||[]).length > 0"
              :class="status.active_wan === 'failover' ? 'border-amber-500/50' : 'border-slate-700'">
-          <img x-show="deviceIcon(xdev.model) || deviceIcon(xdev.name)"
-               :src="deviceIcon(xdev.model) || deviceIcon(xdev.name)"
-               class="w-10 h-10 object-contain" alt="device">
-          <span class="text-xs text-slate-400 font-medium mt-0.5"
-                x-text="fmtModel(xdev.model) || fmtModel(xdev.name) || xdev.model || xdev.name"></span>
+          <!-- Throughput (top) -->
+          <div class="w-full space-y-0.5">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-slate-500 text-xs">↓</span>
+              <span class="font-mono text-xs font-bold"
+                    :class="status.active_wan === 'failover' ? 'text-emerald-400' : 'text-slate-600'"
+                    x-text="status.active_wan === 'failover' ? fmtSpeed((liveStats||{}).active_wan_rx_mbps) : '0 Mbps'"></span>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-slate-500 text-xs">↑</span>
+              <span class="font-mono text-xs font-bold"
+                    :class="status.active_wan === 'failover' ? 'text-sky-400' : 'text-slate-600'"
+                    x-text="status.active_wan === 'failover' ? fmtSpeed((liveStats||{}).active_wan_tx_mbps) : '0 Mbps'"></span>
+            </div>
+          </div>
+          <!-- Device icon + name (middle) -->
+          <div class="flex flex-col items-center w-full mt-1.5 pt-1.5 border-t border-slate-700/60">
+            <img x-show="deviceIcon(xdev.model) || deviceIcon(xdev.name)"
+                 :src="deviceIcon(xdev.model) || deviceIcon(xdev.name)"
+                 class="w-10 h-10 object-contain" alt="device">
+            <span class="text-xs text-slate-400 font-medium mt-0.5"
+                  x-text="fmtModel(xdev.model) || fmtModel(xdev.name) || xdev.model || xdev.name"></span>
+          </div>
+          <!-- Hardware stats (bottom) -->
           <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5"
                x-show="xdev.cpu != null || xdev.mem != null || xdev.signal != null || xdev.rsrp != null">
             <div class="flex items-center justify-between gap-3" x-show="xdev.cpu != null">
@@ -237,20 +262,6 @@
                 </span>
                 <span class="font-mono text-xs" :class="signalColor(dbm)" x-text="dbm + ' dBm'"></span>
               </span>
-            </div>
-          </div>
-          <div class="mt-1.5 pt-1.5 border-t border-slate-700/60 w-full space-y-0.5">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-slate-500 text-xs">↓</span>
-              <span class="font-mono text-xs font-bold"
-                    :class="status.active_wan === 'failover' ? 'text-emerald-400' : 'text-slate-600'"
-                    x-text="status.active_wan === 'failover' ? fmtSpeed((liveStats||{}).active_wan_rx_mbps) : '0 Mbps'"></span>
-            </div>
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-slate-500 text-xs">↑</span>
-              <span class="font-mono text-xs font-bold"
-                    :class="status.active_wan === 'failover' ? 'text-sky-400' : 'text-slate-600'"
-                    x-text="status.active_wan === 'failover' ? fmtSpeed((liveStats||{}).active_wan_tx_mbps) : '0 Mbps'"></span>
             </div>
           </div>
         </div>
