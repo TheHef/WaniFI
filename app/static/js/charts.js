@@ -10,8 +10,18 @@ window.metricsChart = function () {
     init() {
       this.loadMetrics();
       this.timer = setInterval(() => this.loadMetrics(), 30000);
+
+      // Resize charts when the section becomes visible again (tab switching)
+      this._resizeObs = new ResizeObserver(() => {
+        if (this.chartRx)  this.chartRx.resize();
+        if (this.chartLat) this.chartLat.resize();
+      });
+      this._resizeObs.observe(this.$el);
     },
-    destroy() { if (this.timer) clearInterval(this.timer); },
+    destroy() {
+      if (this.timer) clearInterval(this.timer);
+      if (this._resizeObs) this._resizeObs.disconnect();
+    },
 
     async setRange(r) {
       this.range = r;

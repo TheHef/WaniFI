@@ -68,6 +68,13 @@ window.app = function () {
       await this.loadQbSettings();
       await this.loadEmbySettings();
       await this.loadIntegrations();
+
+      // First run: redirect to settings if UniFi is not configured yet
+      if (!this.settings.unifi_host && !this.settings.unifi_api_key_set && !fromPath) {
+        this.tab = 'settings';
+        history.replaceState(null, '', '/settings');
+      }
+
       await this.refreshLive();
       await this.refreshLiveStats();
       this.timer     = setInterval(() => this.refreshLive(),     5000);
