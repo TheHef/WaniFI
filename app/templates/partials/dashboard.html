@@ -142,6 +142,10 @@
                 <span class="text-slate-400 text-sm">WAN IP</span>
                 <span class="font-mono text-sm text-slate-100" x-text="(liveStats||{}).active_wan_ip || pw.wan_ip || '—'"></span>
               </div>
+              <div class="stat-row" x-show="(liveStats||{}).gw_ip">
+                <span class="text-slate-400 text-sm">Device IP</span>
+                <span class="font-mono text-sm text-slate-100" x-text="(liveStats||{}).gw_ip"></span>
+              </div>
               <div class="stat-row" x-show="pw.isp_name">
                 <span class="text-slate-400 text-sm">ISP</span>
                 <span class="text-sm text-slate-100" x-text="pw.isp_name"></span>
@@ -153,10 +157,6 @@
               <div class="stat-row">
                 <span class="text-slate-400 text-sm">Active for</span>
                 <span class="text-sm text-slate-100" x-text="fmtSince(status.state_changed_at)"></span>
-              </div>
-              <div class="stat-row" x-show="(liveStats||{}).gw_ip">
-                <span class="text-slate-400 text-sm">Device IP</span>
-                <span class="font-mono text-sm text-slate-100" x-text="(liveStats||{}).gw_ip"></span>
               </div>
             </div>
           </template>
@@ -271,6 +271,10 @@
                 <span class="text-slate-400 text-sm">WAN IP</span>
                 <span class="font-mono text-sm text-slate-100" x-text="(liveStats||{}).active_wan_ip || fw.wan_ip || '—'"></span>
               </div>
+              <div class="stat-row" x-show="xdev.ip || xdev.wan_ip">
+                <span class="text-slate-400 text-sm">Device IP</span>
+                <span class="font-mono text-sm text-slate-100" x-text="xdev.ip || xdev.wan_ip || '—'"></span>
+              </div>
               <div class="stat-row" x-show="fw.isp_name">
                 <span class="text-slate-400 text-sm">ISP</span>
                 <span class="text-sm text-slate-100" x-text="fw.isp_name"></span>
@@ -282,10 +286,6 @@
               <div class="stat-row">
                 <span class="text-slate-400 text-sm">Active for</span>
                 <span class="text-sm text-slate-100" x-text="fmtSince(status.state_changed_at)"></span>
-              </div>
-              <div class="stat-row" x-show="xdev.ip || xdev.wan_ip">
-                <span class="text-slate-400 text-sm">Device IP</span>
-                <span class="font-mono text-sm text-slate-100" x-text="xdev.ip || xdev.wan_ip || '—'"></span>
               </div>
             </div>
           </template>
