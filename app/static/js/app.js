@@ -63,30 +63,25 @@ window.app = function () {
       const fromPath = pathMap[location.pathname];
       if (fromPath) this.tab = fromPath;
 
+      // Stamp current state so every entry in history has a tab key
       history.replaceState({ tab: this.tab }, '', tabPaths[this.tab] || '/overview');
 
-      let _poppingState = false;
-      let _initializing = true;
+      // Use the browser URL as source of truth — if the URL already matches the
+      // target tab (e.g. browser just moved via popstate) we skip pushState entirely.
+      // No flags needed; this works regardless of whether $watch fires sync or async.
       this.$watch('tab', val => {
-        if (_poppingState) {
-          _poppingState = false;   // reset here — after Alpine processes the change
-          window.scrollTo(0, 0);
-          return;
-        }
-        if (_initializing) {
-          history.replaceState({ tab: val }, '', tabPaths[val] || '/overview');
-        } else {
-          history.pushState({ tab: val }, '', tabPaths[val] || '/overview');
-        }
+        const target = tabPaths[val] || '/overview';
+        if (location.pathname === target) return;
+        history.pushState({ tab: val }, '', target);
         window.scrollTo(0, 0);
         if (val === 'rules') this._setDefaultRuleType();
       });
 
-      window.addEventListener('popstate', (e) => {
+      window.addEventListener('popstate', e => {
         const t = e.state?.tab || pathMap[location.pathname];
         if (t && t !== this.tab) {
-          _poppingState = true;    // cleared inside $watch, not here
           this.tab = t;
+          window.scrollTo(0, 0);
         }
       });
 
@@ -100,10 +95,10 @@ window.app = function () {
       this._setDefaultRuleType();
 
       if (!this.settings.unifi_api_key_set && !fromPath) {
+        // Update the URL before setting the tab so $watch sees a match and skips pushState
+        history.replaceState({ tab: 'settings' }, '', '/settings');
         this.tab = 'settings';
       }
-
-      _initializing = false;
 
       await this.refreshLive();
       await this.refreshLiveStats();
