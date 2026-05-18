@@ -664,7 +664,7 @@
               <div class="text-sm font-medium text-slate-100"
                    x-text="r.name || r.rule_type"></div>
               <div class="text-xs text-slate-500 font-mono mt-0.5"
-                   x-text="r.rule_type === 'host_command' ? r.command : r.rule_type === 'webhook' ? r.command : r.container || r.action"></div>
+                   x-text="r.rule_type === 'host_command' || r.rule_type === 'webhook' ? r.command : ['docker','proxmox','portainer','homeassistant','nodered'].includes(r.rule_type) ? (r.container || r.action) : r.action"></div>
             </td>
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
                 x-text="({failover:'→ On failover', restored:'→ On restored', down:'→ On WAN down', high_latency:'→ On high latency'})[r.trigger] || ('→ ' + r.trigger)"></td>
