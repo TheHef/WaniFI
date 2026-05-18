@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from ..auth import (
     create_session,
     destroy_session,
+    is_session_valid,
     is_setup_done,
     set_admin_password,
     verify_admin_password,
@@ -70,6 +71,8 @@ async def setup_submit(payload: SetupIn, request: Request):
 async def login_page(request: Request):
     if not is_setup_done():
         return RedirectResponse("/setup", status_code=302)
+    if is_session_valid(request.cookies.get("session")):
+        return RedirectResponse("/", status_code=302)
     return _templates.TemplateResponse("login.html", {"request": request, "version": APP_VERSION})
 
 

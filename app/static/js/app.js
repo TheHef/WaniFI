@@ -63,13 +63,17 @@ window.app = function () {
       const fromPath = pathMap[location.pathname];
       if (fromPath) this.tab = fromPath;
 
-      // Replace current history entry so the initial URL is correct
       history.replaceState({ tab: this.tab }, '', tabPaths[this.tab] || '/overview');
 
       let _poppingState = false;
+      let _initializing = true;
       this.$watch('tab', val => {
         if (_poppingState) return;
-        history.pushState({ tab: val }, '', tabPaths[val] || '/overview');
+        if (_initializing) {
+          history.replaceState({ tab: val }, '', tabPaths[val] || '/overview');
+        } else {
+          history.pushState({ tab: val }, '', tabPaths[val] || '/overview');
+        }
         window.scrollTo(0, 0);
         if (val === 'rules') this._setDefaultRuleType();
       });
@@ -93,10 +97,11 @@ window.app = function () {
       await this.loadIntegrations();
       this._setDefaultRuleType();
 
-      // First run: redirect to settings if API key has never been saved
       if (!this.settings.unifi_api_key_set && !fromPath) {
         this.tab = 'settings';
       }
+
+      _initializing = false;
 
       await this.refreshLive();
       await this.refreshLiveStats();
