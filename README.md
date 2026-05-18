@@ -108,14 +108,23 @@ Go to **Settings → Tools** and toggle on the integrations you want to use. Eac
 
 ### 4. Add rules
 
-Rules tie a WAN event to an action. Examples:
+Each rule pairs a **trigger** with an **action**. Triggers fire on `failover`, `restored`, `down`, or `high_latency`. Actions depend on which integrations you have enabled:
 
-- **Docker** · *On failover* · Pause `qbittorrent`
-- **Docker** · *On restored* · Unpause `qbittorrent`
-- **qBittorrent** · *On failover* · Pause all torrents
-- **Emby** · *On failover* · Pause streams
-- **Host Command** · *On high latency* · `systemctl restart smokeping`
-- **ntfy** · sends a push notification automatically on any trigger
+| Integration | Available actions |
+|---|---|
+| **Docker** | Stop, start, restart, pause, unpause a named container |
+| **qBittorrent** | Enable/disable alt speed, set download/upload limit, pause/resume all torrents |
+| **Emby** | Set bitrate limit, clear bitrate limit, stop all sessions |
+| **Host Command** | Run any shell command as root on the Docker host |
+
+Example setup for a 5G failover scenario:
+
+| Rule | Trigger | Action |
+|---|---|---|
+| Slow QB | On failover | qBittorrent: enable alt speed |
+| Normal QB | On restored | qBittorrent: disable alt speed |
+| Limit Streams | On failover | Emby: set 2 Mbps bitrate limit |
+| Unlimit Streams | On restored | Emby: clear bitrate limit |
 
 ![Rules](docs/screenshots/rules.png)
 
@@ -141,36 +150,13 @@ run `docker compose up -d`.
 
 ## Security notes
 
-> ⚠️ **LAN only. Do not expose this to the public internet.**
->
-> WaniFi needs root-equivalent access to your Docker host to function
-> (`privileged: true`, `pid: host`, mounted Docker socket). It is built to
-> live behind your firewall on a trusted LAN and nothing else. There is no
-> rate limiting, no MFA, no audit logging, and the host-command feature lets
-> the admin run arbitrary shell as root. If you absolutely must reach it
-> from outside, use a VPN (WireGuard, Tailscale). Do **not** port-forward
-> `8765`, and do **not** stick it directly behind a reverse proxy without
-> additional authentication. You have been warned.
+> ⚠️ **LAN only — do not expose to the public internet.**
 
-WaniFi is designed to run **inside your network**, full stop. The threat
-model assumes only trusted users can reach the UI.
+WaniFi runs with `privileged: true`, `pid: host`, and a mounted Docker socket. Anyone who can reach the UI can effectively run arbitrary commands as root on your Docker host. That is intentional — it is what makes the automation work — but it means the attack surface is real.
 
-- **Root on the host.** The container runs with `privileged: true`,
-  `pid: host`, and a mounted Docker socket so it can use `nsenter` for
-  host-command rules and the Docker API for container actions. Anyone with
-  admin access to the WaniFi UI effectively has root on your Docker host.
-- **Single-user auth, no MFA, no rate limiting.** The login is one bcrypt
-  password and nothing else. Brute-force protection, IP allowlisting, audit
-  logging — none of that is in here.
-- **Arbitrary shell execution by design.** The "Host Command" rule type
-  runs whatever string you type, as root, on the host. That is the feature.
-  It is also why this should never be reachable from the public internet.
-- **Do not port-forward 8765.** Do not place it behind a reverse proxy
-  exposed to the internet, even with HTTPS. If you need remote access, use
-  a VPN (WireGuard, Tailscale, etc.) so the WaniFi UI stays on a private
-  network where it belongs.
-- **Backup `data/wanifi.db`.** It contains your UniFi API key, ntfy token,
-  and the bcrypt password hash. It is the only secret store.
+- **Keep it on your LAN.** No rate limiting, no MFA, no IP allowlisting. Use a VPN (WireGuard, Tailscale) if you need remote access. Do not port-forward `8765` or stick it behind a public reverse proxy.
+- **One password, no MFA.** The login is a single bcrypt password. If that is not enough for your threat model, add a layer in front (e.g. Authelia).
+- **Backup `data/wanifi.db`.** This file holds your UniFi API key, integration credentials, and the password hash — it is the only secret store.
 
 ## Support
 
