@@ -43,11 +43,7 @@
                 <div draggable="true"
                      @dragstart="$event.dataTransfer.setData('wan', JSON.stringify(w))"
                      class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-3 cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition flex flex-col items-center gap-2 text-center">
-                  <div>
-                    <div class="font-mono font-bold text-slate-200 text-xs" x-text="w.subsystem"></div>
-                    <div class="text-xs text-sky-400 leading-tight" x-show="w.device_model || w.device_name"
-                         x-text="fmtModel(w.device_model) || fmtModel(w.device_name) || w.device_name"></div>
-                  </div>
+                  <div class="font-mono font-bold text-slate-200 text-xs" x-text="w.subsystem"></div>
                   <img x-show="deviceIcon(w.device_model) || deviceIcon(w.device_name)"
                        :src="deviceIcon(w.device_model) || deviceIcon(w.device_name)"
                        draggable="false"
@@ -56,9 +52,13 @@
                        x-show="!(deviceIcon(w.device_model) || deviceIcon(w.device_name))">
                     <svg class="w-8 h-8 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="6" width="18" height="12" rx="2" stroke-width="1.5"/></svg>
                   </div>
-                  <div class="flex items-center justify-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full" :class="w.active ? 'bg-emerald-400' : 'bg-slate-600'"></span>
-                    <span class="text-xs" :class="w.active ? 'text-emerald-400' : 'text-slate-600'" x-text="w.active ? 'active' : 'standby'"></span>
+                  <div>
+                    <div class="text-xs text-sky-400 leading-tight" x-show="w.device_model || w.device_name"
+                         x-text="fmtModel(w.device_model) || fmtModel(w.device_name) || w.device_name"></div>
+                    <div class="flex items-center justify-center gap-1 mt-1">
+                      <span class="w-1.5 h-1.5 rounded-full" :class="w.active ? 'bg-emerald-400' : 'bg-slate-600'"></span>
+                      <span class="text-xs" :class="w.active ? 'text-emerald-400' : 'text-slate-600'" x-text="w.active ? 'active' : 'standby'"></span>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -70,13 +70,18 @@
           </div>
 
           <!-- Middle: drag hint arrow -->
-          <div class="hidden md:flex items-center justify-center pt-10 pointer-events-none select-none">
-            <svg viewBox="0 0 60 130" class="w-12 h-28" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="6" y1="65" x2="18" y2="65"/>
-              <path d="M18 65 Q18 28 46 28"/>
-              <polyline points="40,22 46,28 40,34"/>
-              <path d="M18 65 Q18 102 46 102"/>
-              <polyline points="40,96 46,102 40,108"/>
+          <div class="hidden md:flex items-center justify-center pointer-events-none select-none">
+            <svg viewBox="0 0 100 100" class="w-20 h-20" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+              <!-- entry stem -->
+              <line x1="5" y1="50" x2="28" y2="50"/>
+              <!-- top branch -->
+              <path d="M28 50 C42 50 42 22 56 22"/>
+              <line x1="56" y1="22" x2="80" y2="22"/>
+              <polyline points="73,15 80,22 73,29"/>
+              <!-- bottom branch -->
+              <path d="M28 50 C42 50 42 78 56 78"/>
+              <line x1="56" y1="78" x2="80" y2="78"/>
+              <polyline points="73,71 80,78 73,85"/>
             </svg>
           </div>
 
