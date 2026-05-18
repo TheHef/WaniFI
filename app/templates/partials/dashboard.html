@@ -247,7 +247,7 @@
       <!-- Header -->
       <div class="px-5 pt-5 pb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <div class="text-lg font-bold text-amber-400" x-text="status.failover_wan_name || 'Failover WAN'"></div>
+          <div class="text-lg font-bold" :class="status.active_wan === 'failover' ? 'text-amber-300' : 'text-amber-500/60'" x-text="status.failover_wan_name || 'Failover WAN'"></div>
           <span class="font-mono text-xs bg-slate-800 border border-slate-700 text-slate-400 px-2 py-0.5 rounded-md" x-text="status.failover_wan"></span>
         </div>
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"

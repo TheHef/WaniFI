@@ -18,7 +18,7 @@ SESSION_IDLE_TIMEOUT = 60 * 60 * 24 * 30
 UNIFI_HTTP_TIMEOUT = 10.0
 NTFY_HTTP_TIMEOUT = 10.0
 
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.5.4"
 
 logging.basicConfig(
     level=logging.INFO,
