@@ -993,10 +993,10 @@ window.app = function () {
       if (d.ok) {
         this.integrations[name] = d.enabled;
         if (d.enabled) {
-          if (['emby', 'jellyfin', 'plex', 'seerr'].includes(name))                                          this.categoryOpen.media = true;
+          if (['emby', 'jellyfin', 'plex', 'seerr', 'sonarr', 'radarr'].includes(name))                      this.categoryOpen.media = true;
           else if (['qb', 'sabnzbd', 'transmission', 'deluge', 'nzbget'].includes(name))                    this.categoryOpen.downloaders = true;
           else if (['ntfy', 'discord', 'telegram', 'pushover', 'gotify'].includes(name))                    this.categoryOpen.notifications = true;
-          else if (['homeassistant', 'proxmox', 'sonarr', 'radarr', 'portainer', 'truenas', 'unraid', 'nodered'].includes(name)) this.categoryOpen.homelab = true;
+          else if (['homeassistant', 'proxmox', 'portainer', 'truenas', 'unraid', 'nodered'].includes(name)) this.categoryOpen.homelab = true;
           else if (['pihole', 'adguard'].includes(name))                                                     this.categoryOpen.network = true;
         }
       }
