@@ -1,4 +1,9 @@
-"""Gotify push notification client."""
+"""Gotify push notification client.
+
+The main dispatch logic lives in notify.py (_send_gotify / send_notification).
+This module exposes a standalone helper used by the test endpoint in
+routes/notify_channels.py.
+"""
 import httpx
 
 from .config import log
@@ -6,6 +11,7 @@ from .db import get_setting
 
 
 async def send_gotify(title: str, message: str, priority: int = 5) -> tuple[bool, str]:
+    """Send a single Gotify notification. Used by the /api/test-gotify endpoint."""
     url   = get_setting("gotify_url", "")
     token = get_setting("gotify_token", "")
     if not (url and token):

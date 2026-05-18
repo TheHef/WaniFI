@@ -512,7 +512,11 @@ async def run_nzbget_action(action: str, value: str = "") -> tuple[bool, str]:
         if action == "resume":
             return await client.resume()
         if action == "set_speed_limit":
-            return await client.set_speed_limit(int(value) if value else 0)
+            try:
+                limit = int(value) if value else 0
+            except (ValueError, TypeError):
+                limit = 0
+            return await client.set_speed_limit(limit)
         return False, f"Unknown NZBGet action: {action}"
     finally:
         await client.close()
@@ -727,12 +731,12 @@ async def live_stats_loop():
                     state.latency_last_fired = time.time()
                     await a_log_event("warn", f"High latency: {lat} ms (threshold {threshold} ms)")
                     _create_task(fire_trigger("high_latency"))
-                    if get_setting("ntfy_on_high_latency", "0") == "1":
-                        _create_task(send_notification(
-                            "WaniFi high latency",
-                            f"Latency {lat} ms exceeds threshold {threshold} ms",
-                            priority="default", tags="warning",
-                        ))
+                    _create_task(send_notification(
+                        "WaniFi high latency",
+                        f"Latency {lat} ms exceeds threshold {threshold} ms",
+                        priority="default", tags="warning",
+                        event="high_latency",
+                    ))
         except asyncio.CancelledError:
             if client:
                 await client.close()
@@ -788,19 +792,21 @@ async def watcher_loop():
                 if previous is not None:
                     await a_log_event("info", f"WAN state change: {previous} -> {new_state}")
                     await apply_rules(new_state)
-                    if new_state == "failover" and get_setting("ntfy_on_failover", "1") == "1":
+                    if new_state == "failover":
                         name = get_setting("failover_wan_name") or failover
                         _create_task(send_notification(
                             "WAN Failover",
                             f"Primary WAN is down — switched to {name}",
                             priority="high", tags="warning,rotating_light",
+                            event="failover",
                         ))
-                    elif new_state == "primary" and get_setting("ntfy_on_restored", "1") == "1":
+                    elif new_state == "primary":
                         name = get_setting("primary_wan_name") or primary
                         _create_task(send_notification(
                             "WAN Restored",
                             f"Primary WAN ({name}) is back online",
                             priority="default", tags="white_check_mark",
+                            event="restored",
                         ))
                 else:
                     await a_log_event("info", f"Initial WAN state: {new_state}")
@@ -827,10 +833,10 @@ async def watcher_loop():
         except Exception as e:
             state.last_error = str(e)
             await a_log_event("error", f"Watcher error: {e}")
-            if get_setting("ntfy_on_error", "0") == "1":
-                _create_task(send_notification(
-                    "WaniFi Watcher Error", str(e), priority="low", tags="x",
-                ))
+            _create_task(send_notification(
+                "WaniFi Watcher Error", str(e), priority="low", tags="x",
+                event="error",
+            ))
             if client:
                 await client.close()
             client, last_settings = None, None

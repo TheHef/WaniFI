@@ -1,9 +1,13 @@
-"""Push notification dispatcher — ntfy, Discord, Telegram, Pushover."""
+"""Push notification dispatcher — ntfy, Discord, Telegram, Pushover, Gotify."""
 import httpx
 
 from .config import NTFY_HTTP_TIMEOUT, log
 from .db import get_setting
 
+
+# ---------------------------------------------------------------------------
+# Per-channel helpers
+# ---------------------------------------------------------------------------
 
 async def _send_ntfy(title: str, message: str, priority: str, tags: str) -> None:
     url_base = get_setting("ntfy_url", "")
@@ -72,17 +76,69 @@ async def _send_pushover(title: str, message: str) -> None:
         log.warning("Pushover notification failed: %s", e)
 
 
+async def _send_gotify(title: str, message: str) -> None:
+    gotify_url   = get_setting("gotify_url", "")
+    gotify_token = get_setting("gotify_token", "")
+    if not (gotify_url and gotify_token):
+        return
+    try:
+        async with httpx.AsyncClient(timeout=10.0, verify=False) as client:
+            resp = await client.post(
+                f"{gotify_url.rstrip('/')}/message",
+                headers={"X-Gotify-Key": gotify_token},
+                json={"title": title, "message": message, "priority": 5},
+            )
+            resp.raise_for_status()
+    except Exception as e:
+        log.warning("Gotify notification failed: %s", e)
+
+
+# ---------------------------------------------------------------------------
+# Main dispatcher
+# ---------------------------------------------------------------------------
+
+# Default setting for each event when a channel has no explicit config.
+_EVENT_DEFAULTS: dict[str, str] = {
+    "failover":     "1",
+    "restored":     "1",
+    "error":        "0",
+    "high_latency": "0",
+}
+
+
+def _channel_wants_event(channel: str, event: str) -> bool:
+    """Return True if the channel has opted in to this event type.
+
+    If *event* is empty (legacy / test call) we always send.
+    Channels without per-event settings (Discord, Telegram, Pushover) always
+    send when the integration toggle is on.
+    """
+    if not event:
+        return True
+    key     = f"{channel}_on_{event}"
+    default = _EVENT_DEFAULTS.get(event, "1")
+    return get_setting(key, default) == "1"
+
+
 async def send_notification(
     title: str,
     message: str,
     priority: str = "default",
     tags: str = "",
+    event: str = "",
 ) -> tuple[bool, str]:
-    """Dispatch to all enabled notification channels. Always returns (True, 'ok')
-    unless ntfy is the only channel and it fails (for backwards-compat test endpoint)."""
+    """Dispatch to all enabled notification channels.
+
+    *event* — one of 'failover', 'restored', 'error', 'high_latency'.
+    Each channel checks its own per-event opt-in settings.
+    Channels without per-event settings (Discord, Telegram, Pushover) always
+    fire when their integration toggle is enabled.
+    Returns (False, error_msg) only when ntfy is the sole failing channel
+    (preserved for backwards-compat with the test endpoint).
+    """
     errors: list[str] = []
 
-    if get_setting("integration_ntfy", "0") == "1":
+    if get_setting("integration_ntfy", "0") == "1" and _channel_wants_event("ntfy", event):
         url_base = get_setting("ntfy_url", "")
         topic    = get_setting("ntfy_topic", "")
         token    = get_setting("ntfy_token", "")
@@ -110,23 +166,15 @@ async def send_notification(
     if get_setting("integration_pushover", "0") == "1":
         await _send_pushover(title, message)
 
-    if get_setting("integration_gotify", "0") == "1":
-        gotify_url   = get_setting("gotify_url", "")
-        gotify_token = get_setting("gotify_token", "")
-        if gotify_url and gotify_token:
-            try:
-                async with httpx.AsyncClient(timeout=10.0, verify=False) as _gc:
-                    _gr = await _gc.post(
-                        f"{gotify_url.rstrip('/')}/message",
-                        headers={"X-Gotify-Key": gotify_token},
-                        json={"title": title, "message": message, "priority": 5},
-                    )
-                    _gr.raise_for_status()
-            except Exception as e:
-                log.warning("Gotify notification failed: %s", e)
+    if get_setting("integration_gotify", "0") == "1" and _channel_wants_event("gotify", event):
+        await _send_gotify(title, message)
 
     return (False, errors[0]) if errors else (True, "ok")
 
+
+# ---------------------------------------------------------------------------
+# Test helpers
+# ---------------------------------------------------------------------------
 
 async def test_ntfy() -> tuple[bool, str]:
     """Test ntfy specifically (for the test endpoint)."""

@@ -50,7 +50,8 @@ class PortainerClient:
             r2 = await client.post(
                 f"{self.base}/api/endpoints/{self.env_id}/docker/containers/{container_id}/{action}"
             )
-            if r2.status_code in (200, 204):
+            # 204 = success, 304 = already in desired state (also success)
+            if r2.status_code < 400:
                 return True, f"Container '{container_name}' {action}ed"
             return False, f"HTTP {r2.status_code}"
         except Exception as e:

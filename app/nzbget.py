@@ -47,6 +47,10 @@ class NZBGetClient:
         return ok, "Download resumed" if ok else str(r)
 
     async def set_speed_limit(self, limit_kb: int) -> tuple[bool, str]:
+        try:
+            limit_kb = int(limit_kb)
+        except (ValueError, TypeError):
+            limit_kb = 0
         ok, r = await self._call("rate", [limit_kb])
         return ok, f"Speed limit set to {limit_kb} KB/s" if ok else str(r)
 
