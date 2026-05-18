@@ -58,12 +58,26 @@ window.app = function () {
       if (saved) { try { this.discoveredWans = JSON.parse(saved); } catch {} }
 
       const pathMap = { '/overview':'dashboard', '/rules':'rules', '/settings':'settings', '/events':'events' };
+      const tabPaths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
       const fromPath = pathMap[location.pathname];
       if (fromPath) this.tab = fromPath;
 
+      // Replace current history entry so the initial URL is correct
+      history.replaceState({ tab: this.tab }, '', tabPaths[this.tab] || '/overview');
+
+      let _poppingState = false;
       this.$watch('tab', val => {
-        const paths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
-        history.replaceState(null, '', paths[val] || '/overview');
+        if (_poppingState) return;
+        history.pushState({ tab: val }, '', tabPaths[val] || '/overview');
+      });
+
+      window.addEventListener('popstate', (e) => {
+        const t = e.state?.tab || pathMap[location.pathname];
+        if (t && t !== this.tab) {
+          _poppingState = true;
+          this.tab = t;
+          _poppingState = false;
+        }
       });
 
       await this.loadSettings();
@@ -77,7 +91,6 @@ window.app = function () {
       // First run: redirect to settings if API key has never been saved
       if (!this.settings.unifi_api_key_set && !fromPath) {
         this.tab = 'settings';
-        history.replaceState(null, '', '/settings');
       }
 
       await this.refreshLive();
