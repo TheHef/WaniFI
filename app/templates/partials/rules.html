@@ -35,7 +35,7 @@
         Jellyfin
       </button>
       <button x-show="integrations.plex"
-              @click="newRule.rule_type = 'plex'; newRule.action = 'stop_all_streams'; newRule.container = ''"
+              @click="newRule.rule_type = 'plex'; newRule.action = 'set_wan_bitrate'; newRule.container = ''"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'plex' ? 'bg-orange-500/20 border-orange-500/50 text-orange-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Plex
@@ -136,10 +136,16 @@
         <option value="high_latency">On high latency</option>
       </select>
       <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-orange-500">
+        <option value="set_wan_bitrate">Set WAN bitrate limit</option>
+        <option value="clear_wan_bitrate">Clear WAN bitrate limit</option>
         <option value="stop_all_streams">Stop all streams</option>
       </select>
+      <input x-show="newRule.action === 'set_wan_bitrate'"
+             x-model="newRule.container" type="number" min="1" placeholder="Mbps (e.g. 2)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-orange-500 transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
-             class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-orange-500 transition">
+             :class="newRule.action === 'set_wan_bitrate' ? '' : 'md:col-span-2'"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-orange-500 transition">
       <button @click="addRule()" class="md:col-span-4 bg-orange-500 hover:bg-orange-400 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
 
@@ -241,7 +247,7 @@
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
                 x-text="({failover:'→ On failover', restored:'→ On restored', down:'→ On WAN down', high_latency:'→ On high latency'})[r.trigger] || ('→ ' + r.trigger)"></td>
             <td class="px-4 py-3 text-slate-400 text-sm border-l border-slate-800"
-                x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.rule_type === 'emby' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'jellyfin' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'plex' ? ({stop_all_streams:'stop streams'})[r.action] || r.action : r.action"></td>
+                x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.rule_type === 'emby' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'jellyfin' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'plex' ? ({set_wan_bitrate: r.container ? r.container+' Mbps WAN limit' : 'set WAN limit', clear_wan_bitrate:'unlimited WAN', stop_all_streams:'stop streams'})[r.action] || r.action : r.action"></td>
             <td class="px-4 py-3 border-l border-slate-800 text-center">
               <button @click="toggleRule(r.id)" class="px-2.5 py-1 rounded-full text-xs font-medium transition"
                       :class="r.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-700 text-slate-500'"

@@ -8,7 +8,7 @@ from ..models import RuleIn, VALID_ACTIONS, VALID_TRIGGERS
 VALID_QB_ACTIONS       = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
 VALID_EMBY_ACTIONS     = ("set_bitrate_limit", "clear_bitrate_limit", "stop_all_sessions")
 VALID_JELLYFIN_ACTIONS = ("set_bitrate_limit", "clear_bitrate_limit", "stop_all_sessions")
-VALID_PLEX_ACTIONS     = ("stop_all_streams",)
+VALID_PLEX_ACTIONS     = ("set_wan_bitrate", "clear_wan_bitrate", "stop_all_streams")
 
 router = APIRouter(prefix="/api/rules")
 
@@ -125,7 +125,7 @@ async def run_rule(rule_id: int, _: bool = Depends(require_auth)):
         ok, msg = await _jellyfin_action(rule["action"], rule["container"])
     elif rule["rule_type"] == "plex":
         from ..watcher import _plex_action
-        ok, msg = await _plex_action(rule["action"])
+        ok, msg = await _plex_action(rule["action"], rule["container"])
     else:
         from ..docker_ops import container_action
         ok, msg = container_action(rule["container"], rule["action"])

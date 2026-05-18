@@ -167,7 +167,7 @@ async def _jellyfin_action(action: str, value: str = "") -> tuple[bool, str]:
         await client.close()
 
 
-async def _plex_action(action: str) -> tuple[bool, str]:
+async def _plex_action(action: str, value: str = "") -> tuple[bool, str]:
     from .plex import PlexClient
     url   = get_setting("plex_url", "")
     token = get_setting("plex_token", "")
@@ -175,6 +175,10 @@ async def _plex_action(action: str) -> tuple[bool, str]:
         return False, "Plex not configured"
     client = PlexClient(url, token)
     try:
+        if action == "set_wan_bitrate":
+            return await client.set_wan_bitrate(int(value) if value else 0)
+        if action == "clear_wan_bitrate":
+            return await client.clear_wan_bitrate()
         if action == "stop_all_streams":
             return await client.stop_all_streams()
         return False, f"Unknown Plex action: {action}"
@@ -232,7 +236,7 @@ async def fire_trigger(trigger: str):
                 f"Rule: Jellyfin {rule['action']} on {trigger} -> {msg}",
             )
         elif rtype == "plex":
-            ok, msg = await _plex_action(rule["action"])
+            ok, msg = await _plex_action(rule["action"], rule["container"])
             await a_log_event(
                 "info" if ok else "error",
                 f"Rule: Plex {rule['action']} on {trigger} -> {msg}",
