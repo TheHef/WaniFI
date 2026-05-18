@@ -66,7 +66,7 @@ All integrations are opt-in and toggled on/off individually in **Settings**.
 | **Plex** | Set/clear remote bitrate limit, stop all streams |
 | **Sonarr** | Disable/enable indexers, disable/enable download clients, search missing, refresh all |
 | **Radarr** | Disable/enable indexers, disable/enable download clients, search missing, refresh all |
-| **Seerr** *(Overseerr / Jellyseerr)* | Pause/resume all requests, trigger jobs |
+| **Seerr** *(Overseerr / Jellyseerr)* | Trigger sync jobs (Sync Radarr, Sync Sonarr) |
 
 ### 🏠 Homelab
 
@@ -197,8 +197,6 @@ Example setup for a 5G failover scenario:
 | Normal QB | On restored | qBittorrent: disable alt speed |
 | Limit Streams | On failover | Plex: set remote bitrate 4 Mbps |
 | Unlimit Streams | On restored | Plex: clear remote bitrate |
-| Pause Requests | On failover | Seerr: pause all requests |
-| Resume Requests | On restored | Seerr: resume all requests |
 | Disable DNS filter | On failover | Pi-hole: disable filtering |
 | Enable DNS filter | On restored | Pi-hole: enable filtering |
 
