@@ -68,7 +68,11 @@ window.app = function () {
       let _poppingState = false;
       let _initializing = true;
       this.$watch('tab', val => {
-        if (_poppingState) return;
+        if (_poppingState) {
+          _poppingState = false;   // reset here — after Alpine processes the change
+          window.scrollTo(0, 0);
+          return;
+        }
         if (_initializing) {
           history.replaceState({ tab: val }, '', tabPaths[val] || '/overview');
         } else {
@@ -81,10 +85,8 @@ window.app = function () {
       window.addEventListener('popstate', (e) => {
         const t = e.state?.tab || pathMap[location.pathname];
         if (t && t !== this.tab) {
-          _poppingState = true;
+          _poppingState = true;    // cleared inside $watch, not here
           this.tab = t;
-          _poppingState = false;
-          window.scrollTo(0, 0);
         }
       });
 
