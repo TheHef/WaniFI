@@ -19,13 +19,13 @@
       <button x-show="integrations.qb"
               @click="newRule.rule_type = 'qbittorrent'; newRule.action = 'alt_speed_on'; newRule.container = ''"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
-              :class="newRule.rule_type === 'qbittorrent' ? 'bg-green-500/20 border-green-500/50 text-green-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+              :class="newRule.rule_type === 'qbittorrent' ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         qBittorrent
       </button>
       <button x-show="integrations.emby"
               @click="newRule.rule_type = 'emby'; newRule.action = 'set_bitrate_limit'; newRule.container = ''"
               class="px-4 py-1.5 rounded-lg text-xs font-semibold border transition"
-              :class="newRule.rule_type === 'emby' ? 'bg-sky-500/20 border-sky-500/50 text-sky-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+              :class="newRule.rule_type === 'emby' ? 'bg-green-500/20 border-green-500/50 text-green-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Emby
       </button>
       <button x-show="integrations.jellyfin"
@@ -85,24 +85,24 @@
 
     <!-- Emby form -->
     <div x-show="newRule.rule_type === 'emby'" class="grid md:grid-cols-4 gap-3">
-      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500">
         <option value="failover">On failover</option>
         <option value="restored">On restored</option>
         <option value="down">On WAN down</option>
         <option value="high_latency">On high latency</option>
       </select>
-      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
+      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500">
         <option value="set_bitrate_limit">Set bitrate limit</option>
         <option value="clear_bitrate_limit">Clear bitrate limit</option>
         <option value="stop_all_sessions">Stop all sessions</option>
       </select>
       <input x-show="newRule.action === 'set_bitrate_limit'"
              x-model="newRule.container" type="number" min="1" placeholder="Mbps (e.g. 2)"
-             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
              :class="newRule.action === 'set_bitrate_limit' ? '' : 'md:col-span-2'"
-             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
-      <button @click="addRule()" class="md:col-span-4 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
 
     <!-- Jellyfin form -->
@@ -151,13 +151,13 @@
 
     <!-- qBittorrent form -->
     <div x-show="newRule.rule_type === 'qbittorrent'" class="grid md:grid-cols-4 gap-3">
-      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
         <option value="failover">On failover</option>
         <option value="restored">On restored</option>
         <option value="down">On WAN down</option>
         <option value="high_latency">On high latency</option>
       </select>
-      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-green-500">
+      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-sky-500">
         <option value="alt_speed_on">Enable alt speed</option>
         <option value="alt_speed_off">Disable alt speed</option>
         <option value="set_dl_limit">Set download limit</option>
@@ -167,11 +167,11 @@
       </select>
       <input x-show="newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit'"
              x-model="newRule.container" type="number" min="0" placeholder="Speed KB/s (0 = unlimited)"
-             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
              :class="(newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit') ? '' : 'md:col-span-2'"
-             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-green-500 transition">
-      <button @click="addRule()" class="md:col-span-4 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
   </div>
 
@@ -180,7 +180,7 @@
     <table class="w-full text-sm">
       <thead class="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-950/50">
         <tr>
-          <th class="text-left pl-4 pr-2 py-3 w-8"></th>
+          <th class="text-left pl-4 pr-2 py-3">Type</th>
           <th class="text-left pl-4 pr-5 py-3 border-l border-slate-800">Rule</th>
           <th class="text-left px-4 py-3 border-l border-slate-800">Trigger</th>
           <th class="text-left px-4 py-3 border-l border-slate-800">Action</th>
@@ -193,48 +193,10 @@
       <tbody>
         <template x-for="r in rules" :key="r.id">
           <tr class="border-t border-slate-800">
-            <td class="pl-4 pr-2 py-3 w-8">
-              <span class="w-6 h-6 flex items-center justify-center rounded shrink-0"
-                    :class="r.rule_type === 'host_command' ? 'bg-violet-500/20 text-violet-400' : r.rule_type === 'qbittorrent' ? 'bg-green-500/20 text-green-400' : r.rule_type === 'emby' ? 'bg-sky-500/20 text-sky-400' : r.rule_type === 'jellyfin' ? 'bg-purple-500/20 text-purple-400' : r.rule_type === 'plex' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'"
-                    :title="r.rule_type === 'host_command' ? 'Host Command' : r.rule_type === 'qbittorrent' ? 'qBittorrent' : r.rule_type === 'emby' ? 'Emby' : r.rule_type === 'jellyfin' ? 'Jellyfin' : r.rule_type === 'plex' ? 'Plex' : 'Docker Container'">
-                <template x-if="r.rule_type === 'docker'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 50 42" fill="currentColor">
-                    <rect x="2"  y="17" width="8" height="7" rx="1.5"/>
-                    <rect x="12" y="17" width="8" height="7" rx="1.5"/>
-                    <rect x="22" y="17" width="8" height="7" rx="1.5"/>
-                    <rect x="12" y="9"  width="8" height="7" rx="1.5"/>
-                    <rect x="22" y="9"  width="8" height="7" rx="1.5"/>
-                    <rect x="22" y="1"  width="8" height="7" rx="1.5"/>
-                    <path d="M0 26c0 8.8 5.4 14 14 14h14c7 0 12-4.2 14-10 .8-2 1.5-5 0-6.5-1.2 0-3.2.5-5.5.5H0z"/>
-                  </svg>
-                </template>
-                <template x-if="r.rule_type === 'host_command'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h6l-1 2H8a1 1 0 0 0 0 2h8a1 1 0 0 0 0-2h-1l-1-2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-1 12H5V6h14v9z"/>
-                  </svg>
-                </template>
-                <template x-if="r.rule_type === 'qbittorrent'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10v3h-4v-3a6 6 0 0 0-12 0v3H2v-3z"/>
-                    <rect x="2" y="15" width="4" height="5" rx="1.5"/>
-                    <rect x="18" y="15" width="4" height="5" rx="1.5"/>
-                  </svg>
-                </template>
-                <template x-if="r.rule_type === 'emby'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 3l7 9-7 9h2.5l5.5-7 5.5 7H20L13 12l7-9h-2.5L12 10 6.5 3H4z"/>
-                  </svg>
-                </template>
-                <template x-if="r.rule_type === 'jellyfin'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
-                  </svg>
-                </template>
-                <template x-if="r.rule_type === 'plex'">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 1L3 5v14l9 4 9-4V5l-9-4zm0 2.18l7 3.11V15.7l-7 3.11-7-3.11V6.29l7-3.11zM10 8v8l6-4-6-4z"/>
-                  </svg>
-                </template>
+            <td class="pl-4 pr-3 py-3">
+              <span class="inline-block px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap"
+                    :class="r.rule_type === 'host_command' ? 'bg-violet-500/20 text-violet-400' : r.rule_type === 'docker' ? 'bg-blue-500/20 text-blue-400' : r.rule_type === 'qbittorrent' ? 'bg-sky-500/20 text-sky-400' : r.rule_type === 'emby' ? 'bg-green-500/20 text-green-400' : r.rule_type === 'jellyfin' ? 'bg-purple-500/20 text-purple-400' : r.rule_type === 'plex' ? 'bg-orange-500/20 text-orange-400' : 'bg-slate-700 text-slate-400'"
+                    x-text="r.rule_type === 'host_command' ? 'HC' : r.rule_type === 'docker' ? 'DC' : r.rule_type === 'qbittorrent' ? 'qBit' : r.rule_type === 'emby' ? 'Emby' : r.rule_type === 'jellyfin' ? 'Jellyfin' : r.rule_type === 'plex' ? 'Plex' : r.rule_type">
               </span>
             </td>
             <td class="pl-4 pr-5 py-3 border-l border-slate-800">
