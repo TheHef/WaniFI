@@ -69,6 +69,7 @@ window.app = function () {
       this.$watch('tab', val => {
         if (_poppingState) return;
         history.pushState({ tab: val }, '', tabPaths[val] || '/overview');
+        if (val === 'rules') this._setDefaultRuleType();
       });
 
       window.addEventListener('popstate', (e) => {
@@ -87,6 +88,7 @@ window.app = function () {
       await this.loadJellyfinSettings();
       await this.loadPlexSettings();
       await this.loadIntegrations();
+      this._setDefaultRuleType();
 
       // First run: redirect to settings if API key has never been saved
       if (!this.settings.unifi_api_key_set && !fromPath) {
@@ -198,8 +200,9 @@ window.app = function () {
         body: JSON.stringify(this.newRule),
       });
       const keep_type = this.newRule.rule_type, keep_trigger = this.newRule.trigger;
-      const default_action = keep_type === 'qbittorrent' ? 'alt_speed_on' : 'stop';
-      this.newRule = { rule_type: keep_type, name: '', container: '', trigger: keep_trigger, action: default_action, command: '' };
+      this.newRule = { rule_type: keep_type, name: '', container: '', trigger: keep_trigger, action: '', command: '' };
+      this._setDefaultRuleType();
+      this.newRule.trigger = keep_trigger;
       await this.refreshLive();
     },
 
@@ -427,6 +430,25 @@ window.app = function () {
     // ---- Integrations -----------------------------------------------------
     async loadIntegrations() {
       this.integrations = await fetch('/api/integrations').then(r => r.json());
+    },
+
+    _setDefaultRuleType() {
+      const order = [
+        ['host_command', 'host_command', ''],
+        ['docker',       'docker',       'stop'],
+        ['qbittorrent',  'qb',           'alt_speed_on'],
+        ['emby',         'emby',         'set_bitrate_limit'],
+        ['jellyfin',     'jellyfin',     'set_bitrate_limit'],
+        ['plex',         'plex',         'set_wan_bitrate'],
+      ];
+      for (const [rtype, ikey, action] of order) {
+        if (this.integrations[ikey]) {
+          this.newRule.rule_type = rtype;
+          this.newRule.action    = action;
+          return;
+        }
+      }
+      this.newRule.rule_type = '';
     },
 
     async toggleIntegration(name) {
