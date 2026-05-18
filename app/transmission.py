@@ -49,17 +49,22 @@ class TransmissionClient:
         ok, data = await self._rpc("torrent-start")
         return ok, "All torrents started" if ok else data.get("result", "error")
 
-    async def set_speed_limit(self, down_kbps: int, up_kbps: int = -1) -> tuple[bool, str]:
-        args: dict = {}
-        if down_kbps >= 0:
-            args["speed-limit-down"] = down_kbps
-            args["speed-limit-down-enabled"] = down_kbps > 0
-        if up_kbps >= 0:
-            args["speed-limit-up"] = up_kbps
-            args["speed-limit-up-enabled"] = up_kbps > 0
+    async def set_alt_speed(self, enabled: bool) -> tuple[bool, str]:
+        ok, data = await self._rpc("session-set", {"alt-speed-enabled": enabled})
+        label = "enabled" if enabled else "disabled"
+        return ok, f"Alt speed {label}" if ok else data.get("result", "error")
+
+    async def set_dl_limit(self, down_kbps: int) -> tuple[bool, str]:
+        args = {"speed-limit-down": down_kbps, "speed-limit-down-enabled": down_kbps > 0}
         ok, data = await self._rpc("session-set", args)
         label = f"{down_kbps} KB/s" if down_kbps > 0 else "unlimited"
         return ok, f"Download limit set to {label}" if ok else data.get("result", "error")
+
+    async def set_ul_limit(self, up_kbps: int) -> tuple[bool, str]:
+        args = {"speed-limit-up": up_kbps, "speed-limit-up-enabled": up_kbps > 0}
+        ok, data = await self._rpc("session-set", args)
+        label = f"{up_kbps} KB/s" if up_kbps > 0 else "unlimited"
+        return ok, f"Upload limit set to {label}" if ok else data.get("result", "error")
 
     async def close(self):
         if self._client:

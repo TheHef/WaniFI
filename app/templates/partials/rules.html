@@ -27,13 +27,13 @@
         SABnzbd
       </button>
       <button x-show="integrations.transmission"
-              @click="newRule.rule_type = 'transmission'; newRule.action = 'pause_all'; newRule.container = ''"
+              @click="newRule.rule_type = 'transmission'; newRule.action = 'alt_speed_on'; newRule.container = ''"
               class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'transmission' ? 'bg-[#C33B2E]/20 border-[#C33B2E]/50 text-[#C33B2E]' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Transmission
       </button>
       <button x-show="integrations.deluge"
-              @click="newRule.rule_type = 'deluge'; newRule.action = 'pause_all'; newRule.container = ''"
+              @click="newRule.rule_type = 'deluge'; newRule.action = 'set_dl_limit'; newRule.container = ''"
               class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
               :class="newRule.rule_type === 'deluge' ? 'bg-[#88B04B]/20 border-[#88B04B]/50 text-[#88B04B]' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         Deluge
@@ -184,15 +184,18 @@
         <option value="high_latency">On high latency</option>
       </select>
       <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#C33B2E]">
+        <option value="alt_speed_on">Enable alt speed</option>
+        <option value="alt_speed_off">Disable alt speed</option>
+        <option value="set_dl_limit">Set download limit</option>
+        <option value="set_ul_limit">Set upload limit</option>
         <option value="pause_all">Pause all</option>
         <option value="resume_all">Resume all</option>
-        <option value="set_speed_limit">Set download limit</option>
       </select>
-      <input x-show="newRule.action === 'set_speed_limit'"
+      <input x-show="newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit'"
              x-model="newRule.container" type="number" min="0" placeholder="KB/s (0 = unlimited)"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#C33B2E] transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
-             :class="newRule.action === 'set_speed_limit' ? '' : 'md:col-span-2'"
+             :class="(newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit') ? '' : 'md:col-span-2'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#C33B2E] transition">
       <button @click="addRule()" class="md:col-span-4 bg-[#C33B2E] hover:bg-[#C33B2E]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
@@ -206,15 +209,16 @@
         <option value="high_latency">On high latency</option>
       </select>
       <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#88B04B]">
+        <option value="set_dl_limit">Set download limit</option>
+        <option value="set_ul_limit">Set upload limit</option>
         <option value="pause_all">Pause all</option>
         <option value="resume_all">Resume all</option>
-        <option value="set_speed_limit">Set download limit</option>
       </select>
-      <input x-show="newRule.action === 'set_speed_limit'"
-             x-model="newRule.container" type="number" min="-1" placeholder="KB/s (-1 = unlimited)"
+      <input x-show="newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit'"
+             x-model="newRule.container" type="number" min="0" placeholder="KB/s (0 = unlimited)"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#88B04B] transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
-             :class="newRule.action === 'set_speed_limit' ? '' : 'md:col-span-2'"
+             :class="(newRule.action === 'set_dl_limit' || newRule.action === 'set_ul_limit') ? '' : 'md:col-span-2'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#88B04B] transition">
       <button @click="addRule()" class="md:col-span-4 bg-[#88B04B] hover:bg-[#88B04B]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition">Add rule</button>
     </div>
