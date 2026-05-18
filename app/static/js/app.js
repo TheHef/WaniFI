@@ -40,7 +40,7 @@ window.app = function () {
     haMsg: '', proxmoxMsg: '', sonarrMsg: '', radarrMsg: '',
 
     integrations: {
-      host_command: false, docker: false,
+      host_command: false, docker: false, webhook: false,
       qb: false, sabnzbd: false, transmission: false, deluge: false,
       emby: false, jellyfin: false, plex: false,
       ntfy: false, discord: false, telegram: false, pushover: false,
@@ -731,6 +731,7 @@ window.app = function () {
         ['proxmox',       'proxmox',       'stop_vm'],
         ['sonarr',        'sonarr',        'disable_indexers'],
         ['radarr',        'radarr',        'disable_indexers'],
+        ['webhook',       'webhook',       'send'],
       ];
       for (const [rtype, ikey, action] of order) {
         if (this.integrations[ikey]) {
@@ -739,8 +740,6 @@ window.app = function () {
           return;
         }
       }
-      this.newRule.rule_type = 'webhook';
-      this.newRule.action    = 'send';
     },
 
     async toggleIntegration(name) {

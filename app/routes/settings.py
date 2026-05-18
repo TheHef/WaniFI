@@ -32,7 +32,7 @@ EXPORT_KEYS = (
     "proxmox_url", "proxmox_username", "proxmox_password", "proxmox_node",
     "sonarr_url", "sonarr_api_key",
     "radarr_url", "radarr_api_key",
-    "integration_host_command", "integration_docker",
+    "integration_host_command", "integration_docker", "integration_webhook",
     "integration_qb", "integration_sabnzbd", "integration_transmission", "integration_deluge",
     "integration_emby", "integration_jellyfin", "integration_plex",
     "integration_ntfy", "integration_discord", "integration_telegram", "integration_pushover",
