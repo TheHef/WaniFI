@@ -251,6 +251,9 @@ window.app = function () {
       const label = rule
         ? (rule.rule_type === 'host_command' ? rule.command
           : rule.rule_type === 'qbittorrent' ? `qB: ${rule.action} → ${rule.trigger}`
+          : rule.rule_type === 'emby'         ? `Emby: ${rule.action} → ${rule.trigger}`
+          : rule.rule_type === 'jellyfin'     ? `Jellyfin: ${rule.action} → ${rule.trigger}`
+          : rule.rule_type === 'plex'         ? `Plex: ${rule.action} → ${rule.trigger}`
           : `${rule.action} ${rule.container} → ${rule.trigger}`)
         : `Rule #${id}`;
       this.confirmModal = {
