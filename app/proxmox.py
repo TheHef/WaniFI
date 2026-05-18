@@ -63,22 +63,44 @@ class ProxmoxClient:
             return False, str(e)
 
     async def vm_action(self, node: str, vmid: str, action: str) -> tuple[bool, str]:
+        """Run a lifecycle action on a QEMU VM or LXC container.
+
+        vmid may be prefixed with 'lxc:' to target an LXC container,
+        e.g. 'lxc:101'. Plain numeric IDs target QEMU VMs first; if that
+        returns 404 the call is retried against the LXC endpoint.
+        """
         if not self._ticket:
             ok, err = await self._auth()
             if not ok:
                 return False, err
         client = await self._get_client()
-        try:
-            r = await client.post(
-                f"{self.base}/api2/json/nodes/{node}/qemu/{vmid}/status/{action}",
-                headers=self._headers(),
-                cookies=self._cookies(),
-            )
-            if r.status_code < 400:
-                return True, f"VM {vmid} {action} on node {node}"
-            return False, f"HTTP {r.status_code}"
-        except Exception as e:
-            return False, str(e)
+
+        # Explicit LXC prefix?
+        if vmid.startswith("lxc:"):
+            real_vmid = vmid[4:]
+            vm_types = ["lxc"]
+        else:
+            real_vmid = vmid
+            vm_types = ["qemu", "lxc"]  # try QEMU first, fall back to LXC
+
+        last_err = "unknown error"
+        for vm_type in vm_types:
+            try:
+                r = await client.post(
+                    f"{self.base}/api2/json/nodes/{node}/{vm_type}/{real_vmid}/status/{action}",
+                    headers=self._headers(),
+                    cookies=self._cookies(),
+                )
+                if r.status_code == 404 and len(vm_types) > 1:
+                    last_err = f"404 on {vm_type}"
+                    continue
+                if r.status_code < 400:
+                    kind = "Container" if vm_type == "lxc" else "VM"
+                    return True, f"{kind} {real_vmid} {action} on node {node}"
+                return False, f"HTTP {r.status_code}"
+            except Exception as e:
+                return False, str(e)
+        return False, f"VM/container {real_vmid} not found on node {node} ({last_err})"
 
     async def close(self):
         if self._client:

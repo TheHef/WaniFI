@@ -5,7 +5,7 @@ from typing import Optional
 
 class TransmissionClient:
     def __init__(self, url: str, username: str, password: str):
-        self.rpc_url  = url.rstrip("/").rstrip("/transmission/rpc") + "/transmission/rpc"
+        self.rpc_url  = url.rstrip("/").removesuffix("/transmission/rpc") + "/transmission/rpc"
         self.username = username
         self.password = password
         self._session_id: Optional[str] = None

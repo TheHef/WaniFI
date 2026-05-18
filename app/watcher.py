@@ -211,7 +211,11 @@ async def run_sabnzbd_action(action: str, value: str = "") -> tuple[bool, str]:
         if action == "resume":
             return await client.resume()
         if action == "set_speed_limit":
-            return await client.set_speed_limit(int(value) if value else 100)
+            try:
+                limit = int(value) if value else 100
+            except (ValueError, TypeError):
+                limit = 100
+            return await client.set_speed_limit(limit)
         return False, f"Unknown SABnzbd action: {action}"
     finally:
         await client.close()
@@ -235,9 +239,17 @@ async def run_transmission_action(action: str, value: str = "") -> tuple[bool, s
         if action == "alt_speed_off":
             return await client.set_alt_speed(False)
         if action == "set_dl_limit":
-            return await client.set_dl_limit(int(value) if value else 0)
+            try:
+                limit = int(value) if value else 0
+            except (ValueError, TypeError):
+                limit = 0
+            return await client.set_dl_limit(limit)
         if action == "set_ul_limit":
-            return await client.set_ul_limit(int(value) if value else 0)
+            try:
+                limit = int(value) if value else 0
+            except (ValueError, TypeError):
+                limit = 0
+            return await client.set_ul_limit(limit)
         return False, f"Unknown Transmission action: {action}"
     finally:
         await client.close()
@@ -259,9 +271,17 @@ async def run_deluge_action(action: str, value: str = "") -> tuple[bool, str]:
         if action == "resume_all":
             return await client.resume_all()
         if action == "set_dl_limit":
-            return await client.set_dl_limit(int(value) if value else 0)
+            try:
+                limit = int(value) if value else 0
+            except (ValueError, TypeError):
+                limit = 0
+            return await client.set_dl_limit(limit)
         if action == "set_ul_limit":
-            return await client.set_ul_limit(int(value) if value else 0)
+            try:
+                limit = int(value) if value else 0
+            except (ValueError, TypeError):
+                limit = 0
+            return await client.set_ul_limit(limit)
         return False, f"Unknown Deluge action: {action}"
     finally:
         await client.close()
