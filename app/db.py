@@ -106,10 +106,6 @@ def _load_cache():
     _cache_loaded = True
 
 
-def invalidate_cache():
-    _load_cache()
-
-
 def get_setting(key: str, default: Optional[str] = None) -> Optional[str]:
     if not _cache_loaded:
         _load_cache()

@@ -212,14 +212,14 @@
                 x-text="r.rule_type === 'host_command' ? 'run' : r.rule_type === 'qbittorrent' ? ({alt_speed_on:'turtle on', alt_speed_off:'turtle off', set_dl_limit:'dl limit', set_ul_limit:'ul limit', pause_all:'pause all', resume_all:'resume all'})[r.action] || r.action : r.rule_type === 'emby' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'jellyfin' ? ({set_bitrate_limit: r.container ? r.container+' Mbps limit' : 'set limit', clear_bitrate_limit:'unlimited', stop_all_sessions:'stop sessions'})[r.action] || r.action : r.rule_type === 'plex' ? ({set_wan_bitrate: r.container ? r.container+' Mbps WAN limit' : 'set WAN limit', clear_wan_bitrate:'unlimited WAN', stop_all_streams:'stop streams'})[r.action] || r.action : r.action"></td>
             <td class="px-4 py-3 border-l border-slate-800 text-center">
               <button @click="toggleRule(r.id)"
-                      class="relative w-9 h-5 rounded-full transition-colors duration-200 focus:outline-none shrink-0"
+                      class="relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none shrink-0"
                       :class="r.enabled ? 'bg-emerald-500' : 'bg-slate-700'">
-                <span class="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow-sm flex items-center justify-center transition-all duration-200"
-                      :class="r.enabled ? 'left-5' : 'left-0.5'">
-                  <svg x-show="r.enabled" class="w-2 h-2 text-emerald-500" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <span class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm flex items-center justify-center transition-all duration-200"
+                      :class="r.enabled ? 'left-6' : 'left-1'">
+                  <svg x-show="r.enabled" class="w-2.5 h-2.5 text-emerald-500" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M1 4l2.5 2.5L9 1"/>
                   </svg>
-                  <svg x-show="!r.enabled" class="w-1.5 h-1.5 text-slate-400" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <svg x-show="!r.enabled" class="w-2 h-2 text-slate-400" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                     <path d="M1 1l6 6M7 1L1 7"/>
                   </svg>
                 </span>
