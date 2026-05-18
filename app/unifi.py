@@ -87,10 +87,12 @@ def _cpu_mem(dev: dict) -> tuple[Optional[float], Optional[float]]:
     legacy = dev.get("system-stats", {})
     cpu, mem = None, None
 
-    cpu_val = sys_stats.get("cpu_usage") or legacy.get("cpu")
+    cpu_val = sys_stats.get("cpu_usage")
+    if cpu_val is None:
+        cpu_val = legacy.get("cpu")
     if cpu_val is not None:
         try:
-            cpu = round(float(cpu_val), 1)
+            cpu = min(round(float(cpu_val), 1), 100.0)
         except (TypeError, ValueError):
             pass
 

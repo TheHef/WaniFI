@@ -28,7 +28,7 @@ _bg_tasks: set[asyncio.Task] = set()
 
 
 def _create_task(coro) -> asyncio.Task:
-    t = _create_task(coro)
+    t = asyncio.create_task(coro)
     _bg_tasks.add(t)
     t.add_done_callback(_bg_tasks.discard)
     t.add_done_callback(lambda task: log.warning("Background task failed: %s", task.exception()) if not task.cancelled() and task.exception() else None)
