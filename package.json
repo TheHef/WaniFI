@@ -1,0 +1,15 @@
+{
+  "name": "wanifi",
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -i app/static/css/input.css -o app/static/css/tailwind.css --minify",
+    "watch": "tailwindcss -i app/static/css/input.css -o app/static/css/tailwind.css --watch"
+  },
+  "dependencies": {
+    "alpinejs": "^3.14.8",
+    "chart.js": "^4.4.9"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

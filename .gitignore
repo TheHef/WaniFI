@@ -23,6 +23,9 @@ Thumbs.db
 .vscode/
 *.swp
 
+# Node
+node_modules/
+
 # Build artefacts
 dist/
 build/

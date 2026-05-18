@@ -1,4 +1,3 @@
-<!-- Edit rule modal -->
 <div x-show="editModal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4"
      x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
      x-transition:leave="transition ease-in duration-100"  x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
@@ -139,10 +138,7 @@
       </div>
     </div>
   </div>
-</div>
-
-<!-- Confirm modal -->
-<div x-show="confirmModal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+</div><div x-show="confirmModal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4"
      x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
      x-transition:leave="transition ease-in duration-100"  x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="confirmModal.open = false"></div>
@@ -166,10 +162,7 @@
       <button @click="confirmModal.confirm()" class="px-4 py-2 rounded-xl text-sm font-semibold bg-red-500 hover:bg-red-400 text-white transition">Confirm</button>
     </div>
   </div>
-</div>
-
-<!-- Back to top -->
-<button x-data="{ show: false, init() { addEventListener('scroll', () => this.show = scrollY > 300); } }"
+</div><button x-data="{ show: false, init() { addEventListener('scroll', () => this.show = scrollY > 300); } }"
         x-show="show"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-2"

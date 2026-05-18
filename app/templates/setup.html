@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}WaniFi · Setup{% endblock %}
-{% block head_extra %}<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>{% endblock %}
+{% block head_extra %}<script defer src="/static/js/alpine.min.js?v={{ version }}"></script>{% endblock %}
 {% block body_class %} flex items-center justify-center{% endblock %}
 {% block body %}
 <div class="w-full max-w-sm px-4" x-data="{
@@ -17,10 +17,7 @@
           body: JSON.stringify({ password: this.password }),
         });
         const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) {
-          location.href = '/';
-          return;
-        }
+        if (r.ok && d.ok) { location.href = '/'; return; }
         this.error = d.error || d.detail || 'Setup failed';
       } catch (e) { this.error = String(e); }
       this.loading = false;
@@ -72,6 +69,6 @@
       </form>
     </div>
   </div>
+  <p class="text-center text-xs text-slate-600 mt-4">v{{ version }}</p>
 </div>
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 {% endblock %}

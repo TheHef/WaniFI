@@ -13,7 +13,7 @@ from ..auth import (
     set_admin_password,
     verify_admin_password,
 )
-from ..config import SESSION_MAX_AGE
+from ..config import APP_VERSION, SESSION_MAX_AGE
 from ..models import SetupIn
 
 router = APIRouter()
@@ -52,7 +52,7 @@ def _rate_limited(ip: str) -> bool:
 async def setup_page(request: Request):
     if is_setup_done():
         return RedirectResponse("/login", status_code=302)
-    return _templates.TemplateResponse("setup.html", {"request": request})
+    return _templates.TemplateResponse("setup.html", {"request": request, "version": APP_VERSION})
 
 
 @router.post("/setup")
@@ -70,7 +70,7 @@ async def setup_submit(payload: SetupIn, request: Request):
 async def login_page(request: Request):
     if not is_setup_done():
         return RedirectResponse("/setup", status_code=302)
-    return _templates.TemplateResponse("login.html", {"request": request})
+    return _templates.TemplateResponse("login.html", {"request": request, "version": APP_VERSION})
 
 
 @router.post("/login")
