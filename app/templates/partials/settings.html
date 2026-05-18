@@ -34,36 +34,27 @@
       <div x-show="settings.unifi_host && (settings.unifi_api_key_set || settings.unifi_api_key)">
 
         <p class="text-xs text-slate-500 mb-3">Drag your WAN interfaces to the correct slots:</p>
-        <div class="grid md:grid-cols-[1fr_48px_1fr] gap-0 items-start">
+        <div class="grid md:grid-cols-[minmax(0,0.3fr)_48px_1fr] gap-0 items-start">
 
           <!-- Left: discovered interfaces -->
           <div>
-            <div x-show="discoveredWans.length > 0" class="flex flex-col gap-3">
+            <div x-show="discoveredWans.length > 0" class="flex flex-col gap-2">
               <template x-for="w in discoveredWans" :key="w.subsystem">
                 <div draggable="true"
                      @dragstart="$event.dataTransfer.setData('wan', JSON.stringify(w))"
-                     class="bg-slate-800 border border-slate-600 rounded-xl px-4 py-3 text-sm cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition">
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <div class="font-mono font-bold text-slate-200" x-text="w.subsystem"></div>
-                      <span class="text-xs text-sky-400 mt-0.5 block" x-show="w.device_model || w.device_name"
-                            x-text="fmtModel(w.device_model) || fmtModel(w.device_name) || w.device_name"></span>
-                      <div class="text-xs text-slate-400 mt-0.5" x-text="w.isp_name || ''"></div>
-                      <div class="text-xs font-mono text-slate-500" x-show="w.wan_ip" x-text="w.wan_ip"></div>
-                      <div class="text-xs mt-2">
-                        <span :class="w.active ? 'text-emerald-400' : 'text-slate-600'" x-text="w.active ? '● active' : '○ standby'"></span>
-                      </div>
-                    </div>
-                    <img x-show="deviceIcon(w.device_model) || deviceIcon(w.device_name)"
-                         :src="deviceIcon(w.device_model) || deviceIcon(w.device_name)"
-                         class="w-16 h-16 object-contain shrink-0" alt="device">
+                     class="bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5 cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition">
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="w.active ? 'bg-emerald-400' : 'bg-slate-600'"></span>
+                    <span class="font-mono font-bold text-slate-200 text-xs truncate" x-text="w.subsystem"></span>
                   </div>
+                  <div class="text-xs text-sky-400 truncate leading-tight" x-show="w.device_model || w.device_name"
+                       x-text="fmtModel(w.device_model) || fmtModel(w.device_name) || w.device_name"></div>
                 </div>
               </template>
             </div>
             <div x-show="discoveredWans.length === 0"
-                 class="bg-slate-800/50 border border-dashed border-slate-700 rounded-2xl p-4 text-center">
-              <div class="text-slate-500 text-sm">Click <span class="text-sky-400 font-medium">Test Connection</span> to fetch WAN interfaces</div>
+                 class="bg-slate-800/50 border border-dashed border-slate-700 rounded-xl p-3 text-center">
+              <div class="text-slate-500 text-xs">Test Connection first</div>
             </div>
           </div>
 
