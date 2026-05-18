@@ -1,74 +1,87 @@
 {% extends "base.html" %}
 {% block title %}WaniFi · Setup{% endblock %}
 {% block head_extra %}<script defer src="/static/js/alpine.min.js?v={{ version }}"></script>{% endblock %}
-{% block body_class %} flex items-center justify-center{% endblock %}
+{% block body_class %} flex items-center justify-center relative overflow-hidden{% endblock %}
 {% block body %}
-<div class="w-full max-w-sm px-4" x-data="{
-    password: '', confirm: '', error: '', loading: false,
-    async submit() {
-      this.error = '';
-      if (this.password.length < 8) { this.error = 'Password must be at least 8 characters'; return; }
-      if (this.password !== this.confirm) { this.error = 'Passwords do not match'; return; }
-      this.loading = true;
-      try {
-        const r = await fetch('/setup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: this.password }),
-        });
-        const d = await r.json().catch(() => ({}));
-        if (r.ok && d.ok) { location.href = '/'; return; }
-        this.error = d.error || d.detail || 'Setup failed';
-      } catch (e) { this.error = String(e); }
-      this.loading = false;
-    }
-  }" x-cloak>
-  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden">
-    <div class="h-1 bg-gradient-to-r from-emerald-500 to-sky-400"></div>
-    <div class="p-6">
-      <div class="flex flex-col items-center mb-6">
-        <div class="flex items-center gap-3 mb-1">
-          <div class="w-10 h-10 rounded-xl overflow-hidden shadow-lg shrink-0">
-            <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="36" height="36" rx="9" fill="#1e3a5f"/>
-              <rect width="36" height="36" rx="9" fill="url(#lg2)"/>
-              <text x="18" y="26" font-family="Arial Black, sans-serif" font-size="21" font-weight="900" fill="white" text-anchor="middle" opacity="0.95">W</text>
-              <defs>
-                <linearGradient id="lg2" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#10b981"/>
-                  <stop offset="100%" stop-color="#0ea5e9"/>
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-          <h1 class="text-2xl font-bold tracking-tight">Welcome to WaniFi</h1>
-        </div>
-        <p class="text-sm text-slate-400">Set an admin password to get started.</p>
-      </div>
 
-      <div class="border-t border-slate-700/60 mb-5"></div>
+<div class="absolute inset-0 pointer-events-none">
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl"></div>
+  <div class="absolute bottom-1/3 left-1/3 w-64 h-64 bg-sky-500/8 rounded-full blur-3xl"></div>
+</div>
 
-      <template x-if="error">
-        <div class="mb-4 p-3 bg-red-500/15 border border-red-500/30 rounded-lg text-red-300 text-sm text-center" x-text="error"></div>
-      </template>
+<div class="relative w-full max-w-sm px-4 flex flex-col items-center gap-6">
 
-      <form @submit.prevent="submit()" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">New password</label>
-          <input type="password" x-model="password" required autofocus autocomplete="new-password" minlength="8"
-                 class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Confirm password</label>
-          <input type="password" x-model="confirm" required autocomplete="new-password" minlength="8"
-                 class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
-        </div>
-        <button type="submit" :disabled="loading"
-                class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg py-2.5 transition-colors text-sm tracking-wide"
-                x-text="loading ? 'Setting up…' : 'Create account'"></button>
-      </form>
+  <div class="flex flex-col items-center gap-3">
+    <div class="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl shadow-emerald-900/40 ring-1 ring-white/10">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="9" fill="#1e3a5f"/>
+        <rect width="36" height="36" rx="9" fill="url(#lg-setup)"/>
+        <text x="18" y="26" font-family="Arial Black, sans-serif" font-size="21" font-weight="900" fill="white" text-anchor="middle" opacity="0.95">W</text>
+        <defs>
+          <linearGradient id="lg-setup" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#10b981"/>
+            <stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="text-center">
+      <h1 class="text-2xl font-black tracking-tight text-slate-100">WaniFi</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Create your admin password.</p>
     </div>
   </div>
-  <span class="flex justify-center mt-4 text-[10px] font-semibold bg-slate-800 border border-slate-700 text-slate-500 px-1.5 py-0.5 rounded-md tracking-wide w-fit mx-auto">v{{ version }}</span>
+
+  <div class="w-full bg-slate-900/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
+    <div class="h-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60"></div>
+    <div class="p-6">
+      <div x-data="{
+        password: '', confirm: '', error: '', loading: false,
+        async submit() {
+          this.error = '';
+          if (this.password.length < 8) { this.error = 'Password must be at least 8 characters'; return; }
+          if (this.password !== this.confirm) { this.error = 'Passwords do not match'; return; }
+          this.loading = true;
+          try {
+            const r = await fetch('/setup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password: this.password }),
+            });
+            const d = await r.json().catch(() => ({}));
+            if (r.ok && d.ok) { location.href = '/'; return; }
+            this.error = d.error || d.detail || 'Setup failed';
+          } catch (e) { this.error = String(e); }
+          this.loading = false;
+        }
+      }" x-cloak>
+
+        <div x-show="error" x-cloak class="mb-5 flex items-center gap-2.5 p-3 bg-red-500/10 border border-red-500/25 rounded-xl">
+          <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="text-sm text-red-300" x-text="error"></span>
+        </div>
+
+        <form @submit.prevent="submit()" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">New password</label>
+            <input type="password" x-model="password" required autofocus autocomplete="new-password" minlength="8"
+                   class="w-full bg-slate-800/80 border border-slate-700/70 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/40 transition-all">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Confirm password</label>
+            <input type="password" x-model="confirm" required autocomplete="new-password" minlength="8"
+                   class="w-full bg-slate-800/80 border border-slate-700/70 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500/40 transition-all">
+          </div>
+          <button type="submit" :disabled="loading"
+                  class="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-60 text-white font-semibold rounded-xl py-3 transition-colors text-sm tracking-wide shadow-lg shadow-emerald-900/30"
+                  x-text="loading ? 'Setting up…' : 'Create password'"></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <span class="text-[10px] font-semibold bg-slate-800 border border-slate-700 text-slate-500 px-1.5 py-0.5 rounded-md tracking-wide">v{{ version }}</span>
+
 </div>
 {% endblock %}

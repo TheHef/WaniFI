@@ -7,27 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from ..auth import require_auth
 from ..db import db, invalidate_cache, log_event
+from .settings import EXPORT_KEYS   # single source of truth for all setting keys
 
 router = APIRouter(prefix="/api/backup")
 
-BACKUP_VERSION = 2
-
-SETTINGS_KEYS = (
-    "unifi_host", "unifi_api_key", "unifi_site",
-    "primary_wan", "failover_wan",
-    "primary_wan_name", "failover_wan_name",
-    "poll_interval", "event_retention_days",
-    "latency_threshold_ms", "latency_cooldown_min",
-    "ntfy_url", "ntfy_topic", "ntfy_token",
-    "ntfy_on_failover", "ntfy_on_restored",
-    "ntfy_on_error", "ntfy_on_high_latency",
-    "qb_url", "qb_username", "qb_password",
-    "emby_url", "emby_token",
-    "jellyfin_url", "jellyfin_token",
-    "plex_url", "plex_token",
-    "integration_host_command", "integration_docker", "integration_qb",
-    "integration_emby", "integration_jellyfin", "integration_plex", "integration_ntfy",
-)
+BACKUP_VERSION = 3
 
 
 @router.get("/export")
@@ -35,15 +19,16 @@ async def export_backup(_: bool = Depends(require_auth)):
     with db() as conn:
         rows = conn.execute(
             "SELECT key, value FROM settings WHERE key IN ({})".format(
-                ",".join("?" * len(SETTINGS_KEYS))
+                ",".join("?" * len(EXPORT_KEYS))
             ),
-            SETTINGS_KEYS,
+            EXPORT_KEYS,
         ).fetchall()
         settings = {r["key"]: r["value"] for r in rows}
 
         rules = [dict(r) for r in conn.execute(
-            "SELECT rule_type, name, container, trigger, action, command, enabled "
-            "FROM rules ORDER BY id"
+            "SELECT rule_type, name, container, trigger, action, command, "
+            "enabled, delay_seconds, sort_order "
+            "FROM rules ORDER BY sort_order, id"
         ).fetchall()]
 
         events = [dict(r) for r in conn.execute(
@@ -79,15 +64,16 @@ async def import_backup(request: Request, _: bool = Depends(require_auth)):
         raise HTTPException(400, f"Backup version {version} is newer than supported ({BACKUP_VERSION})")
 
     counts = {"settings": 0, "rules": 0, "events": 0}
+
+    # v1 was a flat settings-only payload; v2+ use a nested "settings" key
     settings = payload.get("settings")
     if settings is None and version == 1:
-        # v1 was a flat settings-only payload
-        settings = {k: payload[k] for k in SETTINGS_KEYS if k in payload}
+        settings = {k: payload[k] for k in EXPORT_KEYS if k in payload}
 
     with db() as conn:
         if isinstance(settings, dict):
             for k, v in settings.items():
-                if k not in SETTINGS_KEYS or v in (None, ""):
+                if k not in EXPORT_KEYS or v in (None, ""):
                     continue
                 conn.execute(
                     "INSERT INTO settings(key, value) VALUES(?, ?) "
@@ -99,10 +85,12 @@ async def import_backup(request: Request, _: bool = Depends(require_auth)):
         rules = payload.get("rules")
         if isinstance(rules, list):
             conn.execute("DELETE FROM rules")
-            for r in rules:
+            for idx, r in enumerate(rules):
                 conn.execute(
-                    "INSERT INTO rules(rule_type, name, container, trigger, action, command, enabled) "
-                    "VALUES(?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO rules"
+                    "(rule_type, name, container, trigger, action, command, "
+                    " enabled, delay_seconds, sort_order) "
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         r.get("rule_type", "docker"),
                         r.get("name", ""),
@@ -111,6 +99,8 @@ async def import_backup(request: Request, _: bool = Depends(require_auth)):
                         r.get("action", ""),
                         r.get("command", ""),
                         1 if r.get("enabled", 1) else 0,
+                        int(r.get("delay_seconds", 0)),
+                        int(r.get("sort_order", idx)),
                     ),
                 )
                 counts["rules"] += 1
