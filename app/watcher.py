@@ -327,6 +327,14 @@ async def run_sonarr_action(action: str) -> tuple[bool, str]:
             return await client.set_indexers_enabled(False)
         if action == "enable_indexers":
             return await client.set_indexers_enabled(True)
+        if action == "disable_download_clients":
+            return await client.set_download_clients_enabled(False)
+        if action == "enable_download_clients":
+            return await client.set_download_clients_enabled(True)
+        if action == "search_missing":
+            return await client.search_missing()
+        if action == "refresh_all":
+            return await client.refresh_all()
         return False, f"Unknown Sonarr action: {action}"
     finally:
         await client.close()
@@ -344,6 +352,14 @@ async def run_radarr_action(action: str) -> tuple[bool, str]:
             return await client.set_indexers_enabled(False)
         if action == "enable_indexers":
             return await client.set_indexers_enabled(True)
+        if action == "disable_download_clients":
+            return await client.set_download_clients_enabled(False)
+        if action == "enable_download_clients":
+            return await client.set_download_clients_enabled(True)
+        if action == "search_missing":
+            return await client.search_missing()
+        if action == "refresh_all":
+            return await client.refresh_all()
         return False, f"Unknown Radarr action: {action}"
     finally:
         await client.close()

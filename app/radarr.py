@@ -14,7 +14,7 @@ class RadarrClient:
 
     async def _get_client(self) -> httpx.AsyncClient:
         if self._client is None:
-            self._client = httpx.AsyncClient(timeout=10, verify=False)
+            self._client = httpx.AsyncClient(timeout=15, verify=False)
         return self._client
 
     async def get_status(self) -> tuple[bool, str]:
@@ -33,21 +33,61 @@ class RadarrClient:
             r = await client.get(f"{self.base}/api/v3/indexer", headers=self._headers())
             if r.status_code >= 400:
                 return False, f"HTTP {r.status_code}"
-            indexers = r.json()
             updated = 0
-            for indexer in indexers:
+            for indexer in r.json():
                 indexer["enableRss"]               = enabled
                 indexer["enableAutomaticSearch"]   = enabled
                 indexer["enableInteractiveSearch"] = enabled
                 resp = await client.put(
                     f"{self.base}/api/v3/indexer/{indexer['id']}",
-                    headers=self._headers(),
-                    json=indexer,
+                    headers=self._headers(), json=indexer,
                 )
                 if resp.status_code < 400:
                     updated += 1
-            state = "enabled" if enabled else "disabled"
-            return True, f"{updated} indexer(s) {state}"
+            return True, f"{updated} indexer(s) {'enabled' if enabled else 'disabled'}"
+        except Exception as e:
+            return False, str(e)
+
+    async def set_download_clients_enabled(self, enabled: bool) -> tuple[bool, str]:
+        client = await self._get_client()
+        try:
+            r = await client.get(f"{self.base}/api/v3/downloadclient", headers=self._headers())
+            if r.status_code >= 400:
+                return False, f"HTTP {r.status_code}"
+            updated = 0
+            for dc in r.json():
+                dc["enable"] = enabled
+                resp = await client.put(
+                    f"{self.base}/api/v3/downloadclient/{dc['id']}",
+                    headers=self._headers(), json=dc,
+                )
+                if resp.status_code < 400:
+                    updated += 1
+            return True, f"{updated} download client(s) {'enabled' if enabled else 'disabled'}"
+        except Exception as e:
+            return False, str(e)
+
+    async def search_missing(self) -> tuple[bool, str]:
+        client = await self._get_client()
+        try:
+            r = await client.post(
+                f"{self.base}/api/v3/command",
+                headers=self._headers(),
+                json={"name": "MissingMoviesSearch"},
+            )
+            return (r.status_code < 400), ("Missing movies search triggered" if r.status_code < 400 else f"HTTP {r.status_code}")
+        except Exception as e:
+            return False, str(e)
+
+    async def refresh_all(self) -> tuple[bool, str]:
+        client = await self._get_client()
+        try:
+            r = await client.post(
+                f"{self.base}/api/v3/command",
+                headers=self._headers(),
+                json={"name": "RefreshMovie"},
+            )
+            return (r.status_code < 400), ("Movie refresh triggered" if r.status_code < 400 else f"HTTP {r.status_code}")
         except Exception as e:
             return False, str(e)
 

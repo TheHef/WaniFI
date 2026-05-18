@@ -16,8 +16,8 @@ VALID_TRANSMISSION_ACTIONS = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "
 VALID_DELUGE_ACTIONS       = ("set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
 VALID_HA_ACTIONS           = ("call_webhook", "turn_on", "turn_off")
 VALID_PROXMOX_ACTIONS      = ("stop_vm", "shutdown_vm", "suspend_vm", "resume_vm", "start_vm")
-VALID_SONARR_ACTIONS       = ("disable_indexers", "enable_indexers")
-VALID_RADARR_ACTIONS       = ("disable_indexers", "enable_indexers")
+VALID_SONARR_ACTIONS       = ("disable_indexers", "enable_indexers", "disable_download_clients", "enable_download_clients", "search_missing", "refresh_all")
+VALID_RADARR_ACTIONS       = ("disable_indexers", "enable_indexers", "disable_download_clients", "enable_download_clients", "search_missing", "refresh_all")
 VALID_WEBHOOK_ACTIONS      = ("send",)
 
 
