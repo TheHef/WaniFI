@@ -39,7 +39,7 @@ All tools are opt-in and can be toggled on/off individually in Settings → Tool
 | **qBittorrent** | Enable/disable alt speed, set download/upload limit, pause/resume all torrents |
 | **Emby** | Set bitrate limit, clear bitrate limit, stop all sessions |
 | **Jellyfin** | Set bitrate limit, clear bitrate limit, stop all sessions |
-| **Plex** | Limit remote stream bitrate, clear remote bitrate limit, stop all streams |
+| **Plex** | Set bitrate limit, clear bitrate limit, stop all streams |
 | **ntfy** | Push notifications on failover, restore, high latency, and watcher errors |
 
 ## Quick start
@@ -119,7 +119,7 @@ Each rule pairs a **trigger** with an **action**. Triggers fire on `failover`, `
 | **qBittorrent** | Enable/disable alt speed, set download/upload limit, pause/resume all torrents |
 | **Emby** | Set bitrate limit, clear bitrate limit, stop all sessions |
 | **Jellyfin** | Set bitrate limit, clear bitrate limit, stop all sessions |
-| **Plex** | Limit remote stream bitrate, clear remote bitrate limit, stop all streams |
+| **Plex** | Set bitrate limit, clear bitrate limit, stop all streams |
 
 Example setup for a 5G failover scenario:
 
