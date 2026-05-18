@@ -390,6 +390,7 @@
     <table class="w-full text-sm">
       <thead class="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-950/50">
         <tr>
+          <th class="pl-3 pr-1 py-3 w-6"></th>
           <th class="text-left pl-4 pr-2 py-3">Type</th>
           <th class="text-left pl-4 pr-5 py-3 border-l border-slate-800">Rule</th>
           <th class="text-left px-4 py-3 border-l border-slate-800">Trigger</th>
@@ -401,8 +402,21 @@
         </tr>
       </thead>
       <tbody>
-        <template x-for="r in rules" :key="r.id">
-          <tr class="border-t border-slate-800">
+        <template x-for="(r, index) in rules" :key="r.id">
+          <tr class="border-t border-slate-800 transition-colors duration-100 select-none"
+              draggable="true"
+              @dragstart="dragSrcIndex = index; $event.dataTransfer.effectAllowed = 'move'"
+              @dragover.prevent="dragOverIndex = index; $event.dataTransfer.dropEffect = 'move'"
+              @dragleave="dragOverIndex = null"
+              @drop.prevent="reorderRules(dragSrcIndex, index); dragSrcIndex = null; dragOverIndex = null"
+              @dragend="dragSrcIndex = null; dragOverIndex = null"
+              :class="dragOverIndex === index && dragSrcIndex !== index ? 'bg-blue-500/10 border-t-blue-500/50' : ''">
+            <td class="pl-3 pr-1 py-3 cursor-grab active:cursor-grabbing text-slate-700 hover:text-slate-500 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <circle cx="5" cy="3.5" r="1.3"/><circle cx="5" cy="8" r="1.3"/><circle cx="5" cy="12.5" r="1.3"/>
+                <circle cx="11" cy="3.5" r="1.3"/><circle cx="11" cy="8" r="1.3"/><circle cx="11" cy="12.5" r="1.3"/>
+              </svg>
+            </td>
             <td class="pl-4 pr-3 py-3">
               <span class="inline-block px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap"
                     :style="({

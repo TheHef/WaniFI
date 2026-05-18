@@ -57,6 +57,7 @@ window.app = function () {
     manualMsg: '', settingsMsg: '', notifyMsg: '', qbMsg: '', importMsg: '', debugMsg: '',
 
     runMsg: null,
+    dragSrcIndex: null, dragOverIndex: null,
 
     eventsLimit: 20, eventsSearch: '', eventsLevel: '',
 
@@ -305,6 +306,19 @@ window.app = function () {
     async toggleRule(id) {
       await fetch('/api/rules/' + id + '/toggle', { method: 'POST' });
       await this.refreshLive();
+    },
+
+    async reorderRules(fromIndex, toIndex) {
+      if (fromIndex === null || fromIndex === toIndex) return;
+      const arr = [...this.rules];
+      const [moved] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      this.rules = arr;
+      await fetch('/api/rules/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: arr.map(r => r.id) }),
+      });
     },
 
     async runRule(id) {

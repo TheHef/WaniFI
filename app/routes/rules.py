@@ -120,8 +120,21 @@ def _default_name(payload: RuleIn) -> str:
 @router.get("")
 async def list_rules(_: bool = Depends(require_auth)):
     with db() as conn:
-        rules = [dict(r) for r in conn.execute("SELECT * FROM rules ORDER BY id").fetchall()]
+        rules = [dict(r) for r in conn.execute(
+            "SELECT * FROM rules ORDER BY sort_order, id"
+        ).fetchall()]
     return {"rules": rules}
+
+
+@router.post("/reorder")
+async def reorder_rules(payload: dict, _: bool = Depends(require_auth)):
+    ids = payload.get("ids", [])
+    if not ids:
+        return {"ok": True}
+    with db() as conn:
+        for order, rule_id in enumerate(ids):
+            conn.execute("UPDATE rules SET sort_order=? WHERE id=?", (order, rule_id))
+    return {"ok": True}
 
 
 @router.post("")
@@ -130,8 +143,8 @@ async def create_rule(payload: RuleIn, _: bool = Depends(require_auth)):
     name = _default_name(payload)
     with db() as conn:
         cur = conn.execute(
-            "INSERT INTO rules(rule_type,name,container,trigger,action,command,enabled,delay_seconds) "
-            "VALUES(?,?,?,?,?,?,?,?)",
+            "INSERT INTO rules(rule_type,name,container,trigger,action,command,enabled,delay_seconds,sort_order) "
+            "VALUES(?,?,?,?,?,?,?,?,(SELECT COALESCE(MAX(sort_order),0)+1 FROM rules))",
             (payload.rule_type, name, payload.container.strip(), payload.trigger,
              payload.action, payload.command.strip(), 1 if payload.enabled else 0,
              max(0, payload.delay_seconds)),

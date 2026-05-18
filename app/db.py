@@ -65,9 +65,13 @@ def init_db():
             ("name",           "TEXT NOT NULL DEFAULT ''"),
             ("command",        "TEXT NOT NULL DEFAULT ''"),
             ("delay_seconds",  "INTEGER NOT NULL DEFAULT 0"),
+            ("sort_order",     "INTEGER NOT NULL DEFAULT 0"),
         ):
             if col not in cols:
                 conn.execute(f"ALTER TABLE rules ADD COLUMN {col} {ddl}")
+                if col == "sort_order":
+                    # seed existing rows so they keep their current order
+                    conn.execute("UPDATE rules SET sort_order = id")
 
         evcols = {r[1]: r[2] for r in conn.execute("PRAGMA table_info(events)").fetchall()}
         if evcols.get("ts", "").upper() == "TEXT":
