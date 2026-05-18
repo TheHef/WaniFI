@@ -34,7 +34,7 @@
       <div x-show="settings.unifi_host && (settings.unifi_api_key_set || settings.unifi_api_key)">
 
         <p class="text-xs text-slate-500 mb-3">Drag your WAN interfaces to the correct slots:</p>
-        <div class="grid md:grid-cols-[minmax(0,0.35fr)_72px_1fr] gap-0 items-start">
+        <div class="grid md:grid-cols-[minmax(0,0.35fr)_1fr_240px] gap-0 items-start">
 
           <!-- Left: discovered interfaces -->
           <div>
@@ -83,63 +83,63 @@
           </div>
 
           <!-- Right: WAN slots (primary on top, failover below) -->
-          <div class="flex flex-col gap-8">
+          <div class="flex flex-col gap-4">
             <div @dragover.prevent="$el.classList.add('border-emerald-400','bg-emerald-500/10')"
                  @dragleave="$el.classList.remove('border-emerald-400','bg-emerald-500/10')"
                  @drop="$el.classList.remove('border-emerald-400','bg-emerald-500/10'); dropWan($event,'primary')"
-                 class="border-2 border-dashed rounded-2xl p-5 transition min-h-[110px]"
+                 class="border-2 border-dashed rounded-2xl p-4 transition min-h-[90px]"
                  :class="settings.primary_wan ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-slate-700'">
-              <div class="text-xs font-semibold text-emerald-500 uppercase tracking-wider mb-3">Primary WAN</div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Primary WAN</div>
+                <button x-show="settings.primary_wan" @click="settings.primary_wan = ''; settings.primary_wan_name = ''" class="text-slate-600 hover:text-red-400 text-xs transition">✕</button>
+              </div>
               <template x-if="settings.primary_wan">
                 <div x-data="{ get dev() { return discoveredWans.find(w => w.subsystem === settings.primary_wan) || null; } }">
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                      <img x-show="dev && (deviceIcon(dev.device_model) || deviceIcon(dev.device_name))"
-                           :src="dev ? (deviceIcon(dev.device_model) || deviceIcon(dev.device_name) || '') : ''"
-                           class="w-9 h-9 object-contain shrink-0">
-                      <div>
-                        <div class="font-mono font-bold text-emerald-300" x-text="settings.primary_wan"></div>
-                        <div class="text-xs text-sky-400" x-show="dev && (dev.device_model || dev.device_name)"
-                             x-text="dev ? (fmtModel(dev.device_model) || fmtModel(dev.device_name) || dev.device_name || '') : ''"></div>
-                      </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <img x-show="dev && (deviceIcon(dev.device_model) || deviceIcon(dev.device_name))"
+                         :src="dev ? (deviceIcon(dev.device_model) || deviceIcon(dev.device_name) || '') : ''"
+                         class="w-7 h-7 object-contain shrink-0">
+                    <div class="min-w-0">
+                      <div class="font-mono font-bold text-emerald-300 text-xs truncate" x-text="settings.primary_wan"></div>
+                      <div class="text-xs text-sky-400 truncate" x-show="dev && (dev.device_model || dev.device_name)"
+                           x-text="dev ? (fmtModel(dev.device_model) || fmtModel(dev.device_name) || dev.device_name || '') : ''"></div>
                     </div>
-                    <button @click="settings.primary_wan = ''; settings.primary_wan_name = ''" class="text-slate-600 hover:text-red-400 text-xs px-1 transition">✕</button>
                   </div>
-                  <input x-model="settings.primary_wan_name" placeholder="Display name (e.g. ADSL)"
-                         class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+                  <input x-model="settings.primary_wan_name" placeholder="Display name"
+                         class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 transition">
                 </div>
               </template>
               <template x-if="!settings.primary_wan">
-                <div class="text-slate-600 text-sm text-center mt-2">Drop a WAN here</div>
+                <div class="text-slate-600 text-xs text-center pt-1">Drop a WAN here</div>
               </template>
             </div>
             <div @dragover.prevent="$el.classList.add('border-amber-400','bg-amber-500/10')"
                  @dragleave="$el.classList.remove('border-amber-400','bg-amber-500/10')"
                  @drop="$el.classList.remove('border-amber-400','bg-amber-500/10'); dropWan($event,'failover')"
-                 class="border-2 border-dashed rounded-2xl p-5 transition min-h-[110px]"
+                 class="border-2 border-dashed rounded-2xl p-4 transition min-h-[90px]"
                  :class="settings.failover_wan ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-700'">
-              <div class="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-3">Failover WAN</div>
+              <div class="flex items-center justify-between mb-2">
+                <div class="text-xs font-semibold text-amber-500 uppercase tracking-wider">Failover WAN</div>
+                <button x-show="settings.failover_wan" @click="settings.failover_wan = ''; settings.failover_wan_name = ''" class="text-slate-600 hover:text-red-400 text-xs transition">✕</button>
+              </div>
               <template x-if="settings.failover_wan">
                 <div x-data="{ get dev() { return discoveredWans.find(w => w.subsystem === settings.failover_wan) || null; } }">
-                  <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                      <img x-show="dev && (deviceIcon(dev.device_model) || deviceIcon(dev.device_name))"
-                           :src="dev ? (deviceIcon(dev.device_model) || deviceIcon(dev.device_name) || '') : ''"
-                           class="w-9 h-9 object-contain shrink-0">
-                      <div>
-                        <div class="font-mono font-bold text-amber-300" x-text="settings.failover_wan"></div>
-                        <div class="text-xs text-sky-400" x-show="dev && (dev.device_model || dev.device_name)"
-                             x-text="dev ? (fmtModel(dev.device_model) || fmtModel(dev.device_name) || dev.device_name || '') : ''"></div>
-                      </div>
+                  <div class="flex items-center gap-2 mb-2">
+                    <img x-show="dev && (deviceIcon(dev.device_model) || deviceIcon(dev.device_name))"
+                         :src="dev ? (deviceIcon(dev.device_model) || deviceIcon(dev.device_name) || '') : ''"
+                         class="w-7 h-7 object-contain shrink-0">
+                    <div class="min-w-0">
+                      <div class="font-mono font-bold text-amber-300 text-xs truncate" x-text="settings.failover_wan"></div>
+                      <div class="text-xs text-sky-400 truncate" x-show="dev && (dev.device_model || dev.device_name)"
+                           x-text="dev ? (fmtModel(dev.device_model) || fmtModel(dev.device_name) || dev.device_name || '') : ''"></div>
                     </div>
-                    <button @click="settings.failover_wan = ''; settings.failover_wan_name = ''" class="text-slate-600 hover:text-red-400 text-xs px-1 transition">✕</button>
                   </div>
-                  <input x-model="settings.failover_wan_name" placeholder="Display name (e.g. 5G Max)"
-                         class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition">
+                  <input x-model="settings.failover_wan_name" placeholder="Display name"
+                         class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition">
                 </div>
               </template>
               <template x-if="!settings.failover_wan">
-                <div class="text-slate-600 text-sm text-center mt-2">Drop a WAN here</div>
+                <div class="text-slate-600 text-xs text-center pt-1">Drop a WAN here</div>
               </template>
             </div>
           </div>
