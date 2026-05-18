@@ -164,6 +164,8 @@ WaniFi runs with `privileged: true`, `pid: host`, and a mounted Docker socket. A
 - **Keep it on your LAN.** Login is rate-limited (10 attempts per 5 minutes per IP), but there is no MFA or IP allowlisting. Use a VPN (WireGuard, Tailscale) if you need remote access. Do not port-forward `8765` or stick it behind a public reverse proxy.
 - **One password, no MFA.** The login is a single bcrypt password. If that is not enough for your threat model, add a layer in front (e.g. Authelia).
 - **Backup `data/wanifi.db`.** This file holds your UniFi API key, tool credentials, and the password hash — it is the only secret store.
+- **No external requests at runtime.** All JS and CSS (Alpine.js, Chart.js, Tailwind) is self-hosted and served from the container — no CDN calls, no third-party scripts.
+- **Security headers.** Every response includes `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: strict-origin-when-cross-origin`.
 
 ## Support
 
