@@ -1,4 +1,5 @@
 """Jellyfin Server API client."""
+import asyncio
 import httpx
 from typing import Optional
 
@@ -57,11 +58,13 @@ class JellyfinClient:
         return await self.set_bitrate_limit(0)
 
     async def refresh_active_sessions(self) -> tuple[bool, str]:
-        """Seek every active session to its current playback position.
+        """Stop and restart every active session so Jellyfin re-evaluates the
+        bitrate limit on the new stream request.
 
-        Forces clients to re-request the stream so the server applies the
-        current bitrate limit to existing sessions.  Users experience
-        ~1 second of rebuffering — playback is NOT stopped.
+        Seek alone only works for HLS/transcoded sessions. Direct Play sessions
+        send a byte-range request and Jellyfin never re-checks the limit. Stop
+        + Play forces a full stream re-initialization. Users experience ~2
+        seconds of black screen then resume at the capped bitrate.
         """
         client = await self._get_client()
         try:
@@ -73,17 +76,23 @@ class JellyfinClient:
                 return True, "No active sessions to refresh"
             refreshed = 0
             for s in sessions:
-                sid = s.get("Id", "")
-                if not sid:
+                sid     = s.get("Id", "")
+                item_id = s.get("NowPlayingItem", {}).get("Id", "")
+                if not (sid and item_id):
                     continue
                 position = s.get("PlayState", {}).get("PositionTicks", 0)
                 await client.post(
-                    f"{self.base}/Sessions/{sid}/Playing/Seek",
-                    params={"seekPositionTicks": position},
+                    f"{self.base}/Sessions/{sid}/Playing/Stop",
+                    headers=self._headers(),
+                )
+                await asyncio.sleep(0.5)
+                await client.post(
+                    f"{self.base}/Sessions/{sid}/Play",
+                    params={"ItemIds": item_id, "StartPositionTicks": position, "PlayCommand": "PlayNow"},
                     headers=self._headers(),
                 )
                 refreshed += 1
-            return True, f"Refreshed {refreshed} session{'s' if refreshed != 1 else ''}"
+            return True, f"Restarted {refreshed} session{'s' if refreshed != 1 else ''}"
         except Exception as e:
             return False, str(e)
 
