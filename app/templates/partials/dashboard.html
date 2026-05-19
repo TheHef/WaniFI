@@ -1,142 +1,188 @@
-<section x-show="tab === 'dashboard'">  <div class="grid md:grid-cols-3 gap-4 mb-6">    <div class="bg-slate-900 border rounded-2xl p-5 relative overflow-hidden transition-all"
-         :class="status.active_wan === 'primary' ? 'border-emerald-500/30' : status.active_wan === 'failover' ? 'border-amber-500/30' : status.active_wan === 'down' ? 'border-red-500/30' : 'border-slate-700/60'">
-      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
-           :class="status.active_wan === 'primary' ? 'bg-emerald-500' : status.active_wan === 'failover' ? 'bg-amber-500' : status.active_wan === 'down' ? 'bg-red-500' : 'bg-slate-700'"></div>
+<section x-show="tab === 'dashboard'">
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
 
-      <div class="flex items-start gap-3">
-        <div class="shrink-0 mt-0.5">
-          <svg x-show="status.active_wan === 'primary'" class="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <svg x-show="status.active_wan === 'failover'" class="w-7 h-7 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-          </svg>
-          <svg x-show="status.active_wan === 'down'" class="w-7 h-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <svg x-show="!status.active_wan" class="w-7 h-7 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M8 12h8"/>
-          </svg>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Active WAN</div>
-          <div class="text-2xl font-black truncate"
-               :class="status.active_wan === 'primary' ? 'text-emerald-400' : status.active_wan === 'failover' ? 'text-amber-400' : status.active_wan === 'down' ? 'text-red-400' : 'text-slate-600'">
-            <span x-show="status.active_wan === 'primary'" x-text="status.primary_wan_name || 'Primary'"></span>
-            <span x-show="status.active_wan === 'failover'" x-text="status.failover_wan_name || 'Failover'"></span>
-            <span x-show="status.active_wan === 'down'">Down</span>
+    <!-- ── Box 1: Active WAN ──────────────────────────────────────── -->
+    <div class="relative rounded-2xl overflow-hidden flex flex-col transition-all"
+         :class="status.active_wan === 'primary' ? 'bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/25' : status.active_wan === 'failover' ? 'bg-gradient-to-br from-amber-950/60 to-slate-900 border border-amber-500/25' : status.active_wan === 'down' ? 'bg-gradient-to-br from-red-950/60 to-slate-900 border border-red-500/25' : 'bg-slate-900 border border-slate-700/60'">
+      <!-- accent bar -->
+      <div class="h-0.5 w-full"
+           :class="status.active_wan === 'primary' ? 'bg-gradient-to-r from-emerald-500 to-emerald-400/0' : status.active_wan === 'failover' ? 'bg-gradient-to-r from-amber-500 to-amber-400/0' : status.active_wan === 'down' ? 'bg-gradient-to-r from-red-500 to-red-400/0' : 'bg-slate-800'"></div>
+      <div class="p-5 flex-1 flex flex-col">
+        <!-- header -->
+        <div class="flex items-start justify-between gap-2 mb-4">
+          <div>
+            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">Active WAN</div>
+            <div class="text-2xl font-black leading-tight truncate"
+                 :class="status.active_wan === 'primary' ? 'text-emerald-400' : status.active_wan === 'failover' ? 'text-amber-400' : status.active_wan === 'down' ? 'text-red-400' : 'text-slate-500'">
+              <span x-show="status.active_wan === 'primary'" x-text="status.primary_wan_name || 'Primary'"></span>
+              <span x-show="status.active_wan === 'failover'" x-text="status.failover_wan_name || 'Failover'"></span>
+              <span x-show="status.active_wan === 'down'">Down</span>
+              <span x-show="!status.active_wan">—</span>
+            </div>
+            <div class="font-mono text-xs text-slate-500 mt-1" x-show="(liveStats||{}).active_wan_ip" x-text="(liveStats||{}).active_wan_ip"></div>
+          </div>
+          <!-- status pill -->
+          <span class="shrink-0 mt-0.5 text-[10px] font-bold px-2.5 py-1 rounded-full"
+                :class="status.active_wan === 'primary' ? 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30' : status.active_wan === 'failover' ? 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30' : status.active_wan === 'down' ? 'bg-red-500/15 text-red-400 ring-1 ring-red-500/30' : 'bg-slate-800 text-slate-600'">
+            <span x-show="status.active_wan === 'primary'">● Online</span>
+            <span x-show="status.active_wan === 'failover'">⚠ Failover</span>
+            <span x-show="status.active_wan === 'down'">✕ Down</span>
             <span x-show="!status.active_wan">—</span>
-          </div>
-          <div class="font-mono text-sm text-slate-400 mt-0.5 truncate"
-               x-show="(liveStats||{}).active_wan_ip" x-text="(liveStats||{}).active_wan_ip"></div>
-        </div>
-      </div>
-
-      <div class="mt-4 pt-3 border-t border-slate-800 space-y-2.5">
-        <div class="flex items-center gap-5">
-          <div x-show="(liveStats||{}).active_wan_latency">
-            <div class="text-xs text-slate-600 uppercase tracking-wider">Latency</div>
-            <div class="font-mono text-sm font-semibold text-slate-300 mt-0.5"
-                 x-text="(liveStats||{}).active_wan_latency + ' ms'"></div>
-          </div>
-          <div x-show="status.state_changed_at">
-            <div class="text-xs text-slate-600 uppercase tracking-wider">Active for</div>
-            <div class="text-sm font-semibold text-slate-300 mt-0.5" x-text="fmtSince(status.state_changed_at)"></div>
-          </div>
-          <div x-show="stats.total_failovers > 0">
-            <div class="text-xs text-slate-600 uppercase tracking-wider">Failovers</div>
-            <div class="text-sm font-semibold text-amber-400 mt-0.5" x-text="stats.total_failovers"></div>
-          </div>
-          <div class="ml-auto text-xs text-slate-700 self-end"
-               x-text="status.last_check ? new Date(status.last_check).toLocaleTimeString() : 'Waiting…'"></div>
-        </div>
-      </div>
-    </div>    <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">WAN Connections</div>
-      <div class="space-y-2">
-        <div class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition"
-             :class="status.active_wan === 'primary' ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-800/60 border border-transparent'">
-          <span class="w-2 h-2 rounded-full shrink-0"
-                :class="status.active_wan === 'primary' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-semibold text-slate-200 truncate" x-text="status.primary_wan_name || 'Primary WAN'"></div>
-            <div class="text-xs text-slate-500 font-mono" x-text="status.primary_wan || '—'"></div>
-          </div>
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-lg shrink-0"
-                :class="status.active_wan === 'primary' ? 'text-emerald-300 bg-emerald-500/20' : 'text-slate-600 bg-slate-800'">
-            <span x-text="status.active_wan === 'primary' ? 'Active' : 'Offline'"></span>
           </span>
         </div>
-        <div class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition"
-             :class="status.active_wan === 'failover' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-slate-800/60 border border-transparent'">
-          <span class="w-2 h-2 rounded-full shrink-0"
-                :class="status.active_wan === 'failover' ? 'bg-amber-400 animate-pulse' : 'bg-slate-600'"></span>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-semibold text-slate-200 truncate" x-text="status.failover_wan_name || 'Failover WAN'"></div>
-            <div class="text-xs text-slate-500 font-mono" x-text="status.failover_wan || '—'"></div>
+        <!-- stat grid -->
+        <div class="mt-auto pt-3 border-t border-white/5 grid grid-cols-3 gap-2">
+          <div>
+            <div class="text-[10px] text-slate-600 uppercase tracking-wider mb-0.5">Latency</div>
+            <div class="text-sm font-semibold font-mono text-slate-300" x-text="(liveStats||{}).active_wan_latency ? (liveStats||{}).active_wan_latency + ' ms' : '—'"></div>
           </div>
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-lg shrink-0"
-                :class="status.active_wan === 'failover' ? 'text-amber-300 bg-amber-500/20' : 'text-slate-600 bg-slate-800'">
-            <span x-text="status.active_wan === 'failover' ? 'Active' : 'Standby'"></span>
-          </span>
+          <div>
+            <div class="text-[10px] text-slate-600 uppercase tracking-wider mb-0.5">Active for</div>
+            <div class="text-sm font-semibold text-slate-300" x-text="status.state_changed_at ? fmtSince(status.state_changed_at) : '—'"></div>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-600 uppercase tracking-wider mb-0.5">Failovers</div>
+            <div class="text-sm font-semibold"
+                 :class="stats.total_failovers > 0 ? 'text-amber-400' : 'text-slate-600'"
+                 x-text="stats.total_failovers ?? '0'"></div>
+          </div>
         </div>
       </div>
-    </div>    <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">System</div>
+    </div>
 
-      <template x-if="status.last_error">
-        <div class="flex items-start gap-2.5 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <span class="text-sm text-red-300 break-words leading-relaxed" x-text="status.last_error"></span>
-        </div>
-      </template>
-
-      <template x-if="!status.last_error">
-        <div>
-          <div class="flex items-center gap-2 mb-4">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="text-sm font-semibold text-slate-300">Watcher running</span>
+    <!-- ── Box 2: WAN Connections ─────────────────────────────────── -->
+    <div class="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden flex flex-col">
+      <div class="h-0.5 w-full bg-slate-800"></div>
+      <div class="p-5 flex-1 flex flex-col">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">WAN Connections</div>
+        <div class="space-y-2 flex-1">
+          <!-- Primary -->
+          <div class="rounded-xl px-3.5 py-3 border transition-all"
+               :class="status.active_wan === 'primary' ? 'bg-emerald-500/8 border-emerald-500/25' : 'bg-slate-800/50 border-slate-700/50'">
+            <div class="flex items-center gap-2.5">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
+                    :class="status.active_wan === 'primary' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-semibold truncate"
+                        :class="status.active_wan === 'primary' ? 'text-slate-100' : 'text-slate-400'"
+                        x-text="status.primary_wan_name || 'Primary WAN'"></span>
+                  <span class="text-[10px] font-mono text-slate-600 shrink-0" x-text="status.primary_wan"></span>
+                </div>
+                <div x-show="status.active_wan === 'primary' && (liveStats||{}).active_wan_ip"
+                     class="text-xs font-mono text-emerald-600 mt-0.5" x-text="(liveStats||{}).active_wan_ip"></div>
+              </div>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                    :class="status.active_wan === 'primary' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-600 border border-slate-700'">
+                <span x-text="status.active_wan === 'primary' ? 'Active' : 'Standby'"></span>
+              </span>
+            </div>
+            <div x-show="status.active_wan === 'primary' && (liveStats||{}).active_wan_latency"
+                 class="mt-2 flex items-center gap-1 text-[10px] text-slate-600">
+              <span class="text-slate-700">Latency</span>
+              <span class="font-mono text-slate-500" x-text="(liveStats||{}).active_wan_latency + ' ms'"></span>
+              <span class="ml-auto" x-text="status.state_changed_at ? 'Active ' + fmtSince(status.state_changed_at) : ''"></span>
+            </div>
           </div>
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between" x-show="status.state_changed_at">
-              <span class="text-xs text-slate-500 uppercase tracking-wider"
-                    x-text="status.active_wan === 'failover' ? 'Failover since' : 'Active since'"></span>
-              <span class="text-xs font-mono text-slate-400"
-                    x-text="status.state_changed_at ? new Date(status.state_changed_at).toLocaleString() : '—'"></span>
+          <!-- Failover -->
+          <div class="rounded-xl px-3.5 py-3 border transition-all"
+               :class="status.active_wan === 'failover' ? 'bg-amber-500/8 border-amber-500/25' : 'bg-slate-800/50 border-slate-700/50'">
+            <div class="flex items-center gap-2.5">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
+                    :class="status.active_wan === 'failover' ? 'bg-amber-400 animate-pulse' : 'bg-slate-700'"></span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-sm font-semibold truncate"
+                        :class="status.active_wan === 'failover' ? 'text-amber-300' : 'text-slate-500'"
+                        x-text="status.failover_wan_name || 'Failover WAN'"></span>
+                  <span class="text-[10px] font-mono text-slate-600 shrink-0" x-text="status.failover_wan"></span>
+                </div>
+              </div>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                    :class="status.active_wan === 'failover' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-600 border border-slate-700'">
+                <span x-text="status.active_wan === 'failover' ? 'Active' : 'Standby'"></span>
+              </span>
             </div>
-            <div class="flex items-center justify-between">
-              <span class="text-xs text-slate-500 uppercase tracking-wider">Poll interval</span>
-              <span class="text-xs font-mono text-slate-400" x-text="(settings.poll_interval || '—') + ' s'"></span>
-            </div>
-            <div class="flex items-center justify-between" x-show="!status.state_changed_at">
-              <span class="text-xs text-slate-500 uppercase tracking-wider">Status</span>
-              <span class="text-xs text-slate-600">No events yet</span>
-            </div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+          <span class="text-[10px] text-slate-700">Last poll</span>
+          <span class="text-[10px] font-mono text-slate-700"
+                x-text="status.last_check ? new Date(status.last_check).toLocaleTimeString() : '—'"></span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Speedtest result -->
-            <div x-show="integrations.speedtest" class="pt-2 mt-1 border-t border-slate-800">
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs text-slate-500 uppercase tracking-wider">Last speedtest</span>
-                <button @click="runSpeedtest()"
-                        :disabled="speedtestRunning"
+    <!-- ── Box 3: System ─────────────────────────────────────────── -->
+    <div class="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden flex flex-col">
+      <div class="h-0.5 w-full" :class="status.last_error ? 'bg-red-500/60' : 'bg-emerald-500/40'"></div>
+      <div class="p-5 flex-1 flex flex-col">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">System</div>
+
+        <template x-if="status.last_error">
+          <div class="flex items-start gap-2.5 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="text-sm text-red-300 break-words leading-relaxed" x-text="status.last_error"></span>
+          </div>
+        </template>
+
+        <template x-if="!status.last_error">
+          <div class="flex-1 flex flex-col">
+            <!-- watcher status -->
+            <div class="flex items-center gap-2 mb-4">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-50"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <span class="text-sm font-semibold text-slate-200">Watcher running</span>
+            </div>
+            <!-- key–value rows -->
+            <div class="space-y-2 flex-1">
+              <div class="flex items-center justify-between" x-show="status.state_changed_at">
+                <span class="text-xs text-slate-500 uppercase tracking-wider"
+                      x-text="status.active_wan === 'failover' ? 'Failover since' : 'Active since'"></span>
+                <span class="text-xs font-mono text-slate-400"
+                      x-text="status.state_changed_at ? new Date(status.state_changed_at).toLocaleString() : '—'"></span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-500 uppercase tracking-wider">Poll interval</span>
+                <span class="text-xs font-mono text-slate-400" x-text="(settings.poll_interval || '—') + ' s'"></span>
+              </div>
+              <div class="flex items-center justify-between" x-show="!status.state_changed_at">
+                <span class="text-xs text-slate-500 uppercase tracking-wider">Status</span>
+                <span class="text-xs text-slate-600">No events yet</span>
+              </div>
+            </div>
+            <!-- speedtest -->
+            <div x-show="integrations.speedtest" class="mt-auto pt-3 border-t border-slate-800">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Last speedtest</span>
+                <button @click="runSpeedtest()" :disabled="speedtestRunning"
                         class="text-[10px] font-semibold px-2 py-0.5 rounded-md border transition"
-                        :class="speedtestRunning
-                          ? 'border-slate-700 text-slate-600 cursor-not-allowed'
-                          : 'border-slate-600 text-slate-400 hover:border-emerald-500 hover:text-emerald-400'">
+                        :class="speedtestRunning ? 'border-slate-700 text-slate-600 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-emerald-500/60 hover:text-emerald-400'">
                   <span x-text="speedtestRunning ? 'Running…' : 'Run now'"></span>
                 </button>
               </div>
               <template x-if="stats.last_speedtest">
                 <div>
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-mono text-emerald-400" x-text="'↓ ' + (stats.last_speedtest.download_mbps || '—') + ' Mbps'"></span>
-                    <span class="text-xs font-mono text-sky-400" x-text="'↑ ' + (stats.last_speedtest.upload_mbps || '—') + ' Mbps'"></span>
-                    <span class="text-xs font-mono text-slate-500" x-text="(stats.last_speedtest.ping_ms || '—') + ' ms'"></span>
+                  <div class="grid grid-cols-3 gap-1">
+                    <div class="bg-slate-800/60 rounded-lg px-2 py-1.5 text-center">
+                      <div class="text-[9px] text-slate-600 uppercase">Down</div>
+                      <div class="text-xs font-mono font-semibold text-emerald-400" x-text="(stats.last_speedtest.download_mbps || '—') + ' M'"></div>
+                    </div>
+                    <div class="bg-slate-800/60 rounded-lg px-2 py-1.5 text-center">
+                      <div class="text-[9px] text-slate-600 uppercase">Up</div>
+                      <div class="text-xs font-mono font-semibold text-sky-400" x-text="(stats.last_speedtest.upload_mbps || '—') + ' M'"></div>
+                    </div>
+                    <div class="bg-slate-800/60 rounded-lg px-2 py-1.5 text-center">
+                      <div class="text-[9px] text-slate-600 uppercase">Ping</div>
+                      <div class="text-xs font-mono font-semibold text-slate-400" x-text="(stats.last_speedtest.ping_ms || '—') + 'ms'"></div>
+                    </div>
                   </div>
-                  <div class="text-right mt-0.5">
-                    <span class="text-[10px] text-slate-600"
+                  <div class="text-right mt-1">
+                    <span class="text-[10px] text-slate-700"
                           x-text="stats.last_speedtest.ts ? new Date(stats.last_speedtest.ts * 1000).toLocaleString() : ''"></span>
                   </div>
                 </div>
@@ -145,10 +191,9 @@
                 <span class="text-xs text-slate-600">No results yet</span>
               </template>
             </div>
-
           </div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
 
   </div>  <h2 class="text-base font-semibold text-slate-200 mb-3">WAN Connections</h2>
