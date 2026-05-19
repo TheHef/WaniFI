@@ -428,25 +428,6 @@
       </div>
     </div>
 
-    <!-- Live stat pills -->
-    <div class="flex gap-3 mb-4 flex-wrap">
-      <div class="flex items-center gap-2 bg-slate-900 border border-emerald-500/20 rounded-xl px-3 py-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 shadow shadow-emerald-400/50"></span>
-        <span class="text-xs text-slate-400">Download</span>
-        <span class="text-xs font-bold text-emerald-400 font-mono" x-text="lastRx !== null ? lastRx + ' Mbps' : '—'"></span>
-      </div>
-      <div class="flex items-center gap-2 bg-slate-900 border border-sky-500/20 rounded-xl px-3 py-2">
-        <span class="w-2 h-2 rounded-full bg-sky-400 shadow shadow-sky-400/50"></span>
-        <span class="text-xs text-slate-400">Upload</span>
-        <span class="text-xs font-bold text-sky-400 font-mono" x-text="lastTx !== null ? lastTx + ' Mbps' : '—'"></span>
-      </div>
-      <div class="flex items-center gap-2 bg-slate-900 border border-amber-500/20 rounded-xl px-3 py-2">
-        <span class="w-2 h-2 rounded-full bg-amber-400 shadow shadow-amber-400/50"></span>
-        <span class="text-xs text-slate-400">Latency</span>
-        <span class="text-xs font-bold text-amber-400 font-mono" x-text="lastLat !== null ? lastLat + ' ms' : '—'"></span>
-      </div>
-    </div>
-
     <!-- Charts -->
     <div class="grid md:grid-cols-2 gap-4">
       <div class="relative bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-700/50 rounded-2xl p-5 overflow-hidden">
