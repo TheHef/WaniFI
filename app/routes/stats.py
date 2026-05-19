@@ -4,7 +4,7 @@ import asyncio
 from fastapi import APIRouter, Depends
 
 from ..auth import require_auth
-from ..db import db
+from ..db import db, a_log_event
 
 router = APIRouter()
 
@@ -41,6 +41,7 @@ async def get_stats(_: bool = Depends(require_auth)):
 async def run_speedtest_now(_: bool = Depends(require_auth)):
     from ..speedtest_runner import run_speedtest, get_last_speedtest
     ok, msg = await run_speedtest()
+    await a_log_event("info" if ok else "error", f"Manual speedtest: {msg}")
     result = get_last_speedtest() if ok else None
     return {"ok": ok, "msg": msg, "result": result}
 
