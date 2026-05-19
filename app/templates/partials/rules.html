@@ -132,6 +132,30 @@
               :class="newRule.rule_type === 'unifi_rule' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         UniFi
       </button>
+      <button x-show="integrations.speedtest"
+              @click="newRule.rule_type = 'speedtest'; newRule.action = 'run'; newRule.container = ''"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'speedtest' ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        Speedtest
+      </button>
+      <button x-show="integrations.npm"
+              @click="newRule.rule_type = 'npm'; newRule.action = 'disable_host'; newRule.container = ''"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'npm' ? 'bg-[#e74c3c]/20 border-[#e74c3c]/50 text-[#e74c3c]' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        NPM
+      </button>
+      <button x-show="integrations.cloudflare"
+              @click="newRule.rule_type = 'cloudflare'; newRule.action = 'enable_under_attack'; newRule.container = ''"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'cloudflare' ? 'bg-[#F6821F]/20 border-[#F6821F]/50 text-[#F6821F]' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        Cloudflare
+      </button>
+      <button x-show="integrations.nut"
+              @click="newRule.rule_type = 'nut'; newRule.action = 'get_status'; newRule.container = ''"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'nut' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        UPS/NUT
+      </button>
     </div>
 
     <!-- Docker -->
@@ -600,6 +624,78 @@
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
       <button @click="addRule()" class="md:col-span-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
     </div>
+
+    <!-- Speedtest -->
+    <div x-show="newRule.rule_type === 'speedtest'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)" class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
+    </div>
+
+    <!-- NPM -->
+    <div x-show="newRule.rule_type === 'npm'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#e74c3c]">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#e74c3c]">
+        <option value="disable_host">Disable proxy host</option>
+        <option value="enable_host">Enable proxy host</option>
+      </select>
+      <input x-model="newRule.container" type="text" placeholder="domain.com or host ID"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#e74c3c] transition">
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#e74c3c] transition">
+      <button @click="addRule()" class="md:col-span-4 bg-[#e74c3c] hover:bg-[#e74c3c]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
+    </div>
+
+    <!-- Cloudflare -->
+    <div x-show="newRule.rule_type === 'cloudflare'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#F6821F]">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <select x-model="newRule.action" class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#F6821F]">
+        <option value="enable_under_attack">Enable Under Attack mode</option>
+        <option value="disable_under_attack">Disable Under Attack mode</option>
+        <option value="purge_cache">Purge cache</option>
+        <option value="enable_dev_mode">Enable development mode</option>
+        <option value="disable_dev_mode">Disable development mode</option>
+      </select>
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#F6821F] transition">
+      <button @click="addRule()" class="md:col-span-4 bg-[#F6821F] hover:bg-[#F6821F]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
+    </div>
+
+    <!-- NUT / UPS -->
+    <div x-show="newRule.rule_type === 'nut'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <select x-model="newRule.action" class="md:col-span-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+        <option value="get_status">Log UPS status</option>
+        <option value="beeper_disable">Disable beeper</option>
+        <option value="beeper_enable">Enable beeper</option>
+        <option value="shutdown_return">Graceful shutdown (return on power)</option>
+        <option value="shutdown_stayoff">Shutdown (stay off)</option>
+        <option value="load_off">Load off (cut power)</option>
+      </select>
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-amber-500 hover:bg-amber-400 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
+    </div>
   </div>
 
   <div class="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden mb-4">
@@ -674,6 +770,10 @@
                       nodered:      'background:rgba(244,63,94,.15);color:#fb7185',
                       nzbget:       'background:rgba(100,116,139,.15);color:#94a3b8',
                       unifi_rule:   'background:rgba(37,99,235,.15);color:#60a5fa',
+                      speedtest:    'background:rgba(16,185,129,.15);color:#34d399',
+                      npm:          'background:rgba(231,76,60,.15);color:#fc8181',
+                      cloudflare:   'background:rgba(246,130,31,.15);color:#F6821F',
+                      nut:          'background:rgba(245,158,11,.15);color:#fbbf24',
                     })[r.rule_type] || 'background:rgba(71,85,105,.4);color:#94a3b8'"
                     x-text="({
                       host_command:'HC', docker:'DC', qbittorrent:'qb',
@@ -684,6 +784,7 @@
                       pihole:'Pi-hole', adguard:'AdG',
                       portainer:'PTR', truenas:'TrueNAS', unraid:'Unraid',
                       nodered:'NR', nzbget:'NZB', unifi_rule:'UniFi',
+                      speedtest:'SPD', npm:'NPM', cloudflare:'CF', nut:'UPS',
                     })[r.rule_type] || r.rule_type">
               </span>
             </td>

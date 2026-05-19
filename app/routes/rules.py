@@ -27,6 +27,10 @@ from ..models import (
     VALID_NODERED_ACTIONS,
     VALID_NZBGET_ACTIONS,
     VALID_UNIFI_RULE_ACTIONS,
+    VALID_SPEEDTEST_ACTIONS,
+    VALID_NPM_ACTIONS,
+    VALID_CLOUDFLARE_ACTIONS,
+    VALID_NUT_ACTIONS,
 )
 from ..watcher import (
     execute_host_command,
@@ -50,6 +54,10 @@ from ..watcher import (
     run_nodered_action,
     run_nzbget_action,
     run_unifi_rule_action,
+    run_speedtest_action,
+    run_npm_action,
+    run_cloudflare_action,
+    run_nut_action,
 )
 from ..docker_ops import container_action
 
@@ -140,6 +148,20 @@ def _validate(payload: RuleIn):
             raise HTTPException(400, f"action must be one of {VALID_UNIFI_RULE_ACTIONS}")
         if payload.action in ("disable_wlan", "enable_wlan", "block_client", "unblock_client") and not payload.container.strip():
             raise HTTPException(400, "container (WLAN name / MAC) required for this action")
+    elif t == "speedtest":
+        if payload.action not in VALID_SPEEDTEST_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_SPEEDTEST_ACTIONS}")
+    elif t == "npm":
+        if payload.action not in VALID_NPM_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_NPM_ACTIONS}")
+        if not payload.container.strip():
+            raise HTTPException(400, "Proxy host name or ID required")
+    elif t == "cloudflare":
+        if payload.action not in VALID_CLOUDFLARE_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_CLOUDFLARE_ACTIONS}")
+    elif t == "nut":
+        if payload.action not in VALID_NUT_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_NUT_ACTIONS}")
     else:
         raise HTTPException(400, f"Unknown rule_type: {t!r}")
 
@@ -289,6 +311,14 @@ async def run_rule(rule_id: int, _: bool = Depends(require_auth)):
         ok, msg = await run_nzbget_action(action, value)
     elif t == "unifi_rule":
         ok, msg = await run_unifi_rule_action(action, value)
+    elif t == "speedtest":
+        ok, msg = await run_speedtest_action()
+    elif t == "npm":
+        ok, msg = await run_npm_action(action, value)
+    elif t == "cloudflare":
+        ok, msg = await run_cloudflare_action(action)
+    elif t == "nut":
+        ok, msg = await run_nut_action(action)
     else:
         ok, msg = container_action(rule["container"], action)
 

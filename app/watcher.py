@@ -538,6 +538,81 @@ async def run_nzbget_action(action: str, value: str = "") -> tuple[bool, str]:
         await client.close()
 
 
+async def run_speedtest_action() -> tuple[bool, str]:
+    from .speedtest_runner import run_speedtest
+    return await run_speedtest()
+
+
+async def run_npm_action(action: str, value: str = "") -> tuple[bool, str]:
+    from .npm_client import NpmClient
+    url  = get_setting("npm_url", "")
+    user = get_setting("npm_username", "")
+    pw   = get_setting("npm_password", "")
+    if not (url and user):
+        return False, "NPM not configured"
+    client = NpmClient(url, user, pw or "")
+    try:
+        if action == "enable_host":
+            if not value:
+                return False, "Host name/ID required"
+            return await client.set_host_enabled(value, True)
+        if action == "disable_host":
+            if not value:
+                return False, "Host name/ID required"
+            return await client.set_host_enabled(value, False)
+        return False, f"Unknown NPM action: {action}"
+    finally:
+        await client.close()
+
+
+async def run_cloudflare_action(action: str) -> tuple[bool, str]:
+    from .cloudflare import CloudflareClient
+    token   = get_setting("cloudflare_api_token", "")
+    zone_id = get_setting("cloudflare_zone_id", "")
+    if not (token and zone_id):
+        return False, "Cloudflare not configured"
+    client = CloudflareClient(token, zone_id)
+    try:
+        if action == "enable_under_attack":
+            return await client.enable_under_attack()
+        if action == "disable_under_attack":
+            return await client.disable_under_attack()
+        if action == "purge_cache":
+            return await client.purge_cache()
+        if action == "enable_dev_mode":
+            return await client.set_development_mode(True)
+        if action == "disable_dev_mode":
+            return await client.set_development_mode(False)
+        return False, f"Unknown Cloudflare action: {action}"
+    finally:
+        await client.close()
+
+
+async def run_nut_action(action: str) -> tuple[bool, str]:
+    from .nut import NutClient
+    host     = get_setting("nut_host", "")
+    port     = int(get_setting("nut_port", "3493"))
+    ups_name = get_setting("nut_ups_name", "ups")
+    username = get_setting("nut_username", "")
+    password = get_setting("nut_password", "")
+    if not host:
+        return False, "NUT not configured"
+    client = NutClient(host, port, ups_name, username, password or "")
+    if action == "get_status":
+        return await client.get_status()
+    if action == "beeper_enable":
+        return await client.instcmd("beeper.enable")
+    if action == "beeper_disable":
+        return await client.instcmd("beeper.disable")
+    if action == "shutdown_return":
+        return await client.instcmd("shutdown.return")
+    if action == "shutdown_stayoff":
+        return await client.instcmd("shutdown.stayoff")
+    if action == "load_off":
+        return await client.instcmd("load.off")
+    return False, f"Unknown NUT action: {action}"
+
+
 async def run_unifi_rule_action(action: str, value: str = "") -> tuple[bool, str]:
     """Run a UniFi-specific rule action using the globally configured UniFi credentials."""
     host    = get_setting("unifi_host", "")
@@ -612,6 +687,10 @@ async def fire_trigger(trigger: str):
             "unraid":        "integration_unraid",
             "nodered":       "integration_nodered",
             "nzbget":        "integration_nzbget",
+            "speedtest":     "integration_speedtest",
+            "npm":           "integration_npm",
+            "cloudflare":    "integration_cloudflare",
+            "nut":           "integration_nut",
             # unifi_rule reuses the global UniFi credentials — no separate toggle
         }.get(rtype)
         if integration_key and get_setting(integration_key, "0") != "1":
@@ -726,6 +805,18 @@ async def fire_trigger(trigger: str):
         elif rtype == "unifi_rule":
             ok, msg = await run_unifi_rule_action(rule["action"], rule["container"])
             await a_log_event("info" if ok else "error", f"Rule: UniFi {rule['action']} on {trigger} -> {msg}")
+        elif rtype == "speedtest":
+            ok, msg = await run_speedtest_action()
+            await a_log_event("info" if ok else "error", f"Rule: Speedtest on {trigger} -> {msg}")
+        elif rtype == "npm":
+            ok, msg = await run_npm_action(rule["action"], rule["container"])
+            await a_log_event("info" if ok else "error", f"Rule: NPM {rule['action']} on {trigger} -> {msg}")
+        elif rtype == "cloudflare":
+            ok, msg = await run_cloudflare_action(rule["action"])
+            await a_log_event("info" if ok else "error", f"Rule: Cloudflare {rule['action']} on {trigger} -> {msg}")
+        elif rtype == "nut":
+            ok, msg = await run_nut_action(rule["action"])
+            await a_log_event("info" if ok else "error", f"Rule: NUT {rule['action']} on {trigger} -> {msg}")
         else:
             ok, msg = container_action(rule["container"], rule["action"])
             await a_log_event(
@@ -842,17 +933,31 @@ async def watcher_loop():
                     await apply_rules(new_state)
                     if new_state == "failover":
                         name = get_setting("failover_wan_name") or failover
+                        _rx  = state.live_gw_info.get("active_wan_rx_mbps", 0)
+                        _tx  = state.live_gw_info.get("active_wan_tx_mbps", 0)
+                        _lat = state.live_gw_info.get("active_wan_latency") or "—"
+                        _ip  = state.live_gw_info.get("active_wan_ip", "")
+                        _metrics = f"\n↓ {_rx} Mbps  ↑ {_tx} Mbps  latency {_lat} ms"
+                        if _ip:
+                            _metrics += f"  IP {_ip}"
                         _create_task(send_notification(
                             "WAN Failover",
-                            f"Primary WAN is down — switched to {name}",
+                            f"Primary WAN is down — switched to {name}{_metrics}",
                             priority="high", tags="warning,rotating_light",
                             event="failover",
                         ))
                     elif new_state == "primary":
                         name = get_setting("primary_wan_name") or primary
+                        _rx  = state.live_gw_info.get("active_wan_rx_mbps", 0)
+                        _tx  = state.live_gw_info.get("active_wan_tx_mbps", 0)
+                        _lat = state.live_gw_info.get("active_wan_latency") or "—"
+                        _ip  = state.live_gw_info.get("active_wan_ip", "")
+                        _metrics = f"\n↓ {_rx} Mbps  ↑ {_tx} Mbps  latency {_lat} ms"
+                        if _ip:
+                            _metrics += f"  IP {_ip}"
                         _create_task(send_notification(
                             "WAN Restored",
-                            f"Primary WAN ({name}) is back online",
+                            f"Primary WAN ({name}) is back online{_metrics}",
                             priority="default", tags="white_check_mark",
                             event="restored",
                         ))

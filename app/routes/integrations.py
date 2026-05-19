@@ -15,6 +15,7 @@ INTEGRATION_KEYS = (
     "pihole", "adguard",
     "portainer", "truenas", "unraid",
     "nodered", "nzbget", "gotify",
+    "speedtest", "npm", "cloudflare", "nut",
 )
 
 

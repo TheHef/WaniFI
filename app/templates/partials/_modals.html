@@ -360,6 +360,52 @@
         </div>
       </div>
     </template>
+    <template x-if="editModal.rule.rule_type === 'speedtest'">
+      <div class="mb-3">
+        <p class="text-sm text-slate-400">Runs a speedtest and logs the result (↓ Mbps / ↑ Mbps / ping) to the event log. No additional configuration needed.</p>
+      </div>
+    </template>
+    <template x-if="editModal.rule.rule_type === 'npm'">
+      <div class="mb-3">
+        <div class="mb-3">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
+          <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#e74c3c]">
+            <option value="disable_host">Disable proxy host</option>
+            <option value="enable_host">Enable proxy host</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Host (domain or ID)</label>
+          <input x-model="editModal.rule.container" type="text" placeholder="domain.com"
+                 class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#e74c3c] transition">
+        </div>
+      </div>
+    </template>
+    <template x-if="editModal.rule.rule_type === 'cloudflare'">
+      <div class="mb-3">
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
+        <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#F6821F]">
+          <option value="enable_under_attack">Enable Under Attack mode</option>
+          <option value="disable_under_attack">Disable Under Attack mode</option>
+          <option value="purge_cache">Purge cache</option>
+          <option value="enable_dev_mode">Enable development mode</option>
+          <option value="disable_dev_mode">Disable development mode</option>
+        </select>
+      </div>
+    </template>
+    <template x-if="editModal.rule.rule_type === 'nut'">
+      <div class="mb-3">
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
+        <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+          <option value="get_status">Log UPS status</option>
+          <option value="beeper_disable">Disable beeper</option>
+          <option value="beeper_enable">Enable beeper</option>
+          <option value="shutdown_return">Graceful shutdown (return on power)</option>
+          <option value="shutdown_stayoff">Shutdown (stay off)</option>
+          <option value="load_off">Load off (cut power)</option>
+        </select>
+      </div>
+    </template>
     <template x-if="editModal.rule.rule_type === 'nzbget'">
       <div class="mb-3">
         <div class="mb-3">
@@ -403,6 +449,8 @@
                   truenas:'background:#4f46e5', unraid:'background:#d97706',
                   nodered:'background:#be123c', nzbget:'background:#475569',
                   unifi_rule:'background:#2563eb',
+                  speedtest:'background:#059669', npm:'background:#e74c3c',
+                  cloudflare:'background:#F6821F', nut:'background:#d97706',
                 })[editModal.rule.rule_type] || 'background:#3b82f6'">Save</button>
       </div>
     </div>

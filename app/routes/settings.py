@@ -41,6 +41,9 @@ EXPORT_KEYS = (
     "gotify_url", "gotify_token",
     "gotify_on_failover", "gotify_on_restored", "gotify_on_error", "gotify_on_high_latency",
     "nzbget_url", "nzbget_username", "nzbget_password",
+    "npm_url", "npm_username",
+    "cloudflare_zone_id",
+    "nut_host", "nut_port", "nut_ups_name", "nut_username",
     "integration_host_command", "integration_docker", "integration_webhook",
     "integration_qb", "integration_sabnzbd", "integration_transmission", "integration_deluge",
     "integration_emby", "integration_jellyfin", "integration_plex",
@@ -49,6 +52,7 @@ EXPORT_KEYS = (
     "integration_pihole", "integration_adguard",
     "integration_portainer", "integration_truenas", "integration_unraid",
     "integration_nodered", "integration_nzbget", "integration_gotify",
+    "integration_speedtest", "integration_npm", "integration_cloudflare", "integration_nut",
 )
 
 

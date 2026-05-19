@@ -41,6 +41,9 @@ window.app = function () {
     noderedSettings:     { nodered_url: '', nodered_username: '', nodered_password_set: false },
     gotifySettings:      { gotify_url: '', gotify_token_set: false, gotify_on_failover: true, gotify_on_restored: true, gotify_on_error: false, gotify_on_high_latency: false },
     nzbgetSettings:      { nzbget_url: '', nzbget_username: '', nzbget_password_set: false },
+    npmSettings:         { npm_url: '', npm_username: '', npm_password_set: false },
+    cloudflareSettings:  { cloudflare_api_token_set: false, cloudflare_zone_id: '' },
+    nutSettings:         { nut_host: '', nut_port: 3493, nut_ups_name: 'ups', nut_username: '', nut_password_set: false },
 
     embyMsg: '', jellyfinMsg: '', plexMsg: '',
     discordMsg: '', telegramMsg: '', pushoverMsg: '',
@@ -49,6 +52,7 @@ window.app = function () {
     piholeMsg: '', adguardMsg: '',
     portainerMsg: '', truenasMsg: '', unraidMsg: '',
     noderedMsg: '', gotifyMsg: '', nzbgetMsg: '',
+    npmMsg: '', cloudflareMsg: '', nutMsg: '',
 
     integrations: {
       host_command: false, docker: false, webhook: false,
@@ -59,8 +63,9 @@ window.app = function () {
       pihole: false, adguard: false,
       portainer: false, truenas: false, unraid: false,
       nodered: false, nzbget: false, gotify: false,
+      speedtest: false, npm: false, cloudflare: false, nut: false,
     },
-    categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
+    categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false, infra: false },
     stats: {},
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '', delay_seconds: 0 },
@@ -146,6 +151,9 @@ window.app = function () {
       await this.loadNoderedSettings();
       await this.loadGotifySettings();
       await this.loadNzbgetSettings();
+      await this.loadNpmSettings();
+      await this.loadCloudflareSettings();
+      await this.loadNutSettings();
       await this.loadIntegrations();
       await this.loadStats();
       this._setDefaultRuleType();
@@ -919,6 +927,67 @@ window.app = function () {
       setTimeout(() => this.nzbgetMsg = '', 5000);
     },
 
+    // ---- NPM ---------------------------------------------------------------
+    async loadNpmSettings() {
+      this.npmSettings = await fetch('/api/npm-settings').then(r => r.json());
+    },
+    async saveNpmSettings() {
+      const payload = { npm_url: this.npmSettings.npm_url, npm_username: this.npmSettings.npm_username, npm_password: this.$refs.npmPassword?.value || null };
+      const r = await fetch('/api/npm-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(() => ({}));
+      this.npmMsg = (r.ok && d.ok) ? '✓ Saved' : '✗ ' + (d.detail || d.error || 'Error');
+      await this.loadNpmSettings();
+      setTimeout(() => this.npmMsg = '', 3000);
+    },
+    async testNpm() {
+      await this.saveNpmSettings();
+      this.npmMsg = 'Testing…';
+      const d = await fetch('/api/test-npm', { method: 'POST' }).then(r => r.json());
+      this.npmMsg = d.ok ? '✓ Connected' : '✗ ' + (d.error || 'Failed');
+      setTimeout(() => this.npmMsg = '', 5000);
+    },
+
+    // ---- Cloudflare --------------------------------------------------------
+    async loadCloudflareSettings() {
+      this.cloudflareSettings = await fetch('/api/cloudflare-settings').then(r => r.json());
+    },
+    async saveCloudflareSettings() {
+      const payload = { cloudflare_api_token: this.$refs.cfToken?.value || null, cloudflare_zone_id: this.cloudflareSettings.cloudflare_zone_id };
+      const r = await fetch('/api/cloudflare-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(() => ({}));
+      this.cloudflareMsg = (r.ok && d.ok) ? '✓ Saved' : '✗ ' + (d.detail || d.error || 'Error');
+      await this.loadCloudflareSettings();
+      if (this.$refs.cfToken) this.$refs.cfToken.value = '';
+      setTimeout(() => this.cloudflareMsg = '', 3000);
+    },
+    async testCloudflare() {
+      await this.saveCloudflareSettings();
+      this.cloudflareMsg = 'Testing…';
+      const d = await fetch('/api/test-cloudflare', { method: 'POST' }).then(r => r.json());
+      this.cloudflareMsg = d.ok ? '✓ Connected' : '✗ ' + (d.error || 'Failed');
+      setTimeout(() => this.cloudflareMsg = '', 5000);
+    },
+
+    // ---- NUT / UPS ---------------------------------------------------------
+    async loadNutSettings() {
+      this.nutSettings = await fetch('/api/nut-settings').then(r => r.json());
+    },
+    async saveNutSettings() {
+      const payload = { nut_host: this.nutSettings.nut_host, nut_port: this.nutSettings.nut_port, nut_ups_name: this.nutSettings.nut_ups_name, nut_username: this.nutSettings.nut_username, nut_password: this.$refs.nutPassword?.value || null };
+      const r = await fetch('/api/nut-settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(() => ({}));
+      this.nutMsg = (r.ok && d.ok) ? '✓ Saved' : '✗ ' + (d.detail || d.error || 'Error');
+      await this.loadNutSettings();
+      setTimeout(() => this.nutMsg = '', 3000);
+    },
+    async testNut() {
+      await this.saveNutSettings();
+      this.nutMsg = 'Testing…';
+      const d = await fetch('/api/test-nut', { method: 'POST' }).then(r => r.json());
+      this.nutMsg = d.ok ? '✓ Connected' : '✗ ' + (d.error || 'Failed');
+      setTimeout(() => this.nutMsg = '', 5000);
+    },
+
     // ---- Stats ------------------------------------------------------------
     async loadStats() {
       try { this.stats = await fetch('/api/stats').then(r => r.json()); } catch {}
@@ -951,6 +1020,10 @@ window.app = function () {
         ['unraid',        'unraid',        'stop_vm'],
         ['nodered',       'nodered',       'trigger_flow'],
         ['nzbget',        'nzbget',        'pause'],
+        ['speedtest',     'speedtest',     'run'],
+        ['npm',           'npm',           'disable_host'],
+        ['cloudflare',    'cloudflare',    'enable_under_attack'],
+        ['nut',           'nut',           'get_status'],
         ['webhook',       'webhook',       'send'],
       ];
       for (const [rtype, ikey, action] of order) {
@@ -973,6 +1046,7 @@ window.app = function () {
           else if (['ntfy', 'discord', 'telegram', 'pushover', 'gotify'].includes(name))                    this.categoryOpen.notifications = true;
           else if (['homeassistant', 'proxmox', 'portainer', 'truenas', 'unraid', 'nodered'].includes(name)) this.categoryOpen.homelab = true;
           else if (['pihole', 'adguard'].includes(name))                                                     this.categoryOpen.network = true;
+          else if (['speedtest', 'npm', 'cloudflare', 'nut'].includes(name))                                 this.categoryOpen.infra = true;
         }
       }
     },

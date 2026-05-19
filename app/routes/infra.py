@@ -1,10 +1,13 @@
-"""Settings and test endpoints for Portainer, TrueNAS, Unraid, and Node-RED."""
+"""Settings and test endpoints for Portainer, TrueNAS, Unraid, Node-RED, NPM, Cloudflare, NUT."""
 from fastapi import APIRouter, Depends
 
 from ..auth import require_auth
 from ..db import get_setting, set_setting
 from ..models import (
+    CloudflareSettingsIn,
     NodeRedSettingsIn,
+    NpmSettingsIn,
+    NutSettingsIn,
     PortainerSettingsIn,
     TrueNASSettingsIn,
     UnraidSettingsIn,
@@ -149,3 +152,111 @@ async def test_nodered(_: bool = Depends(require_auth)):
         return {"ok": ok, "error": None if ok else msg}
     finally:
         await client.close()
+
+
+# ---- Nginx Proxy Manager ----------------------------------------------------
+
+@router.get("/api/npm-settings")
+async def get_npm_settings(_: bool = Depends(require_auth)):
+    return {
+        "npm_url":          get_setting("npm_url", ""),
+        "npm_username":     get_setting("npm_username", ""),
+        "npm_password_set": bool(get_setting("npm_password")),
+    }
+
+
+@router.post("/api/npm-settings")
+async def save_npm_settings(payload: NpmSettingsIn, _: bool = Depends(require_auth)):
+    set_setting("npm_url",      payload.npm_url.strip())
+    set_setting("npm_username", payload.npm_username.strip())
+    if payload.npm_password:
+        set_setting("npm_password", payload.npm_password)
+    return {"ok": True}
+
+
+@router.post("/api/test-npm")
+async def test_npm(_: bool = Depends(require_auth)):
+    from ..npm_client import NpmClient
+    url  = get_setting("npm_url", "")
+    user = get_setting("npm_username", "")
+    pw   = get_setting("npm_password", "")
+    if not (url and user):
+        return {"ok": False, "error": "NPM not configured"}
+    client = NpmClient(url, user, pw or "")
+    try:
+        ok, msg = await client.test()
+        return {"ok": ok, "error": None if ok else msg}
+    finally:
+        await client.close()
+
+
+# ---- Cloudflare -------------------------------------------------------------
+
+@router.get("/api/cloudflare-settings")
+async def get_cloudflare_settings(_: bool = Depends(require_auth)):
+    return {
+        "cloudflare_api_token_set": bool(get_setting("cloudflare_api_token")),
+        "cloudflare_zone_id":       get_setting("cloudflare_zone_id", ""),
+    }
+
+
+@router.post("/api/cloudflare-settings")
+async def save_cloudflare_settings(payload: CloudflareSettingsIn, _: bool = Depends(require_auth)):
+    set_setting("cloudflare_zone_id", payload.cloudflare_zone_id.strip())
+    if payload.cloudflare_api_token:
+        set_setting("cloudflare_api_token", payload.cloudflare_api_token.strip())
+    return {"ok": True}
+
+
+@router.post("/api/test-cloudflare")
+async def test_cloudflare(_: bool = Depends(require_auth)):
+    from ..cloudflare import CloudflareClient
+    token   = get_setting("cloudflare_api_token", "")
+    zone_id = get_setting("cloudflare_zone_id", "")
+    if not (token and zone_id):
+        return {"ok": False, "error": "Cloudflare not configured"}
+    client = CloudflareClient(token, zone_id)
+    try:
+        ok, msg = await client.test()
+        return {"ok": ok, "error": None if ok else msg}
+    finally:
+        await client.close()
+
+
+# ---- NUT / UPS --------------------------------------------------------------
+
+@router.get("/api/nut-settings")
+async def get_nut_settings(_: bool = Depends(require_auth)):
+    return {
+        "nut_host":         get_setting("nut_host", ""),
+        "nut_port":         int(get_setting("nut_port", "3493")),
+        "nut_ups_name":     get_setting("nut_ups_name", "ups"),
+        "nut_username":     get_setting("nut_username", ""),
+        "nut_password_set": bool(get_setting("nut_password")),
+    }
+
+
+@router.post("/api/nut-settings")
+async def save_nut_settings(payload: NutSettingsIn, _: bool = Depends(require_auth)):
+    set_setting("nut_host",     payload.nut_host.strip())
+    set_setting("nut_port",     str(payload.nut_port))
+    set_setting("nut_ups_name", payload.nut_ups_name.strip() or "ups")
+    set_setting("nut_username", payload.nut_username.strip())
+    if payload.nut_password:
+        set_setting("nut_password", payload.nut_password)
+    return {"ok": True}
+
+
+@router.post("/api/test-nut")
+async def test_nut(_: bool = Depends(require_auth)):
+    from ..nut import NutClient
+    host     = get_setting("nut_host", "")
+    port     = int(get_setting("nut_port", "3493"))
+    ups_name = get_setting("nut_ups_name", "ups")
+    username = get_setting("nut_username", "")
+    password = get_setting("nut_password", "")
+    if not host:
+        return {"ok": False, "error": "NUT not configured"}
+    client = NutClient(host, port, ups_name, username, password or "")
+    ok, msg = await client.test()
+    return {"ok": ok, "error": None if ok else msg}

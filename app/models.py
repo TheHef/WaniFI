@@ -27,6 +27,10 @@ VALID_UNRAID_ACTIONS       = ("start_vm", "stop_vm", "pause_vm", "resume_vm")
 VALID_NODERED_ACTIONS      = ("trigger_flow",)
 VALID_NZBGET_ACTIONS       = ("pause", "resume", "set_speed_limit")
 VALID_UNIFI_RULE_ACTIONS   = ("kick_all_clients", "disable_wlan", "enable_wlan", "block_client", "unblock_client")
+VALID_SPEEDTEST_ACTIONS    = ("run",)
+VALID_NPM_ACTIONS          = ("enable_host", "disable_host")
+VALID_CLOUDFLARE_ACTIONS   = ("enable_under_attack", "disable_under_attack", "purge_cache", "enable_dev_mode", "disable_dev_mode")
+VALID_NUT_ACTIONS          = ("get_status", "beeper_enable", "beeper_disable", "shutdown_return", "shutdown_stayoff", "load_off")
 
 
 class SetupIn(BaseModel):
@@ -188,3 +192,22 @@ class NZBGetSettingsIn(BaseModel):
     nzbget_url: str = ""
     nzbget_username: str = ""
     nzbget_password: Optional[str] = None
+
+
+class NpmSettingsIn(BaseModel):
+    npm_url: str = ""
+    npm_username: str = ""
+    npm_password: Optional[str] = None
+
+
+class CloudflareSettingsIn(BaseModel):
+    cloudflare_api_token: Optional[str] = None
+    cloudflare_zone_id: str = ""
+
+
+class NutSettingsIn(BaseModel):
+    nut_host: str = ""
+    nut_port: int = 3493
+    nut_ups_name: str = "ups"
+    nut_username: str = ""
+    nut_password: Optional[str] = None
