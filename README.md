@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-%23FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" />
   </a>
   &nbsp;
-  <img src="https://img.shields.io/badge/version-0.6.5-blue?style=for-the-badge" alt="v0.6.5" />
+  <img src="https://img.shields.io/badge/version-0.6.6-blue?style=for-the-badge" alt="v0.6.6" />
   &nbsp;
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT" />
 </div>
@@ -56,6 +56,8 @@ All integrations are opt-in and toggled on/off individually in **Settings**.
 | **NZBGet** | Pause · resume · set speed limit |
 | **Transmission** | Pause/resume all · enable/disable alt speed · set download/upload limit |
 | **Deluge** | Pause/resume all · set download/upload limit |
+| **Sonarr** | Disable/enable indexers · disable/enable download clients · search missing · refresh all |
+| **Radarr** | Disable/enable indexers · disable/enable download clients · search missing · refresh all |
 
 ### 🎬 Media
 
@@ -64,8 +66,6 @@ All integrations are opt-in and toggled on/off individually in **Settings**.
 | **Emby** | Set/clear remote bitrate limit · restream active sessions · stop all sessions |
 | **Jellyfin** | Set/clear remote bitrate limit · restream active sessions · stop all sessions |
 | **Plex** | Set/clear remote bitrate limit · stop all streams |
-| **Sonarr** | Disable/enable indexers · disable/enable download clients · search missing · refresh all |
-| **Radarr** | Disable/enable indexers · disable/enable download clients · search missing · refresh all |
 
 ### 🏠 Homelab
 
