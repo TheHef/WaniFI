@@ -269,12 +269,14 @@ async def test_nut(_: bool = Depends(require_auth)):
 async def get_speedtest_settings(_: bool = Depends(require_auth)):
     return {
         "speedtest_server_id": get_setting("speedtest_server_id", ""),
+        "speedtest_source_ip": get_setting("speedtest_source_ip", ""),
     }
 
 
 @router.post("/api/speedtest-settings")
 async def save_speedtest_settings(payload: SpeedtestSettingsIn, _: bool = Depends(require_auth)):
     set_setting("speedtest_server_id", payload.speedtest_server_id.strip())
+    set_setting("speedtest_source_ip", payload.speedtest_source_ip.strip())
     return {"ok": True}
 
 
@@ -285,9 +287,13 @@ async def list_speedtest_servers(_: bool = Depends(require_auth)):
     import subprocess as sp
     loop = asyncio.get_event_loop()
     try:
+        source_ip = get_setting("speedtest_source_ip", "").strip()
+        list_cmd = ["speedtest-cli", "--list"]
+        if source_ip:
+            list_cmd += ["--source", source_ip]
         result = await loop.run_in_executor(
             None,
-            lambda: sp.run(["speedtest-cli", "--list"], capture_output=True, text=True, timeout=30),
+            lambda c=list_cmd: sp.run(c, capture_output=True, text=True, timeout=30),
         )
         servers = []
         for line in result.stdout.splitlines():

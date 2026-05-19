@@ -215,3 +215,4 @@ class NutSettingsIn(BaseModel):
 
 class SpeedtestSettingsIn(BaseModel):
     speedtest_server_id: str = ""
+    speedtest_source_ip: str = ""

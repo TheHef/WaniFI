@@ -19,24 +19,31 @@ async def run_speedtest() -> tuple[bool, str]:
     loop = asyncio.get_event_loop()
     try:
         server_id = get_setting("speedtest_server_id", "").strip()
+        source_ip = get_setting("speedtest_source_ip", "").strip()
         cmd = ["speedtest-cli", "--json", "--secure"]
+        if source_ip:
+            cmd += ["--source", source_ip]
         if server_id:
-            cmd = cmd + ["--server", server_id]
+            cmd += ["--server", server_id]
 
         result = await loop.run_in_executor(
             None, lambda c=cmd: subprocess.run(c, capture_output=True, text=True, timeout=120)
         )
 
         # If a specific server was configured but failed, retry with auto-select
+        used_fallback = False
         if result.returncode != 0 and server_id:
+            fallback_cmd = ["speedtest-cli", "--json", "--secure"]
+            if source_ip:
+                fallback_cmd += ["--source", source_ip]
             result = await loop.run_in_executor(
-                None, lambda: subprocess.run(
-                    ["speedtest-cli", "--json", "--secure"],
-                    capture_output=True, text=True, timeout=120
+                None, lambda c=fallback_cmd: subprocess.run(
+                    c, capture_output=True, text=True, timeout=120
                 )
             )
             if result.returncode != 0:
                 return False, f"Server #{server_id} failed, auto-select also failed: {result.stderr.strip() or 'speedtest-cli failed'}"
+            used_fallback = True
 
         if result.returncode != 0:
             return False, result.stderr.strip() or "speedtest-cli failed"
@@ -47,6 +54,8 @@ async def run_speedtest() -> tuple[bool, str]:
         ping   = round(data.get("ping", 0), 1)
         isp    = data.get("client", {}).get("isp", "")
         server = data.get("server", {}).get("name", "")
+        if used_fallback:
+            server = f"{server} (auto-fallback — #{server_id} unavailable)"
 
         with db() as conn:
             conn.execute(
