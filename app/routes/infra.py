@@ -286,11 +286,11 @@ async def save_speedtest_settings(payload: SpeedtestSettingsIn, _: bool = Depend
 async def list_speedtest_servers(_: bool = Depends(require_auth)):
     import math
     import urllib.request
-    import xml.etree.ElementTree as ET
+    import speedtest as st_lib
     from ..unifi import UniFiClient
     loop = asyncio.get_running_loop()
     try:
-        # Step 1: get primary WAN IP directly from UniFi
+        # Step 1: get primary WAN IP from UniFi
         host    = get_setting("unifi_host", "")
         api_key = get_setting("unifi_api_key", "")
         site    = get_setting("unifi_site", "default")
@@ -307,54 +307,45 @@ async def list_speedtest_servers(_: bool = Depends(require_auth)):
             except Exception:
                 pass
 
-        # Step 2: geolocate that IP (falls back to container egress IP if wan_ip is empty)
+        # Step 2: geolocate primary WAN IP
         geo_url = f"http://ip-api.com/json/{wan_ip}?fields=status,lat,lon,city,country" if wan_ip else "http://ip-api.com/json/?fields=status,lat,lon,city,country"
         geo_raw = await loop.run_in_executor(
             None, lambda: urllib.request.urlopen(geo_url, timeout=10).read().decode()
         )
         geo = json.loads(geo_raw)
         if geo.get("status") == "fail" or geo.get("lat") is None:
-            return {"ok": False, "servers": [], "error": f"Could not geolocate IP {wan_ip}: {geo}"}
+            return {"ok": False, "servers": [], "error": f"Could not geolocate {wan_ip}: {geo}"}
         lat, lon = float(geo["lat"]), float(geo["lon"])
 
-        # Step 3: fetch speedtest.net server list XML
-        for xml_url in [
-            "https://www.speedtest.net/speedtest-servers-static.php",
-            "https://c.speedtest.net/speedtest-servers-static.php",
-        ]:
-            try:
-                req = urllib.request.Request(xml_url, headers={"User-Agent": "Mozilla/5.0"})
-                xml_raw = await loop.run_in_executor(
-                    None, lambda r=req: urllib.request.urlopen(r, timeout=20).read().decode()
-                )
-                break
-            except Exception:
-                xml_raw = None
-        if not xml_raw:
-            return {"ok": False, "servers": [], "error": "Could not fetch speedtest server list from speedtest.net"}
-
-        def _dist(slat, slon):
+        def _haversine(slat, slon):
             R = 6371
-            dlat = math.radians(slat - lat)
-            dlon = math.radians(slon - lon)
-            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat)) * math.cos(math.radians(slat)) * math.sin(dlon/2)**2
+            dlat = math.radians(float(slat) - lat)
+            dlon = math.radians(float(slon) - lon)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat)) * math.cos(math.radians(float(slat))) * math.sin(dlon/2)**2
             return round(R * 2 * math.asin(math.sqrt(a)), 2)
 
-        # Step 4: parse XML, calculate distance from primary WAN location, return top 100
-        root = ET.fromstring(xml_raw)
+        # Step 3: fetch full server list via speedtest module (has lat/lon per server)
+        def _get_servers():
+            s = st_lib.Speedtest()
+            return s.get_servers()  # {distance: [server_dict, ...]}
+
+        raw = await loop.run_in_executor(None, _get_servers)
+
+        # Step 4: flatten, recalculate distance from primary WAN coords, sort
         servers = []
-        for s in root.iter("Server"):
-            try:
-                slat    = float(s.get("lat", 0))
-                slon    = float(s.get("lon", 0))
-                sponsor = s.get("sponsor", "")
-                name    = s.get("name", "")
-                country = s.get("country", "")
-                sid     = s.get("id", "")
-                label   = f"{sponsor} ({name}, {country})"
-                servers.append({"id": sid, "label": label, "distance": _dist(slat, slon)})
-            except (ValueError, TypeError):
-                continue
+        for bucket in raw.values():
+            for s in bucket:
+                try:
+                    sid     = str(s.get("id", ""))
+                    sponsor = s.get("sponsor", "")
+                    name    = s.get("name", "")
+                    country = s.get("country", "")
+                    slat    = s.get("lat", lat)
+                    slon    = s.get("lon", lon)
+                    label   = f"{sponsor} ({name}, {country})"
+                    servers.append({"id": sid, "label": label, "distance": _haversine(slat, slon)})
+                except (ValueError, TypeError):
+                    continue
 
         servers.sort(key=lambda s: s["distance"])
         return {
