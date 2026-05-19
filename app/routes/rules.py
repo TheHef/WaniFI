@@ -246,15 +246,20 @@ async def update_rule(rule_id: int, payload: RuleIn, _: bool = Depends(require_a
              payload.action, payload.command.strip(),
              max(0, payload.delay_seconds), rule_id),
         )
-    log_event("info", f"Rule {rule_id} updated")
+    log_event("info", f"Rule '{name}' ({payload.rule_type} / {payload.action}) updated")
     return {"ok": True}
 
 
 @router.delete("/{rule_id}")
 async def delete_rule(rule_id: int, _: bool = Depends(require_auth)):
     with db() as conn:
+        row = conn.execute("SELECT name, rule_type, action FROM rules WHERE id=?", (rule_id,)).fetchone()
         conn.execute("DELETE FROM rules WHERE id=?", (rule_id,))
-    log_event("info", f"Rule {rule_id} deleted")
+    if row:
+        label = f"'{row['name']}' ({row['rule_type']} / {row['action']})"
+    else:
+        label = f"#{rule_id}"
+    log_event("info", f"Rule {label} deleted")
     return {"ok": True}
 
 
