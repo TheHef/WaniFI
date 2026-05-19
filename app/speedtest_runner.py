@@ -54,8 +54,12 @@ async def run_speedtest() -> tuple[bool, str]:
             return False, result.stderr.strip() or "speedtest failed"
 
         # Ookla CLI outputs multiple JSON lines; the result line has "type":"result"
+        output = result.stdout.strip() or result.stderr.strip()
+        if not output:
+            return False, "speedtest produced no output — check that the image has been rebuilt with Ookla CLI"
+
         data = None
-        for line in result.stdout.splitlines():
+        for line in output.splitlines():
             try:
                 obj = json.loads(line)
                 if obj.get("type") == "result":
@@ -64,7 +68,7 @@ async def run_speedtest() -> tuple[bool, str]:
             except json.JSONDecodeError:
                 continue
         if data is None:
-            data = json.loads(result.stdout)  # fallback: single JSON object
+            data = json.loads(output)  # fallback: single JSON object
 
         dl, ul, ping, isp, server = _parse_ookla(data)
         if used_fallback:

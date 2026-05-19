@@ -1053,12 +1053,16 @@
                   x-text="(speedtestServers.find(s => s.id === speedtestSettings.speedtest_server_id) || {}).label || ''"></span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button x-show="speedtestSettings.speedtest_server_id"
+            <button x-show="speedtestSettings.speedtest_server_id && !speedtestServerOpen"
                     @click="speedtestSettings.speedtest_server_id = ''; saveSpeedtestSettings()"
                     class="text-xs text-slate-500 hover:text-red-400 transition px-1">Clear</button>
-            <button @click="fetchSpeedtestServers()"
+            <button x-show="!speedtestServerOpen"
+                    @click="fetchSpeedtestServers()"
                     class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-3 py-1.5 text-xs transition"
                     x-text="speedtestServersLoading ? 'Loading…' : 'Browse servers'"></button>
+            <button x-show="speedtestServerOpen"
+                    @click="speedtestServerOpen = false"
+                    class="bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-3 py-1.5 text-xs transition">Close list</button>
           </div>
         </div>
 
@@ -1070,7 +1074,7 @@
                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition"
                    @keydown.escape="speedtestServerOpen = false">
           </div>
-          <div class="overflow-y-auto max-h-64">
+          <div class="overflow-y-auto max-h-64 scrollbar-thin">
             <div x-show="speedtestServersLoading" class="py-8 text-center text-sm text-slate-500">Fetching server list…</div>
             <div x-show="!speedtestServersLoading && speedtestServersError" class="py-4 px-4 text-sm text-red-400" x-text="speedtestServersError"></div>
             <div x-show="!speedtestServersLoading && !speedtestServersError && speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch)).length === 0"
@@ -1084,9 +1088,6 @@
                 <span class="text-xs text-slate-600 shrink-0" x-text="s.distance + ' km'"></span>
               </button>
             </template>
-          </div>
-          <div class="px-4 py-2 border-t border-slate-700 flex justify-end">
-            <button @click="speedtestServerOpen = false" class="text-xs text-slate-500 hover:text-slate-300 transition">Close</button>
           </div>
         </div>
       </div>

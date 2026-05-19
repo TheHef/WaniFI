@@ -13,3 +13,10 @@ html { scrollbar-gutter: stable; }
 
 /* Sticky thead in events tab needs overflow: clip on container */
 .table-shell { overflow: clip; }
+
+/* Styled scrollbar for server browser */
+.scrollbar-thin::-webkit-scrollbar { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgb(51 65 85); border-radius: 9999px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgb(71 85 105); }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: rgb(51 65 85) transparent; }
