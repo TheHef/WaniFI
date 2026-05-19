@@ -291,9 +291,14 @@ async def list_speedtest_servers(_: bool = Depends(require_auth)):
         )
         servers = []
         for line in result.stdout.splitlines():
-            m = re.match(r'^\s*(\d+)\)\s+(.+)', line)
+            m = re.match(r'^\s*(\d+)\)\s+(.+?)\s*\[([\d.]+)\s*km\]', line)
             if m:
-                servers.append({"id": m.group(1), "label": m.group(2).strip()})
+                servers.append({
+                    "id":       m.group(1),
+                    "label":    m.group(2).strip(),
+                    "distance": float(m.group(3)),
+                })
+        servers.sort(key=lambda s: s["distance"])
         return {"ok": True, "servers": servers}
     except Exception as e:
         return {"ok": False, "servers": [], "error": str(e)}
