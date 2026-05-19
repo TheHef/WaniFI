@@ -36,7 +36,7 @@ window.metricsChart = function () {
 
     _fmtLabel(ts) {
       const dt = new Date(ts);
-      if (this.range === '1h' || this.range === '12h' || this.range === '1d') {
+      if (['1h','3h','6h','12h','1d'].includes(this.range)) {
         return dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       }
       return dt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });

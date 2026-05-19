@@ -127,6 +127,11 @@
               :class="newRule.rule_type === 'nzbget' ? 'bg-slate-600/40 border-slate-500/50 text-slate-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
         NZBGet
       </button>
+      <button @click="newRule.rule_type = 'unifi_rule'; newRule.action = 'kick_all_clients'; newRule.container = ''"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
+              :class="newRule.rule_type === 'unifi_rule' ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'">
+        UniFi
+      </button>
     </div>
 
     <!-- Docker -->
@@ -274,15 +279,16 @@
         <option value="high_latency">On high latency</option>
       </select>
       <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#52B54B]">
-        <option value="set_bitrate_limit">Set bitrate limit</option>
+        <option value="set_bitrate_and_restream">Set bitrate limit + restream</option>
+        <option value="set_bitrate_limit">Set bitrate limit only</option>
         <option value="clear_bitrate_limit">Clear bitrate limit</option>
         <option value="stop_all_sessions">Stop all sessions</option>
       </select>
-      <input x-show="newRule.action === 'set_bitrate_limit'"
+      <input x-show="newRule.action === 'set_bitrate_limit' || newRule.action === 'set_bitrate_and_restream'"
              x-model="newRule.container" type="number" min="1" placeholder="Mbps (e.g. 2)"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#52B54B] transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
-             :class="newRule.action === 'set_bitrate_limit' ? '' : 'md:col-span-2'"
+             :class="(newRule.action === 'set_bitrate_limit' || newRule.action === 'set_bitrate_and_restream') ? '' : 'md:col-span-2'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#52B54B] transition">
       <button @click="addRule()" class="md:col-span-4 bg-[#52B54B] hover:bg-[#52B54B]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
     </div>
@@ -296,15 +302,16 @@
         <option value="high_latency">On high latency</option>
       </select>
       <select x-model="newRule.action" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#AA5CC3]">
-        <option value="set_bitrate_limit">Set bitrate limit</option>
+        <option value="set_bitrate_and_restream">Set bitrate limit + restream</option>
+        <option value="set_bitrate_limit">Set bitrate limit only</option>
         <option value="clear_bitrate_limit">Clear bitrate limit</option>
         <option value="stop_all_sessions">Stop all sessions</option>
       </select>
-      <input x-show="newRule.action === 'set_bitrate_limit'"
+      <input x-show="newRule.action === 'set_bitrate_limit' || newRule.action === 'set_bitrate_and_restream'"
              x-model="newRule.container" type="number" min="1" placeholder="Mbps (e.g. 2)"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#AA5CC3] transition">
       <input x-model="newRule.name" type="text" placeholder="Name (optional)"
-             :class="newRule.action === 'set_bitrate_limit' ? '' : 'md:col-span-2'"
+             :class="(newRule.action === 'set_bitrate_limit' || newRule.action === 'set_bitrate_and_restream') ? '' : 'md:col-span-2'"
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#AA5CC3] transition">
       <button @click="addRule()" class="md:col-span-4 bg-[#AA5CC3] hover:bg-[#AA5CC3]/80 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
     </div>
@@ -566,6 +573,33 @@
              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-slate-500 transition">
       <button @click="addRule()" class="md:col-span-4 bg-slate-600 hover:bg-slate-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
     </div>
+
+    <!-- UniFi -->
+    <div x-show="newRule.rule_type === 'unifi_rule'" class="grid md:grid-cols-4 gap-3">
+      <select x-model="newRule.trigger" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        <option value="failover">On failover</option>
+        <option value="restored">On restored</option>
+        <option value="down">On WAN down</option>
+        <option value="high_latency">On high latency</option>
+      </select>
+      <select x-model="newRule.action" @change="newRule.container = ''" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+        <option value="kick_all_clients">Kick all wireless clients</option>
+        <option value="disable_wlan">Disable WLAN</option>
+        <option value="enable_wlan">Enable WLAN</option>
+        <option value="block_client">Block client (MAC)</option>
+        <option value="unblock_client">Unblock client (MAC)</option>
+      </select>
+      <input x-show="newRule.action === 'disable_wlan' || newRule.action === 'enable_wlan'"
+             x-model="newRule.container" type="text" placeholder="SSID name"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
+      <input x-show="newRule.action === 'block_client' || newRule.action === 'unblock_client'"
+             x-model="newRule.container" type="text" placeholder="MAC (aa:bb:cc:dd:ee:ff)"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
+      <input x-model="newRule.name" type="text" placeholder="Name (optional)"
+             :class="newRule.action === 'kick_all_clients' ? 'md:col-span-2' : ''"
+             class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-500 transition">
+      <button @click="addRule()" class="md:col-span-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl px-4 py-2 text-sm transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>Add rule</button>
+    </div>
   </div>
 
   <div class="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden mb-4">
@@ -639,6 +673,7 @@
                       unraid:       'background:rgba(245,158,11,.15);color:#fbbf24',
                       nodered:      'background:rgba(244,63,94,.15);color:#fb7185',
                       nzbget:       'background:rgba(100,116,139,.15);color:#94a3b8',
+                      unifi_rule:   'background:rgba(37,99,235,.15);color:#60a5fa',
                     })[r.rule_type] || 'background:rgba(71,85,105,.4);color:#94a3b8'"
                     x-text="({
                       host_command:'HC', docker:'DC', qbittorrent:'qb',
@@ -648,7 +683,7 @@
                       sonarr:'Sonarr', radarr:'Radarr', webhook:'Hook',
                       pihole:'Pi-hole', adguard:'AdG',
                       portainer:'PTR', truenas:'TrueNAS', unraid:'Unraid',
-                      nodered:'NR', nzbget:'NZB',
+                      nodered:'NR', nzbget:'NZB', unifi_rule:'UniFi',
                     })[r.rule_type] || r.rule_type">
               </span>
             </td>
@@ -658,7 +693,7 @@
               <div class="font-semibold text-slate-100 leading-tight text-[13px]"
                    x-text="r.name || r.rule_type"></div>
               <div class="text-[11px] text-slate-500 font-mono mt-0.5 truncate max-w-[200px]"
-                   x-text="r.rule_type === 'host_command' || r.rule_type === 'webhook' ? r.command : ['docker','proxmox','portainer','homeassistant','nodered'].includes(r.rule_type) ? (r.container || r.action) : r.action"></div>
+                   x-text="r.rule_type === 'host_command' || r.rule_type === 'webhook' ? r.command : ['docker','proxmox','portainer','homeassistant','nodered'].includes(r.rule_type) ? (r.container || r.action) : r.rule_type === 'unifi_rule' ? (r.container ? r.action + ' · ' + r.container : r.action) : r.action"></div>
             </td>
 
             <!-- Trigger badge -->
@@ -684,7 +719,7 @@
             <!-- Action badge -->
             <td class="px-4 py-4" :class="!r.enabled ? 'opacity-40' : ''">
               <span class="inline-flex items-center bg-slate-800 border border-slate-700/50 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-300"
-                    x-text="r.action + (r.container && !['docker','homeassistant','proxmox','webhook','portainer','nodered'].includes(r.rule_type) ? ' · ' + r.container : '')">
+                    x-text="r.action + (r.container && !['docker','homeassistant','proxmox','webhook','portainer','nodered','unifi_rule'].includes(r.rule_type) ? ' · ' + r.container : '')">
               </span>
             </td>
 

@@ -26,6 +26,7 @@ from ..models import (
     VALID_UNRAID_ACTIONS,
     VALID_NODERED_ACTIONS,
     VALID_NZBGET_ACTIONS,
+    VALID_UNIFI_RULE_ACTIONS,
 )
 from ..watcher import (
     execute_host_command,
@@ -48,6 +49,7 @@ from ..watcher import (
     run_unraid_action,
     run_nodered_action,
     run_nzbget_action,
+    run_unifi_rule_action,
 )
 from ..docker_ops import container_action
 
@@ -133,6 +135,11 @@ def _validate(payload: RuleIn):
     elif t == "nzbget":
         if payload.action not in VALID_NZBGET_ACTIONS:
             raise HTTPException(400, f"action must be one of {VALID_NZBGET_ACTIONS}")
+    elif t == "unifi_rule":
+        if payload.action not in VALID_UNIFI_RULE_ACTIONS:
+            raise HTTPException(400, f"action must be one of {VALID_UNIFI_RULE_ACTIONS}")
+        if payload.action in ("disable_wlan", "enable_wlan", "block_client", "unblock_client") and not payload.container.strip():
+            raise HTTPException(400, "container (WLAN name / MAC) required for this action")
     else:
         raise HTTPException(400, f"Unknown rule_type: {t!r}")
 
@@ -280,6 +287,8 @@ async def run_rule(rule_id: int, _: bool = Depends(require_auth)):
         ok, msg = await run_nodered_action(action, rule["command"])
     elif t == "nzbget":
         ok, msg = await run_nzbget_action(action, value)
+    elif t == "unifi_rule":
+        ok, msg = await run_unifi_rule_action(action, value)
     else:
         ok, msg = container_action(rule["container"], action)
 

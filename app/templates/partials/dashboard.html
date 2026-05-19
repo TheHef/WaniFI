@@ -318,7 +318,7 @@
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-base font-semibold text-slate-200">WAN Metrics</h2>
       <div class="flex gap-1">
-        <template x-for="r in ['1h','12h','1d','7d','30d']" :key="r">
+        <template x-for="r in ['1h','3h','6h','12h','1d','7d','30d']" :key="r">
           <button @click="setRange(r)"
                   class="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                   :class="range === r ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200'"

@@ -8,8 +8,8 @@ from .config import POLL_INTERVAL_DEFAULT
 VALID_TRIGGERS             = ("failover", "restored", "down", "high_latency")
 VALID_ACTIONS              = ("stop", "start", "restart", "pause", "unpause")
 VALID_QB_ACTIONS           = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
-VALID_EMBY_ACTIONS         = ("set_bitrate_limit", "clear_bitrate_limit", "stop_all_sessions")
-VALID_JELLYFIN_ACTIONS     = ("set_bitrate_limit", "clear_bitrate_limit", "stop_all_sessions")
+VALID_EMBY_ACTIONS         = ("set_bitrate_limit", "set_bitrate_and_restream", "clear_bitrate_limit", "stop_all_sessions")
+VALID_JELLYFIN_ACTIONS     = ("set_bitrate_limit", "set_bitrate_and_restream", "clear_bitrate_limit", "stop_all_sessions")
 VALID_PLEX_ACTIONS         = ("set_wan_bitrate", "clear_wan_bitrate", "stop_all_streams")
 VALID_SABNZBD_ACTIONS      = ("pause", "resume", "set_speed_limit")
 VALID_TRANSMISSION_ACTIONS = ("alt_speed_on", "alt_speed_off", "set_dl_limit", "set_ul_limit", "pause_all", "resume_all")
@@ -26,6 +26,7 @@ VALID_TRUENAS_ACTIONS      = ("start_service", "stop_service", "restart_service"
 VALID_UNRAID_ACTIONS       = ("start_vm", "stop_vm", "pause_vm", "resume_vm")
 VALID_NODERED_ACTIONS      = ("trigger_flow",)
 VALID_NZBGET_ACTIONS       = ("pause", "resume", "set_speed_limit")
+VALID_UNIFI_RULE_ACTIONS   = ("kick_all_clients", "disable_wlan", "enable_wlan", "block_client", "unblock_client")
 
 
 class SetupIn(BaseModel):

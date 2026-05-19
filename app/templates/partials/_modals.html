@@ -75,12 +75,13 @@
         <div class="mb-3">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
           <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#52B54B]">
-            <option value="set_bitrate_limit">Set bitrate limit</option>
+            <option value="set_bitrate_and_restream">Set bitrate limit + restream</option>
+            <option value="set_bitrate_limit">Set bitrate limit only</option>
             <option value="clear_bitrate_limit">Clear bitrate limit</option>
             <option value="stop_all_sessions">Stop all sessions</option>
           </select>
         </div>
-        <div x-show="editModal.rule.action === 'set_bitrate_limit'">
+        <div x-show="editModal.rule.action === 'set_bitrate_limit' || editModal.rule.action === 'set_bitrate_and_restream'">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mbps</label>
           <input x-model="editModal.rule.container" type="number" min="1"
                  class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#52B54B] transition">
@@ -92,12 +93,13 @@
         <div class="mb-3">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
           <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#AA5CC3]">
-            <option value="set_bitrate_limit">Set bitrate limit</option>
+            <option value="set_bitrate_and_restream">Set bitrate limit + restream</option>
+            <option value="set_bitrate_limit">Set bitrate limit only</option>
             <option value="clear_bitrate_limit">Clear bitrate limit</option>
             <option value="stop_all_sessions">Stop all sessions</option>
           </select>
         </div>
-        <div x-show="editModal.rule.action === 'set_bitrate_limit'">
+        <div x-show="editModal.rule.action === 'set_bitrate_limit' || editModal.rule.action === 'set_bitrate_and_restream'">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mbps</label>
           <input x-model="editModal.rule.container" type="number" min="1"
                  class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-[#AA5CC3] transition">
@@ -334,6 +336,30 @@
                class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-rose-500 transition">
       </div>
     </template>
+    <template x-if="editModal.rule.rule_type === 'unifi_rule'">
+      <div class="mb-3">
+        <div class="mb-3">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Action</label>
+          <select x-model="editModal.rule.action" class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+            <option value="kick_all_clients">Kick all wireless clients</option>
+            <option value="disable_wlan">Disable WLAN</option>
+            <option value="enable_wlan">Enable WLAN</option>
+            <option value="block_client">Block client (MAC)</option>
+            <option value="unblock_client">Unblock client (MAC)</option>
+          </select>
+        </div>
+        <div x-show="editModal.rule.action === 'disable_wlan' || editModal.rule.action === 'enable_wlan'">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">SSID name</label>
+          <input x-model="editModal.rule.container" type="text" placeholder="MyNetwork"
+                 class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition">
+        </div>
+        <div x-show="editModal.rule.action === 'block_client' || editModal.rule.action === 'unblock_client'">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">MAC address</label>
+          <input x-model="editModal.rule.container" type="text" placeholder="aa:bb:cc:dd:ee:ff"
+                 class="w-full mt-1.5 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-blue-500 transition">
+        </div>
+      </div>
+    </template>
     <template x-if="editModal.rule.rule_type === 'nzbget'">
       <div class="mb-3">
         <div class="mb-3">
@@ -376,6 +402,7 @@
                   adguard:'background:#16a34a', portainer:'background:#0891b2',
                   truenas:'background:#4f46e5', unraid:'background:#d97706',
                   nodered:'background:#be123c', nzbget:'background:#475569',
+                  unifi_rule:'background:#2563eb',
                 })[editModal.rule.rule_type] || 'background:#3b82f6'">Save</button>
       </div>
     </div>

@@ -42,10 +42,12 @@ async def api_live(_: bool = Depends(require_auth)):
 @router.get("/api/metrics")
 async def api_metrics(range: str = "1h", _: bool = Depends(require_auth)):
     range_map = {
-        "1h":  (3600,        0),
-        "12h": (43_200,    300),
-        "1d":  (86_400,    900),
-        "7d":  (604_800,  3_600),
+        "1h":  (3_600,         0),
+        "3h":  (10_800,        0),
+        "6h":  (21_600,      180),
+        "12h": (43_200,      300),
+        "1d":  (86_400,      900),
+        "7d":  (604_800,   3_600),
         "30d": (2_592_000, 14_400),
     }
     if range not in range_map:

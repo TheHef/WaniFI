@@ -60,6 +60,49 @@ class EmbyClient:
     async def clear_bitrate_limit(self) -> tuple[bool, str]:
         return await self.set_bitrate_limit(0)
 
+    async def refresh_active_sessions(self) -> tuple[bool, str]:
+        """Seek every active session to its current playback position.
+
+        This forces each client to re-request the stream from the server.
+        The server applies the current bitrate limit to the new request, so
+        sessions that were playing above the limit begin transcoding at the
+        lower rate.  Users experience ~1 second of rebuffering — playback
+        is NOT stopped.
+        """
+        client = await self._get_client()
+        try:
+            r = await client.get(f"{self.base}/Sessions", headers=self._headers())
+            if r.status_code != 200:
+                return False, f"Could not fetch sessions: HTTP {r.status_code}"
+            sessions = [s for s in r.json() if s.get("NowPlayingItem")]
+            if not sessions:
+                return True, "No active sessions to refresh"
+            refreshed = 0
+            for s in sessions:
+                sid = s.get("Id", "")
+                if not sid:
+                    continue
+                position = s.get("PlayState", {}).get("PositionTicks", 0)
+                await client.post(
+                    f"{self.base}/Sessions/{sid}/Playing/Seek",
+                    params={"seekPositionTicks": position},
+                    headers=self._headers(),
+                )
+                refreshed += 1
+            return True, f"Refreshed {refreshed} session{'s' if refreshed != 1 else ''}"
+        except Exception as e:
+            return False, str(e)
+
+    async def set_bitrate_and_restream(self, mbps: int) -> tuple[bool, str]:
+        """Set bitrate limit then seek all active sessions to their current
+        position so existing streams immediately re-transcode at the new cap."""
+        ok, msg = await self.set_bitrate_limit(mbps)
+        if not ok:
+            return False, msg
+        _, msg2 = await self.refresh_active_sessions()
+        label = f"{mbps} Mbps" if mbps else "unlimited"
+        return True, f"Bitrate → {label}; {msg2}"
+
     async def stop_all_sessions(self) -> tuple[bool, str]:
         client = await self._get_client()
         try:

@@ -151,6 +151,12 @@ async def run_emby_action(action: str, value: str = "") -> tuple[bool, str]:
     try:
         if action == "set_bitrate_limit":
             return await client.set_bitrate_limit(int(value) if value else 0)
+        if action == "set_bitrate_and_restream":
+            try:
+                mbps = int(value) if value else 0
+            except (ValueError, TypeError):
+                mbps = 0
+            return await client.set_bitrate_and_restream(mbps)
         if action == "clear_bitrate_limit":
             return await client.clear_bitrate_limit()
         if action == "stop_all_sessions":
@@ -170,6 +176,12 @@ async def run_jellyfin_action(action: str, value: str = "") -> tuple[bool, str]:
     try:
         if action == "set_bitrate_limit":
             return await client.set_bitrate_limit(int(value) if value else 0)
+        if action == "set_bitrate_and_restream":
+            try:
+                mbps = int(value) if value else 0
+            except (ValueError, TypeError):
+                mbps = 0
+            return await client.set_bitrate_and_restream(mbps)
         if action == "clear_bitrate_limit":
             return await client.clear_bitrate_limit()
         if action == "stop_all_sessions":
@@ -526,6 +538,38 @@ async def run_nzbget_action(action: str, value: str = "") -> tuple[bool, str]:
         await client.close()
 
 
+async def run_unifi_rule_action(action: str, value: str = "") -> tuple[bool, str]:
+    """Run a UniFi-specific rule action using the globally configured UniFi credentials."""
+    host    = get_setting("unifi_host", "")
+    api_key = get_setting("unifi_api_key", "")
+    site    = get_setting("unifi_site", "default")
+    if not host or not api_key:
+        return False, "UniFi not configured (host/API key missing)"
+    client = UniFiClient(host, api_key, site)
+    try:
+        if action == "kick_all_clients":
+            return await client.kick_all_clients()
+        if action == "disable_wlan":
+            if not value:
+                return False, "WLAN name required"
+            return await client.set_wlan_enabled(value, False)
+        if action == "enable_wlan":
+            if not value:
+                return False, "WLAN name required"
+            return await client.set_wlan_enabled(value, True)
+        if action == "block_client":
+            if not value:
+                return False, "MAC address required"
+            return await client.set_client_blocked(value, True)
+        if action == "unblock_client":
+            if not value:
+                return False, "MAC address required"
+            return await client.set_client_blocked(value, False)
+        return False, f"Unknown UniFi action: {action}"
+    finally:
+        await client.close()
+
+
 async def run_webhook_action(url: str, method: str = "POST") -> tuple[bool, str]:
     import httpx
     try:
@@ -568,6 +612,7 @@ async def fire_trigger(trigger: str):
             "unraid":        "integration_unraid",
             "nodered":       "integration_nodered",
             "nzbget":        "integration_nzbget",
+            # unifi_rule reuses the global UniFi credentials — no separate toggle
         }.get(rtype)
         if integration_key and get_setting(integration_key, "0") != "1":
             await a_log_event("info", f"Rule '{rule['name']}' skipped (integration disabled)")
@@ -678,6 +723,9 @@ async def fire_trigger(trigger: str):
         elif rtype == "nzbget":
             ok, msg = await run_nzbget_action(rule["action"], rule["container"])
             await a_log_event("info" if ok else "error", f"Rule: NZBGet {rule['action']} on {trigger} -> {msg}")
+        elif rtype == "unifi_rule":
+            ok, msg = await run_unifi_rule_action(rule["action"], rule["container"])
+            await a_log_event("info" if ok else "error", f"Rule: UniFi {rule['action']} on {trigger} -> {msg}")
         else:
             ok, msg = container_action(rule["container"], rule["action"])
             await a_log_event(

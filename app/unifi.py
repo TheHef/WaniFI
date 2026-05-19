@@ -75,6 +75,67 @@ class UniFiClient:
             log.warning("Gateway info fetch failed: %s", e)
             return {}
 
+    # ── Rule actions ────────────────────────────────────────────────────────
+
+    async def kick_all_clients(self) -> tuple[bool, str]:
+        """Disconnect every associated wireless client (forces re-auth/DHCP)."""
+        try:
+            r = await self.client.get(f"/proxy/network/api/s/{self.site}/stat/sta")
+            r.raise_for_status()
+            clients = r.json().get("data", [])
+            if not clients:
+                return True, "No wireless clients connected"
+            kicked = 0
+            for c in clients:
+                mac = c.get("mac", "")
+                if not mac:
+                    continue
+                await self.client.post(
+                    f"/proxy/network/api/s/{self.site}/cmd/stamgr",
+                    json={"cmd": "kick-sta", "mac": mac},
+                )
+                kicked += 1
+            return True, f"Kicked {kicked} client{'s' if kicked != 1 else ''}"
+        except Exception as e:
+            return False, str(e)
+
+    async def set_wlan_enabled(self, name: str, enabled: bool) -> tuple[bool, str]:
+        """Enable or disable a WLAN by SSID name."""
+        try:
+            r = await self.client.get(f"/proxy/network/api/s/{self.site}/rest/wlanconf")
+            r.raise_for_status()
+            wlans = r.json().get("data", [])
+            target = next((w for w in wlans if w.get("name", "") == name), None)
+            if not target:
+                return False, f"WLAN '{name}' not found"
+            wid = target.get("_id", "")
+            target["enabled"] = enabled
+            w = await self.client.put(
+                f"/proxy/network/api/s/{self.site}/rest/wlanconf/{wid}",
+                json=target,
+            )
+            if w.status_code < 400:
+                state = "enabled" if enabled else "disabled"
+                return True, f"WLAN '{name}' {state}"
+            return False, f"HTTP {w.status_code}"
+        except Exception as e:
+            return False, str(e)
+
+    async def set_client_blocked(self, mac: str, block: bool) -> tuple[bool, str]:
+        """Block or unblock a client MAC address."""
+        cmd = "block-sta" if block else "unblock-sta"
+        try:
+            r = await self.client.post(
+                f"/proxy/network/api/s/{self.site}/cmd/stamgr",
+                json={"cmd": cmd, "mac": mac.lower()},
+            )
+            if r.status_code < 400:
+                state = "blocked" if block else "unblocked"
+                return True, f"Client {mac} {state}"
+            return False, f"HTTP {r.status_code}"
+        except Exception as e:
+            return False, str(e)
+
     async def close(self):
         await self.client.aclose()
 
