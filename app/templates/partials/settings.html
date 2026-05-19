@@ -1072,7 +1072,8 @@
           </div>
           <div class="overflow-y-auto max-h-64">
             <div x-show="speedtestServersLoading" class="py-8 text-center text-sm text-slate-500">Fetching server list…</div>
-            <div x-show="!speedtestServersLoading && speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch)).length === 0"
+            <div x-show="!speedtestServersLoading && speedtestServersError" class="py-4 px-4 text-sm text-red-400" x-text="speedtestServersError"></div>
+            <div x-show="!speedtestServersLoading && !speedtestServersError && speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch)).length === 0"
                  class="py-8 text-center text-sm text-slate-500">No servers found</div>
             <template x-for="s in speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch))" :key="s.id">
               <button @click="selectSpeedtestServer(s); saveSpeedtestSettings()"

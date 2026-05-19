@@ -45,7 +45,7 @@ window.app = function () {
     cloudflareSettings:  { cloudflare_api_token_set: false, cloudflare_zone_id: '' },
     nutSettings:         { nut_host: '', nut_port: 3493, nut_ups_name: 'ups', nut_username: '', nut_password_set: false },
     speedtestSettings:   { speedtest_server_id: '', speedtest_source_ip: '' },
-    speedtestServers: [], speedtestServerSearch: '', speedtestServerOpen: false, speedtestServersLoading: false,
+    speedtestServers: [], speedtestServerSearch: '', speedtestServerOpen: false, speedtestServersLoading: false, speedtestServersError: '',
 
     embyMsg: '', jellyfinMsg: '', plexMsg: '',
     discordMsg: '', telegramMsg: '', pushoverMsg: '',
@@ -1012,6 +1012,7 @@ window.app = function () {
       const url = wanIp ? `/api/speedtest-servers?wan_ip=${encodeURIComponent(wanIp)}` : '/api/speedtest-servers';
       const d = await fetch(url).then(r => r.json());
       this.speedtestServers = d.servers || [];
+      this.speedtestServersError = d.ok === false ? (d.error || 'Failed to load servers') : '';
       this.speedtestServersLoading = false;
     },
     speedtestServerFiltered() {
