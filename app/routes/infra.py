@@ -1,4 +1,6 @@
 """Settings and test endpoints for Portainer, TrueNAS, Unraid, Node-RED, NPM, Cloudflare, NUT, Speedtest."""
+import asyncio
+import json
 from fastapi import APIRouter, Depends
 
 from ..auth import require_auth
@@ -281,30 +283,51 @@ async def save_speedtest_settings(payload: SpeedtestSettingsIn, _: bool = Depend
 
 
 @router.get("/api/speedtest-servers")
-async def list_speedtest_servers(_: bool = Depends(require_auth)):
-    import asyncio
-    import re
-    import subprocess as sp
+async def list_speedtest_servers(wan_ip: str = "", _: bool = Depends(require_auth)):
+    import math
+    import urllib.request
     loop = asyncio.get_event_loop()
     try:
-        source_ip = get_setting("speedtest_source_ip", "").strip()
-        list_cmd = ["speedtest-cli", "--list"]
-        if source_ip:
-            list_cmd += ["--source", source_ip]
-        result = await loop.run_in_executor(
+        # Geolocate the provided WAN IP (or fall back to container's egress IP)
+        geo_url = f"http://ip-api.com/json/{wan_ip}?fields=lat,lon,city,country" if wan_ip else "http://ip-api.com/json/?fields=lat,lon,city,country"
+        geo_raw = await loop.run_in_executor(
             None,
-            lambda c=list_cmd: sp.run(c, capture_output=True, text=True, timeout=30),
+            lambda: urllib.request.urlopen(geo_url, timeout=10).read().decode(),
         )
+        geo = json.loads(geo_raw)
+        lat, lon = geo.get("lat"), geo.get("lon")
+        if lat is None or lon is None:
+            return {"ok": False, "servers": [], "error": "Could not geolocate IP"}
+
+        # Fetch speedtest.net server list by coordinates
+        st_url = f"https://www.speedtest.net/api/js/servers?engine=js&limit=100&lat={lat}&lon={lon}&https_functional=true"
+        req = urllib.request.Request(st_url, headers={"User-Agent": "Mozilla/5.0"})
+        st_raw = await loop.run_in_executor(
+            None,
+            lambda: urllib.request.urlopen(req, timeout=15).read().decode(),
+        )
+        st_data = json.loads(st_raw)
+
+        def _dist(slat, slon):
+            # Haversine distance in km
+            R = 6371
+            dlat = math.radians(float(slat) - lat)
+            dlon = math.radians(float(slon) - lon)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat)) * math.cos(math.radians(float(slat))) * math.sin(dlon/2)**2
+            return round(R * 2 * math.asin(math.sqrt(a)), 2)
+
         servers = []
-        for line in result.stdout.splitlines():
-            m = re.match(r'^\s*(\d+)\)\s+(.+?)\s*\[([\d.]+)\s*km\]', line)
-            if m:
-                servers.append({
-                    "id":       m.group(1),
-                    "label":    m.group(2).strip(),
-                    "distance": float(m.group(3)),
-                })
+        for s in st_data:
+            sid = str(s.get("id", ""))
+            name = s.get("sponsor", s.get("name", ""))
+            city = s.get("name", "")
+            country = s.get("country", "")
+            slat = s.get("lat", lat)
+            slon = s.get("lon", lon)
+            label = f"{name} ({city}, {country})" if city and city != name else f"{name} ({country})"
+            servers.append({"id": sid, "label": label.strip(", "), "distance": _dist(slat, slon)})
+
         servers.sort(key=lambda s: s["distance"])
-        return {"ok": True, "servers": servers}
+        return {"ok": True, "servers": servers, "geo": {"city": geo.get("city"), "country": geo.get("country"), "lat": lat, "lon": lon}}
     except Exception as e:
         return {"ok": False, "servers": [], "error": str(e)}

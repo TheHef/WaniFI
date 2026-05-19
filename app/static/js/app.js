@@ -1006,7 +1006,11 @@ window.app = function () {
       this.speedtestServersLoading = true;
       this.speedtestServerOpen = true;
       this.speedtestServerSearch = '';
-      const d = await fetch('/api/speedtest-servers').then(r => r.json());
+      const primaryWan = this.settings.primary_wan || 'wan';
+      const primaryEntry = (this.status.raw_wans || []).find(w => w.subsystem === primaryWan);
+      const wanIp = (primaryEntry && primaryEntry.wan_ip) ? primaryEntry.wan_ip : '';
+      const url = wanIp ? `/api/speedtest-servers?wan_ip=${encodeURIComponent(wanIp)}` : '/api/speedtest-servers';
+      const d = await fetch(url).then(r => r.json());
       this.speedtestServers = d.servers || [];
       this.speedtestServersLoading = false;
     },
