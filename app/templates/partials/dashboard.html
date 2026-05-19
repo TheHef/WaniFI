@@ -197,9 +197,11 @@
     </div>
 
   </div>  <h2 class="text-base font-semibold text-slate-200 mb-3">WAN Connections</h2>
-  <div class="grid md:grid-cols-2 gap-4">    <div class="bg-slate-900 border rounded-2xl relative overflow-hidden transition-all flex flex-col"
+  <div class="grid md:grid-cols-2 gap-4">    <div class="bg-gradient-to-b from-slate-900 to-slate-950 border rounded-2xl relative overflow-hidden transition-all flex flex-col"
          :class="status.active_wan === 'primary' ? 'border-emerald-500/40' : 'border-slate-700/60'">
-      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl transition-all"
+      <div class="absolute inset-0 rounded-2xl pointer-events-none z-0 transition-all duration-700"
+           :class="status.active_wan === 'primary' ? 'bg-gradient-to-br from-emerald-500/6 to-transparent' : 'bg-gradient-to-br from-slate-700/5 to-transparent'"></div>
+      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl transition-all z-10"
            :class="status.active_wan === 'primary' ? 'bg-emerald-500' : 'bg-slate-700'"></div>      <div class="px-5 pt-5 pb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="text-lg font-bold text-emerald-400" x-text="status.primary_wan_name || 'Primary WAN'"></div>
@@ -287,10 +289,12 @@
           </div>
         </div>
       </div>
-    </div>    <div class="bg-slate-900 border rounded-2xl relative overflow-hidden transition-all flex flex-col"
+    </div>    <div class="bg-gradient-to-b from-slate-900 to-slate-950 border rounded-2xl relative overflow-hidden transition-all flex flex-col"
          x-data="{ get xdev() { return ((liveStats||{}).extra_devices||[])[0] || {}; }, get fw() { return (status.raw_wans||[]).find(w=>w.subsystem===status.failover_wan) || {}; } }"
          :class="status.active_wan === 'failover' ? 'border-amber-500/40' : 'border-slate-700/60'">
-      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl transition-all"
+      <div class="absolute inset-0 rounded-2xl pointer-events-none z-0 transition-all duration-700"
+           :class="status.active_wan === 'failover' ? 'bg-gradient-to-br from-amber-500/6 to-transparent' : 'bg-gradient-to-br from-slate-700/5 to-transparent'"></div>
+      <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl transition-all z-10"
            :class="status.active_wan === 'failover' ? 'bg-amber-500' : 'bg-slate-700'"></div>      <div class="px-5 pt-5 pb-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="text-lg font-bold" :class="status.active_wan === 'failover' ? 'text-amber-300' : 'text-amber-500/60'" x-text="status.failover_wan_name || 'Failover WAN'"></div>
