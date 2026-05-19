@@ -24,7 +24,7 @@ When your UniFi gateway switches to a failover WAN, WaniFi can automatically thr
 > figured I'd share it in case anyone else is in the same boat. Expect rough
 > edges, missing features, and code that an actual engineer would probably rewrite.
 >
-> Not affiliated with Ubiquiti in any way. Just a UniFi user (and fan).
+> Not affiliated with Ubiquiti or UniFi in any way. Just a UniFi user (and fan).
 
 ![Overview](docs/screenshots/overview.png)
 
