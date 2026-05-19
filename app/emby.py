@@ -62,16 +62,15 @@ class EmbyClient:
         return await self.set_bitrate_limit(0)
 
     async def refresh_active_sessions(self) -> tuple[bool, str]:
-        """Stop and restart every active session so Emby re-evaluates the
-        bitrate limit on the new stream request.
+        """Apply the current bitrate limit to active sessions.
 
-        Seek alone only works for already-transcoded (HLS) sessions. Direct
-        Play sessions ignore the seek because the client just sends a new
-        byte-range request to the same file URL — Emby never re-checks the
-        limit. Stop + Play forces a full stream re-initialization so Emby
-        applies RemoteClientBitrateLimit and transcodes Direct Play streams.
-        Users experience ~2 seconds of black screen then resume at the capped
-        bitrate.
+        Transcoded (HLS) sessions: seek to current position — Emby re-requests
+        the segment at the new limit. Users experience ~1 s rebuffering.
+
+        Direct Play sessions: stop the stream. The client returns to the detail
+        page; when the user presses Play the new stream is transcoded at the
+        limit. Attempting a programmatic restart is unreliable because the
+        session ID changes after stop.
         """
         client = await self._get_client()
         try:
@@ -81,27 +80,35 @@ class EmbyClient:
             sessions = [s for s in r.json() if s.get("NowPlayingItem")]
             if not sessions:
                 return True, "No active sessions to refresh"
-            refreshed = 0
+            seeked = 0
+            stopped = 0
             for s in sessions:
-                sid     = s.get("Id", "")
-                item_id = s.get("NowPlayingItem", {}).get("Id", "")
-                if not (sid and item_id):
+                sid    = s.get("Id", "")
+                if not sid:
                     continue
-                position = s.get("PlayState", {}).get("PositionTicks", 0)
-                # Stop current stream
-                await client.post(
-                    f"{self.base}/Sessions/{sid}/Playing/Stop",
-                    headers=self._headers(),
-                )
-                await asyncio.sleep(0.5)
-                # Restart from same position — Emby evaluates bitrate limit fresh
-                await client.post(
-                    f"{self.base}/Sessions/{sid}/Play",
-                    params={"ItemIds": item_id, "StartPositionTicks": position, "PlayCommand": "PlayNow"},
-                    headers=self._headers(),
-                )
-                refreshed += 1
-            return True, f"Restarted {refreshed} session{'s' if refreshed != 1 else ''}"
+                method = s.get("PlayState", {}).get("PlayMethod", "")
+                if method == "DirectPlay":
+                    # Stop — user must press Play again; new stream respects limit
+                    await client.post(
+                        f"{self.base}/Sessions/{sid}/Playing/Stop",
+                        headers=self._headers(),
+                    )
+                    stopped += 1
+                else:
+                    # Seek to current position — forces HLS re-request at new limit
+                    position = s.get("PlayState", {}).get("PositionTicks", 0)
+                    await client.post(
+                        f"{self.base}/Sessions/{sid}/Playing/Seek",
+                        params={"seekPositionTicks": position},
+                        headers=self._headers(),
+                    )
+                    seeked += 1
+            parts = []
+            if seeked:
+                parts.append(f"{seeked} transcoded session{'s' if seeked != 1 else ''} refreshed")
+            if stopped:
+                parts.append(f"{stopped} Direct Play session{'s' if stopped != 1 else ''} stopped (press Play to resume at new limit)")
+            return True, "; ".join(parts) or "No sessions"
         except Exception as e:
             return False, str(e)
 
