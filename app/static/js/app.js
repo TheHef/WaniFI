@@ -66,7 +66,7 @@ window.app = function () {
       nodered: false, nzbget: false, gotify: false,
       speedtest: false, npm: false, cloudflare: false, nut: false,
     },
-    categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false, infra: false },
+    categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
     stats: {},
     rules: [], events: [], containers: [], discoveredWans: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '', delay_seconds: 0 },
@@ -1056,8 +1056,8 @@ window.app = function () {
           else if (['qb', 'sabnzbd', 'transmission', 'deluge', 'nzbget'].includes(name))                    this.categoryOpen.downloaders = true;
           else if (['ntfy', 'discord', 'telegram', 'pushover', 'gotify'].includes(name))                    this.categoryOpen.notifications = true;
           else if (['homeassistant', 'proxmox', 'portainer', 'truenas', 'unraid', 'nodered'].includes(name)) this.categoryOpen.homelab = true;
-          else if (['pihole', 'adguard'].includes(name))                                                     this.categoryOpen.network = true;
-          else if (['speedtest', 'npm', 'cloudflare', 'nut'].includes(name))                                 this.categoryOpen.infra = true;
+          else if (['pihole', 'adguard', 'speedtest'].includes(name))                                        this.categoryOpen.network = true;
+          else if (['npm', 'cloudflare', 'nut'].includes(name))                                              this.categoryOpen.homelab = true;
         }
       }
     },

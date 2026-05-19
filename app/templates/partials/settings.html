@@ -243,9 +243,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
           <span class="text-sm font-semibold text-slate-300 flex-1 text-left">Homelab</span>
-          <span x-show="integrations.homeassistant || integrations.proxmox || integrations.portainer || integrations.truenas || integrations.unraid || integrations.nodered"
+          <span x-show="integrations.homeassistant || integrations.proxmox || integrations.portainer || integrations.truenas || integrations.unraid || integrations.nodered || integrations.npm || integrations.cloudflare || integrations.nut"
                 class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 mr-1"
-                x-text="[integrations.homeassistant, integrations.proxmox, integrations.portainer, integrations.truenas, integrations.unraid, integrations.nodered].filter(Boolean).length + ' active'"></span>
+                x-text="[integrations.homeassistant, integrations.proxmox, integrations.portainer, integrations.truenas, integrations.unraid, integrations.nodered, integrations.npm, integrations.cloudflare, integrations.nut].filter(Boolean).length + ' active'"></span>
           <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="categoryOpen.homelab ? 'rotate-180' : ''"
                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -282,6 +282,21 @@
                   class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
             <span class="w-2 h-2 rounded-full" :class="integrations.nodered ? 'bg-[#C0392B]' : 'bg-slate-600'"></span>Node-RED
           </button>
+          <button @click="toggleIntegration('npm')"
+                  :class="integrations.npm ? 'bg-[#C0392B]/20 border-[#C0392B]/50 text-[#e74c3c]' : 'bg-slate-800 border-slate-700 text-slate-500'"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
+            <span class="w-2 h-2 rounded-full" :class="integrations.npm ? 'bg-[#e74c3c]' : 'bg-slate-600'"></span>Nginx Proxy Mgr
+          </button>
+          <button @click="toggleIntegration('cloudflare')"
+                  :class="integrations.cloudflare ? 'bg-[#F6821F]/20 border-[#F6821F]/50 text-[#F6821F]' : 'bg-slate-800 border-slate-700 text-slate-500'"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
+            <span class="w-2 h-2 rounded-full" :class="integrations.cloudflare ? 'bg-[#F6821F]' : 'bg-slate-600'"></span>Cloudflare
+          </button>
+          <button @click="toggleIntegration('nut')"
+                  :class="integrations.nut ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-500'"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
+            <span class="w-2 h-2 rounded-full" :class="integrations.nut ? 'bg-amber-400' : 'bg-slate-600'"></span>UPS / NUT
+          </button>
         </div>
       </div>
       <div class="rounded-xl border border-slate-700/80 overflow-hidden transition">
@@ -292,7 +307,7 @@
           </svg>
           <span class="text-sm font-semibold text-slate-300 flex-1 text-left">Network</span>
           <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 mr-1"
-                x-text="(1 + [integrations.pihole, integrations.adguard].filter(Boolean).length) + ' active'"></span>
+                x-text="(1 + [integrations.pihole, integrations.adguard, integrations.speedtest].filter(Boolean).length) + ' active'"></span>
           <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="categoryOpen.network ? 'rotate-180' : ''"
                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -313,44 +328,10 @@
                   class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
             <span class="w-2 h-2 rounded-full" :class="integrations.adguard ? 'bg-emerald-400' : 'bg-slate-600'"></span>AdGuard Home
           </button>
-        </div>
-      </div>
-      <div class="rounded-xl border overflow-hidden transition"
-           :class="(integrations.speedtest || integrations.npm || integrations.cloudflare || integrations.nut) ? 'border-slate-700/80' : 'border-slate-800'">
-        <button @click="categoryOpen.infra = !categoryOpen.infra"
-                class="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800/40 transition">
-          <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-          </svg>
-          <span class="text-sm font-semibold text-slate-300 flex-1 text-left">Infrastructure</span>
-          <span x-show="integrations.speedtest || integrations.npm || integrations.cloudflare || integrations.nut"
-                class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 mr-1"
-                x-text="[integrations.speedtest, integrations.npm, integrations.cloudflare, integrations.nut].filter(Boolean).length + ' active'"></span>
-          <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="categoryOpen.infra ? 'rotate-180' : ''"
-               fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-        <div x-show="categoryOpen.infra" x-transition class="flex flex-wrap gap-2 px-4 pb-4 pt-2 border-t border-slate-800">
           <button @click="toggleIntegration('speedtest')"
                   :class="integrations.speedtest ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-500'"
                   class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
             <span class="w-2 h-2 rounded-full" :class="integrations.speedtest ? 'bg-emerald-400' : 'bg-slate-600'"></span>Speedtest
-          </button>
-          <button @click="toggleIntegration('npm')"
-                  :class="integrations.npm ? 'bg-[#C0392B]/20 border-[#C0392B]/50 text-[#e74c3c]' : 'bg-slate-800 border-slate-700 text-slate-500'"
-                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
-            <span class="w-2 h-2 rounded-full" :class="integrations.npm ? 'bg-[#e74c3c]' : 'bg-slate-600'"></span>Nginx Proxy Mgr
-          </button>
-          <button @click="toggleIntegration('cloudflare')"
-                  :class="integrations.cloudflare ? 'bg-[#F6821F]/20 border-[#F6821F]/50 text-[#F6821F]' : 'bg-slate-800 border-slate-700 text-slate-500'"
-                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
-            <span class="w-2 h-2 rounded-full" :class="integrations.cloudflare ? 'bg-[#F6821F]' : 'bg-slate-600'"></span>Cloudflare
-          </button>
-          <button @click="toggleIntegration('nut')"
-                  :class="integrations.nut ? 'bg-amber-500/20 border-amber-500/50 text-amber-400' : 'bg-slate-800 border-slate-700 text-slate-500'"
-                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
-            <span class="w-2 h-2 rounded-full" :class="integrations.nut ? 'bg-amber-400' : 'bg-slate-600'"></span>UPS / NUT
           </button>
         </div>
       </div>
