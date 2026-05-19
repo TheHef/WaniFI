@@ -840,6 +840,8 @@ async def live_stats_loop():
     last_settings: Optional[tuple] = None
     ticks = 0
     metrics_every = max(1, METRICS_WRITE_INTERVAL // LIVE_INTERVAL)
+    _cpu_ema: Optional[float] = None   # exponential moving average for CPU
+    _EMA_ALPHA = 0.2                   # ~5-sample smoothing (matches UniFi's display)
 
     while True:
         try:
@@ -856,8 +858,14 @@ async def live_stats_loop():
                     await client.close()
                 client = UniFiClient(host, api_key, site)
                 last_settings = current
+                _cpu_ema = None
 
-            state.live_gw_info = await client.get_gateway_info()
+            info = await client.get_gateway_info()
+            raw_cpu = info.get("gw_cpu")
+            if raw_cpu is not None:
+                _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
+                info["gw_cpu"] = _cpu_ema
+            state.live_gw_info = info
             ticks += 1
             if ticks % metrics_every == 0:
                 await a_write_metric(state.live_gw_info)
