@@ -328,7 +328,7 @@ async def list_speedtest_servers(_: bool = Depends(require_auth)):
         # Step 3: fetch server list directly from Speedtest.net JS API
         def _get_servers():
             req = urllib.request.Request(
-                "https://c.speedtest.net/api/js/servers?engine=js&https_functional=true&limit=500",
+                "https://www.speedtest.net/api/js/servers?engine=js&https_functional=true&limit=500",
                 headers={
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                     "Accept": "application/json, text/plain, */*",
