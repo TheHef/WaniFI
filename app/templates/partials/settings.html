@@ -318,11 +318,10 @@
             <span class="w-2 h-2 rounded-full bg-[#0559C9]"></span>UniFi
             <span class="text-[10px] font-normal opacity-60 ml-0.5">always on</span>
           </span>
-          <button @click="toggleIntegration('speedtest')"
-                  :class="integrations.speedtest ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-500'"
-                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
-            <span class="w-2 h-2 rounded-full" :class="integrations.speedtest ? 'bg-emerald-400' : 'bg-slate-600'"></span>Speedtest
-          </button>
+          <span class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border bg-emerald-500/20 border-emerald-500/50 text-emerald-400 cursor-default select-none">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>Speedtest
+            <span class="text-[10px] font-normal opacity-60 ml-0.5">always on</span>
+          </span>
           <button @click="toggleIntegration('pihole')"
                   :class="integrations.pihole ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'bg-slate-800 border-slate-700 text-slate-500'"
                   class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition">
