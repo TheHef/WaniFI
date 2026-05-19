@@ -18,22 +18,28 @@ async def run_speedtest() -> tuple[bool, str]:
     _running = True
     loop = asyncio.get_event_loop()
     try:
-        cmd = ["speedtest-cli", "--json", "--secure"]
         server_id = get_setting("speedtest_server_id", "").strip()
+        cmd = ["speedtest-cli", "--json", "--secure"]
         if server_id:
-            cmd += ["--server", server_id]
+            cmd = cmd + ["--server", server_id]
+
         result = await loop.run_in_executor(
-            None,
-            lambda: subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=120,
-            ),
+            None, lambda c=cmd: subprocess.run(c, capture_output=True, text=True, timeout=120)
         )
+
+        # If a specific server was configured but failed, retry with auto-select
+        if result.returncode != 0 and server_id:
+            result = await loop.run_in_executor(
+                None, lambda: subprocess.run(
+                    ["speedtest-cli", "--json", "--secure"],
+                    capture_output=True, text=True, timeout=120
+                )
+            )
+            if result.returncode != 0:
+                return False, f"Server #{server_id} failed, auto-select also failed: {result.stderr.strip() or 'speedtest-cli failed'}"
+
         if result.returncode != 0:
-            stderr = result.stderr.strip() or "speedtest-cli failed"
-            return False, stderr
+            return False, result.stderr.strip() or "speedtest-cli failed"
 
         data = json.loads(result.stdout)
         dl     = round(data.get("download", 0) / 1_000_000, 1)
