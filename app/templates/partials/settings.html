@@ -1038,51 +1038,57 @@
     <!-- Speedtest -->
     <div x-show="integrations.speedtest" x-transition class="mb-6 pt-6 border-t border-slate-800">
       <div class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-4">Speedtest</div>
-      <div class="max-w-md">
+      <div class="max-w-lg">
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server
           <span class="normal-case font-normal text-slate-600 ml-1">(optional — blank = auto)</span>
         </label>
-        <!-- Selected server display -->
-        <div class="flex items-center gap-2 mt-1.5">
-          <div class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-200 min-h-[42px] flex items-center">
-            <span x-show="!speedtestSettings.speedtest_server_id" class="text-slate-600">Auto-select (nearest server)</span>
-            <span x-show="speedtestSettings.speedtest_server_id">
-              <span class="text-emerald-400 font-mono font-semibold" x-text="speedtestSettings.speedtest_server_id"></span>
-              <span class="text-slate-400 ml-2 text-xs" x-text="speedtestServers.find(s => s.id === speedtestSettings.speedtest_server_id)?.label || ''"></span>
-            </span>
+
+        <!-- Current selection -->
+        <div class="mt-1.5 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3">
+          <div>
+            <span x-show="!speedtestSettings.speedtest_server_id" class="text-slate-500">Auto-select (nearest server)</span>
+            <span x-show="speedtestSettings.speedtest_server_id" class="text-emerald-400 font-mono font-semibold" x-text="'#' + speedtestSettings.speedtest_server_id"></span>
+            <span x-show="speedtestSettings.speedtest_server_id && speedtestServers.find(s => s.id === speedtestSettings.speedtest_server_id)"
+                  class="text-slate-400 ml-2 text-xs"
+                  x-text="(speedtestServers.find(s => s.id === speedtestSettings.speedtest_server_id) || {}).label || ''"></span>
           </div>
-          <button @click="speedtestSettings.speedtest_server_id = ''; saveSpeedtestSettings()"
-                  x-show="speedtestSettings.speedtest_server_id"
-                  class="text-slate-500 hover:text-red-400 text-xs px-2 py-1 transition" title="Clear">✕</button>
-          <button @click="fetchSpeedtestServers()"
-                  :disabled="speedtestServersLoading"
-                  class="bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200 rounded-xl px-3 py-2 text-sm transition shrink-0">
-            <span x-text="speedtestServersLoading ? 'Loading…' : 'Browse'"></span>
-          </button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button x-show="speedtestSettings.speedtest_server_id"
+                    @click="speedtestSettings.speedtest_server_id = ''; saveSpeedtestSettings()"
+                    class="text-xs text-slate-500 hover:text-red-400 transition px-1">Clear</button>
+            <button @click="fetchSpeedtestServers()"
+                    class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-3 py-1.5 text-xs transition"
+                    x-text="speedtestServersLoading ? 'Loading…' : 'Browse servers'"></button>
+          </div>
         </div>
+
         <!-- Dropdown -->
-        <div x-show="speedtestServerOpen" x-transition class="mt-2 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
-          <div class="p-2 border-b border-slate-700">
-            <input x-model="speedtestServerSearch" placeholder="Search by name or ID…" autofocus
-                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+        <div x-show="speedtestServerOpen" class="mt-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+          <div class="p-2.5 border-b border-slate-700">
+            <input x-model="speedtestServerSearch"
+                   placeholder="Search by city, ISP or ID…"
+                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition"
+                   @keydown.escape="speedtestServerOpen = false">
           </div>
-          <div class="overflow-y-auto max-h-60">
-            <div x-show="speedtestServersLoading" class="px-4 py-6 text-center text-sm text-slate-500">Loading server list…</div>
-            <div x-show="!speedtestServersLoading && speedtestServerFiltered().length === 0" class="px-4 py-6 text-center text-sm text-slate-500">No servers found</div>
-            <template x-for="s in speedtestServerFiltered()" :key="s.id">
+          <div class="overflow-y-auto max-h-64">
+            <div x-show="speedtestServersLoading" class="py-8 text-center text-sm text-slate-500">Fetching server list…</div>
+            <div x-show="!speedtestServersLoading && speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch)).length === 0"
+                 class="py-8 text-center text-sm text-slate-500">No servers found</div>
+            <template x-for="s in speedtestServers.filter(s => !speedtestServerSearch || s.label.toLowerCase().includes(speedtestServerSearch.toLowerCase()) || s.id.includes(speedtestServerSearch))" :key="s.id">
               <button @click="selectSpeedtestServer(s); saveSpeedtestSettings()"
-                      class="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-700 transition flex items-center gap-3"
-                      :class="speedtestSettings.speedtest_server_id === s.id ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-300'">
-                <span class="font-mono text-xs text-slate-500 shrink-0 w-12" x-text="s.id"></span>
+                      class="w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition"
+                      :class="speedtestSettings.speedtest_server_id === s.id ? 'bg-emerald-500/10 text-emerald-400' : 'text-slate-300 hover:bg-slate-700'">
+                <span class="font-mono text-xs text-slate-500 shrink-0 w-14" x-text="'#' + s.id"></span>
                 <span class="truncate" x-text="s.label"></span>
               </button>
             </template>
           </div>
-          <div class="p-2 border-t border-slate-700 text-right">
+          <div class="px-4 py-2 border-t border-slate-700 flex justify-end">
             <button @click="speedtestServerOpen = false" class="text-xs text-slate-500 hover:text-slate-300 transition">Close</button>
           </div>
         </div>
       </div>
+
       <div class="flex gap-3 mt-4 flex-wrap items-center">
         <button @click="saveSpeedtestSettings()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl px-5 py-2 text-sm transition">Save</button>
         <span class="text-sm font-medium" :class="speedtestMsg.startsWith('✓') ? 'text-emerald-400' : 'text-red-400'" x-show="speedtestMsg" x-text="speedtestMsg"></span>
