@@ -44,7 +44,7 @@ window.app = function () {
     npmSettings:         { npm_url: '', npm_username: '', npm_password_set: false },
     cloudflareSettings:  { cloudflare_api_token_set: false, cloudflare_zone_id: '' },
     nutSettings:         { nut_host: '', nut_port: 3493, nut_ups_name: 'ups', nut_username: '', nut_password_set: false },
-    speedtestSettings:   { speedtest_server_id: '', speedtest_source_ip: '' },
+    speedtestSettings:   { speedtest_server_id: '', speedtest_server_name: '', speedtest_source_ip: '' },
     speedtestServers: [], speedtestServerSearch: '', speedtestServerOpen: false, speedtestServersLoading: false, speedtestServersError: '',
 
     embyMsg: '', jellyfinMsg: '', plexMsg: '',
@@ -1022,6 +1022,7 @@ window.app = function () {
     },
     selectSpeedtestServer(server) {
       this.speedtestSettings.speedtest_server_id = server.id;
+      this.speedtestSettings.speedtest_server_name = server.label;
       this.speedtestServerOpen = false;
       this.speedtestServerSearch = '';
     },

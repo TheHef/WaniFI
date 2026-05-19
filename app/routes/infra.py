@@ -270,15 +270,17 @@ async def test_nut(_: bool = Depends(require_auth)):
 @router.get("/api/speedtest-settings")
 async def get_speedtest_settings(_: bool = Depends(require_auth)):
     return {
-        "speedtest_server_id": get_setting("speedtest_server_id", ""),
-        "speedtest_source_ip": get_setting("speedtest_source_ip", ""),
+        "speedtest_server_id":   get_setting("speedtest_server_id", ""),
+        "speedtest_server_name": get_setting("speedtest_server_name", ""),
+        "speedtest_source_ip":   get_setting("speedtest_source_ip", ""),
     }
 
 
 @router.post("/api/speedtest-settings")
 async def save_speedtest_settings(payload: SpeedtestSettingsIn, _: bool = Depends(require_auth)):
-    set_setting("speedtest_server_id", payload.speedtest_server_id.strip())
-    set_setting("speedtest_source_ip", payload.speedtest_source_ip.strip())
+    set_setting("speedtest_server_id",   payload.speedtest_server_id.strip())
+    set_setting("speedtest_server_name", payload.speedtest_server_name.strip())
+    set_setting("speedtest_source_ip",   payload.speedtest_source_ip.strip())
     return {"ok": True}
 
 

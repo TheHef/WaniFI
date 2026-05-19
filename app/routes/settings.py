@@ -52,7 +52,7 @@ EXPORT_KEYS = (
     "integration_pihole", "integration_adguard",
     "integration_portainer", "integration_truenas", "integration_unraid",
     "integration_nodered", "integration_nzbget", "integration_gotify",
-    "speedtest_server_id", "speedtest_source_ip",
+    "speedtest_server_id", "speedtest_server_name", "speedtest_source_ip",
     "integration_speedtest", "integration_npm", "integration_cloudflare", "integration_nut",
 )
 
