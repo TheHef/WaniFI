@@ -255,33 +255,93 @@
   <div x-show="settings.router_type === 'openwrt'">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">OpenWrt</div>
 
-    <!-- Discovered interfaces -->
-    <div x-show="openwrtDiscoveredIfaces.length > 0" class="mb-5">
-      <p class="text-xs text-slate-500 mb-2">Click to assign interfaces:</p>
-      <div class="flex flex-wrap gap-2">
-        <template x-for="iface in openwrtDiscoveredIfaces" :key="iface.interface">
-          <div class="bg-slate-800 border rounded-xl px-3 py-2 text-xs flex flex-col gap-1.5"
-               :class="iface.up ? 'border-emerald-600/40' : 'border-slate-700'">
-            <div class="flex items-center gap-2">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="iface.up ? 'bg-emerald-400' : 'bg-slate-600'"></span>
-              <span class="font-mono font-bold text-slate-200" x-text="iface.interface"></span>
-              <span x-show="iface.ip" class="text-sky-400" x-text="iface.ip"></span>
-              <span x-show="!iface.up" class="text-slate-600">down</span>
-            </div>
-            <div class="flex gap-1">
-              <button @click="openwrtSettings.openwrt_primary_iface = iface.interface"
-                      class="px-2 py-0.5 rounded text-[10px] font-bold transition"
-                      :class="openwrtSettings.openwrt_primary_iface === iface.interface
-                        ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
-                        : 'bg-slate-700/60 text-slate-500 hover:text-emerald-400'">Primary</button>
-              <button @click="openwrtSettings.openwrt_failover_iface = iface.interface"
-                      class="px-2 py-0.5 rounded text-[10px] font-bold transition"
-                      :class="openwrtSettings.openwrt_failover_iface === iface.interface
-                        ? 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40'
-                        : 'bg-slate-700/60 text-slate-500 hover:text-amber-400'">Failover</button>
-            </div>
+    <!-- Discovered interfaces drag-drop -->
+    <div class="mb-5">
+      <p class="text-xs text-slate-500 mb-3">Drag your WAN interfaces to the correct slots:</p>
+      <div class="grid md:grid-cols-[minmax(0,0.28fr)_1fr_240px] gap-0 items-stretch">
+
+        <!-- Draggable interface cards (up only) -->
+        <div class="flex flex-col gap-3">
+          <div x-show="openwrtDiscoveredIfaces.filter(i => i.up).length > 0" class="flex flex-col gap-3 h-full">
+            <template x-for="iface in openwrtDiscoveredIfaces.filter(i => i.up)" :key="iface.interface">
+              <div draggable="true"
+                   @dragstart="$event.dataTransfer.setData('owrt_iface', JSON.stringify(iface))"
+                   class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-3 cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition flex flex-col items-center justify-center gap-1.5 text-center">
+                <div class="font-mono font-bold text-slate-200 text-xs" x-text="iface.interface"></div>
+                <div class="w-10 h-10 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+                <div class="text-sky-400 text-xs font-mono" x-show="iface.ip" x-text="iface.ip"></div>
+                <div class="flex items-center justify-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span class="text-xs text-emerald-400">active</span>
+                </div>
+              </div>
+            </template>
           </div>
-        </template>
+          <div x-show="openwrtDiscoveredIfaces.filter(i => i.up).length === 0"
+               class="bg-slate-800/50 border border-dashed border-slate-700 rounded-xl p-4 text-center">
+            <div class="text-slate-500 text-xs">Test Connection first</div>
+          </div>
+        </div>
+
+        <!-- Arrow SVG -->
+        <div class="hidden md:flex items-center justify-center pointer-events-none select-none">
+          <svg viewBox="0 0 100 100" class="w-48 h-48" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="50" x2="28" y2="50"/>
+            <path d="M28 50 C42 50 42 22 56 22"/>
+            <line x1="56" y1="22" x2="80" y2="22"/>
+            <polyline points="73,15 80,22 73,29"/>
+            <path d="M28 50 C42 50 42 78 56 78"/>
+            <line x1="56" y1="78" x2="80" y2="78"/>
+            <polyline points="73,71 80,78 73,85"/>
+          </svg>
+        </div>
+
+        <!-- Drop zones -->
+        <div class="flex flex-col gap-3">
+          <div @dragover.prevent="$el.classList.add('border-emerald-400','bg-emerald-500/10')"
+               @dragleave="$el.classList.remove('border-emerald-400','bg-emerald-500/10')"
+               @drop="$el.classList.remove('border-emerald-400','bg-emerald-500/10'); dropOpenwrtIface($event,'primary')"
+               class="flex-1 border-2 border-dashed rounded-2xl p-4 transition"
+               :class="openwrtSettings.openwrt_primary_iface ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-slate-700'">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-xs font-semibold text-emerald-500 uppercase tracking-wider">Primary WAN</div>
+              <button x-show="openwrtSettings.openwrt_primary_iface" @click="openwrtSettings.openwrt_primary_iface = ''" class="text-slate-600 hover:text-red-400 text-xs transition">✕</button>
+            </div>
+            <template x-if="openwrtSettings.openwrt_primary_iface">
+              <div>
+                <div class="font-mono font-bold text-emerald-300 text-xs mb-1" x-text="openwrtSettings.openwrt_primary_iface"></div>
+                <div class="text-xs text-sky-400 font-mono"
+                     x-text="(openwrtDiscoveredIfaces.find(i => i.interface === openwrtSettings.openwrt_primary_iface) || {}).ip || ''"></div>
+              </div>
+            </template>
+            <template x-if="!openwrtSettings.openwrt_primary_iface">
+              <div class="text-slate-600 text-xs text-center pt-1">Drop a WAN here</div>
+            </template>
+          </div>
+          <div @dragover.prevent="$el.classList.add('border-amber-400','bg-amber-500/10')"
+               @dragleave="$el.classList.remove('border-amber-400','bg-amber-500/10')"
+               @drop="$el.classList.remove('border-amber-400','bg-amber-500/10'); dropOpenwrtIface($event,'failover')"
+               class="flex-1 border-2 border-dashed rounded-2xl p-4 transition"
+               :class="openwrtSettings.openwrt_failover_iface ? 'border-amber-500/50 bg-amber-500/5' : 'border-slate-700'">
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-xs font-semibold text-amber-500 uppercase tracking-wider">Failover WAN</div>
+              <button x-show="openwrtSettings.openwrt_failover_iface" @click="openwrtSettings.openwrt_failover_iface = ''" class="text-slate-600 hover:text-red-400 text-xs transition">✕</button>
+            </div>
+            <template x-if="openwrtSettings.openwrt_failover_iface">
+              <div>
+                <div class="font-mono font-bold text-amber-300 text-xs mb-1" x-text="openwrtSettings.openwrt_failover_iface"></div>
+                <div class="text-xs text-sky-400 font-mono"
+                     x-text="(openwrtDiscoveredIfaces.find(i => i.interface === openwrtSettings.openwrt_failover_iface) || {}).ip || ''"></div>
+              </div>
+            </template>
+            <template x-if="!openwrtSettings.openwrt_failover_iface">
+              <div class="text-slate-600 text-xs text-center pt-1">Drop a WAN here</div>
+            </template>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -320,18 +380,7 @@
                  autocomplete="new-password" spellcheck="false"
                  class="w-36 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
         </div>
-        <div class="flex items-center justify-between px-4 py-2.5">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Interface</span>
-          <input x-model="openwrtSettings.openwrt_primary_iface" placeholder="wan"
-                 autocomplete="off" spellcheck="false"
-                 class="w-28 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right font-mono text-emerald-300 focus:outline-none focus:border-emerald-500 transition">
-        </div>
-        <div class="flex items-center justify-between px-4 py-2.5">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Failover Interface</span>
-          <input x-model="openwrtSettings.openwrt_failover_iface" placeholder="wwan"
-                 autocomplete="off" spellcheck="false"
-                 class="w-28 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right font-mono text-amber-300 focus:outline-none focus:border-amber-500 transition">
-        </div>
+
         <div class="flex items-center justify-between px-4 py-2.5">
           <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Poll Interval <span class="normal-case font-normal text-slate-600">(seconds)</span></span>
           <input x-model.number="settings.poll_interval" type="number" min="5"

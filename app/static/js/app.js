@@ -112,6 +112,8 @@ window.app = function () {
     async init() {
       const saved = localStorage.getItem('wanifi_discovered_wans');
       if (saved) { try { this.discoveredWans = JSON.parse(saved); } catch {} }
+      const savedOwrt = localStorage.getItem('wanifi_discovered_owrt');
+      if (savedOwrt) { try { this.openwrtDiscoveredIfaces = JSON.parse(savedOwrt); } catch {} }
 
       const pathMap = { '/overview':'dashboard', '/rules':'rules', '/settings':'settings', '/events':'events' };
       const tabPaths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
@@ -319,10 +321,21 @@ window.app = function () {
       const d = await fetch('/api/openwrt/test', { method: 'POST' }).then(r => r.json());
       if (d.ok) {
         this.openwrtDiscoveredIfaces = d.interfaces || [];
+        localStorage.setItem('wanifi_discovered_owrt', JSON.stringify(this.openwrtDiscoveredIfaces));
         this.openwrtMsg = `✓ ${d.message}`;
       } else {
         this.openwrtDiscoveredIfaces = [];
         this.openwrtMsg = '✗ ' + (d.error || 'Test failed');
+      }
+    },
+
+    dropOpenwrtIface(event, role) {
+      let iface;
+      try { iface = JSON.parse(event.dataTransfer.getData('owrt_iface')); } catch { return; }
+      if (role === 'primary') {
+        this.openwrtSettings.openwrt_primary_iface = iface.interface;
+      } else {
+        this.openwrtSettings.openwrt_failover_iface = iface.interface;
       }
     },
 
