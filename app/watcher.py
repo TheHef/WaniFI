@@ -46,7 +46,8 @@ class WatcherState:
         self.live_gw_info: dict = {}
         self.last_wans: list = []
         self.latency_last_fired: float = 0.0
-        self._prev_wan_bytes: dict = {}  # {rx, tx, ts} for delta-rate calculation
+        self._prev_wan_bytes: dict = {}   # {rx, tx, ts, delta_ts}
+        self._prev_wan_rate: dict = {}    # {rx_mbps, tx_mbps} — held between counter updates
 
 
 state = WatcherState()
@@ -872,12 +873,23 @@ async def live_stats_loop():
             rx_bytes = info.get("active_wan_rx_bytes", 0)
             tx_bytes = info.get("active_wan_tx_bytes", 0)
             prev = state._prev_wan_bytes
-            if prev and rx_bytes and tx_bytes and rx_bytes >= prev["rx"] and tx_bytes >= prev["tx"]:
-                elapsed = now - prev["ts"]
-                if elapsed > 0:
-                    info["active_wan_rx_mbps"] = round((rx_bytes - prev["rx"]) / elapsed * 8 / 1_000_000, 2)
-                    info["active_wan_tx_mbps"] = round((tx_bytes - prev["tx"]) / elapsed * 8 / 1_000_000, 2)
-            state._prev_wan_bytes = {"rx": rx_bytes, "tx": tx_bytes, "ts": now}
+            if prev and (rx_bytes > 0 or tx_bytes > 0):
+                d_rx = rx_bytes - prev["rx"]
+                d_tx = tx_bytes - prev["tx"]
+                if (d_rx > 0 or d_tx > 0) and rx_bytes >= prev["rx"] and tx_bytes >= prev["tx"]:
+                    # Divide by time since last actual counter change, not last poll
+                    elapsed = now - prev.get("delta_ts", prev["ts"])
+                    if elapsed > 0:
+                        state._prev_wan_rate = {
+                            "rx": round(d_rx / elapsed * 8 / 1_000_000, 2),
+                            "tx": round(d_tx / elapsed * 8 / 1_000_000, 2),
+                        }
+                    prev["delta_ts"] = now
+            if state._prev_wan_rate:
+                info["active_wan_rx_mbps"] = state._prev_wan_rate["rx"]
+                info["active_wan_tx_mbps"] = state._prev_wan_rate["tx"]
+            state._prev_wan_bytes = {"rx": rx_bytes, "tx": tx_bytes, "ts": now,
+                                     "delta_ts": prev.get("delta_ts", now) if prev else now}
 
             state.live_gw_info = info
             ticks += 1
