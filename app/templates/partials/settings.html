@@ -1352,11 +1352,11 @@
          },
          cliSnippet() {
            const url = window.location.origin;
-           return `docker run -d \\\n  --name wanifi-agent \\\n  -e WANIFI_URL=${url} \\\n  -e AGENT_API_KEY=${this.newAgentKey} \\\n  --restart unless-stopped \\\n  ghcr.io/thehef/wanifi-agent:latest`;
+           return `docker run -d \\\n  --name wanifi-agent \\\n  -e WANIFI_URL=${url} \\\n  -e AGENT_API_KEY=${this.newAgentKey} \\\n  -v /var/run/docker.sock:/var/run/docker.sock \\\n  --restart unless-stopped \\\n  ghcr.io/thehef/wanifi-agent:latest`;
          },
          composeSnippet() {
            const url = window.location.origin;
-           return `services:\n  wanifi-agent:\n    image: ghcr.io/thehef/wanifi-agent:latest\n    environment:\n      - WANIFI_URL=${url}\n      - AGENT_API_KEY=${this.newAgentKey}\n    restart: unless-stopped`;
+           return `services:\n  wanifi-agent:\n    image: ghcr.io/thehef/wanifi-agent:latest\n    environment:\n      - WANIFI_URL=${url}\n      - AGENT_API_KEY=${this.newAgentKey}\n    volumes:\n      - /var/run/docker.sock:/var/run/docker.sock\n    restart: unless-stopped`;
          },
          copyKey() {
            const text = this.keyTab === 'cli' ? this.cliSnippet() : this.composeSnippet();
