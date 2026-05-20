@@ -17,7 +17,7 @@ WANIFI_URL: str = os.environ["WANIFI_URL"].rstrip("/")   # e.g. wss://wanifi.exa
 AGENT_KEY:  str = os.environ["AGENT_API_KEY"]
 RECONNECT_DELAY = 10  # seconds between reconnect attempts
 
-WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws?key=" + os.environ["AGENT_API_KEY"]
+WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws"
 
 _docker_client = None
 
@@ -94,9 +94,16 @@ def dispatch(msg: dict) -> dict:
 async def run():
     while True:
         try:
-            log.info("Connecting to %s", WS_URL)
+            log.info("Connecting to WaniFi server")
             async with websockets.connect(WS_URL) as ws:
-                log.info("Connected to WaniFi server")
+                # Authenticate via first message
+                await ws.send(json.dumps({"type": "auth", "key": AGENT_KEY}))
+                ack = json.loads(await ws.recv())
+                if not ack.get("ok"):
+                    log.error("Authentication rejected: %s", ack.get("error", "unknown"))
+                    await asyncio.sleep(RECONNECT_DELAY)
+                    continue
+                log.info("Authenticated and connected")
                 async for raw in ws:
                     try:
                         msg = json.loads(raw)

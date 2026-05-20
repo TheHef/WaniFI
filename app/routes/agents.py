@@ -64,22 +64,33 @@ async def ping_agent(agent_id: int, _=Depends(require_auth)):
 # ---------------------------------------------------------------------------
 
 @router.websocket("/ws")
-async def agent_ws(ws: WebSocket, key: str = ""):
-    api_key = key or ws.headers.get("x-agent-key", "")
-    agent = get_agent_by_key(api_key)
+async def agent_ws(ws: WebSocket):
+    import asyncio, json as _json
+    await ws.accept()
+    try:
+        raw = await asyncio.wait_for(ws.receive_text(), timeout=10)
+        msg = _json.loads(raw)
+    except Exception:
+        await ws.close(code=4400)
+        return
+
+    if msg.get("type") != "auth":
+        await ws.send_text(_json.dumps({"ok": False, "error": "expected auth"}))
+        await ws.close(code=4400)
+        return
+
+    agent = get_agent_by_key(msg.get("key", ""))
     if not agent:
+        await ws.send_text(_json.dumps({"ok": False, "error": "invalid key"}))
         await ws.close(code=4401)
         return
 
-    await ws.accept()
+    api_key = agent["api_key"]
+    await ws.send_text(_json.dumps({"ok": True}))
     register(api_key, agent["name"], ws)
     try:
         while True:
-            # Keep connection alive; actual command/response flow is driven
-            # by send_command() calls from rules execution
-            data = await ws.receive_text()
-            # Responses to commands are handled inside send_command() via
-            # receive_text() — any unsolicited messages are ignored here
+            await ws.receive_text()
     except WebSocketDisconnect:
         pass
     finally:
