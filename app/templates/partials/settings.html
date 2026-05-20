@@ -137,7 +137,7 @@
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Controller URL</span>
             <input x-model="settings.unifi_host" placeholder="https://192.168.1.1"
                    autocomplete="off" spellcheck="false"
-                   class="w-52 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                   class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
           </div>
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">API Key
@@ -146,7 +146,7 @@
             <input x-ref="unifiApiKey" type="password" placeholder="••••••••••••••••"
                    @input="settings.unifi_api_key = $event.target.value"
                    autocomplete="new-password" spellcheck="false"
-                   class="w-52 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                   class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
           </div>
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Poll Interval <span class="normal-case font-normal text-slate-600">(seconds)</span></span>
