@@ -1,4 +1,5 @@
 """Docker container operations via a shared SDK client."""
+import time
 from typing import Optional
 
 import docker
@@ -21,12 +22,22 @@ def get_client() -> docker.DockerClient:
     return _client
 
 
+_docker_ok_cache: tuple[bool, float] = (False, 0.0)
+_DOCKER_OK_TTL = 10.0
+
+
 def docker_ok() -> bool:
+    global _docker_ok_cache
+    ok, ts = _docker_ok_cache
+    if time.monotonic() - ts < _DOCKER_OK_TTL:
+        return ok
     try:
         get_client().ping()
+        _docker_ok_cache = (True, time.monotonic())
         return True
     except Exception:
         _reset_client()
+        _docker_ok_cache = (False, time.monotonic())
         return False
 
 

@@ -44,6 +44,7 @@ class WatcherState:
         self.last_error:      Optional[str] = None
         self.state_changed_at: Optional[str] = None
         self.live_gw_info: dict = {}
+        self.last_wans: list = []
         self.latency_last_fired: float = 0.0
 
 
@@ -924,18 +925,16 @@ async def watcher_loop():
                 last_settings = current
 
             wans = await client.get_gateway_health()
-            gw_info = await client.get_gateway_info()
-            new_state = determine_active_wan(wans, primary, failover, gw_info)
+            state.last_wans = wans
+            new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
             state.last_check = datetime.now(timezone.utc).isoformat()
             state.last_error = None
 
             previous = state.current_wan
             if previous != new_state:
                 changed_at = datetime.now(timezone.utc).isoformat()
-                # Persist state and WAN data only on change, not every heartbeat
-                await a_set_state("active_wan",   new_state)
-                await a_set_state("last_wans",    json.dumps(wans))
-                await a_set_state("gateway_info", json.dumps(gw_info))
+                # Persist state only on change, not every heartbeat
+                await a_set_state("active_wan", new_state)
                 if previous is not None:
                     await a_log_event("info", f"WAN state change: {previous} -> {new_state}")
                     await apply_rules(new_state)

@@ -28,8 +28,8 @@ async def api_status(_: bool = Depends(require_auth)):
         "failover_wan":       get_setting("failover_wan", "wan2"),
         "primary_wan_name":   get_setting("primary_wan_name", ""),
         "failover_wan_name":  get_setting("failover_wan_name", ""),
-        "raw_wans":           json.loads(get_state("last_wans") or "[]"),
-        "gateway_info":       json.loads(get_state("gateway_info") or "{}"),
+        "raw_wans":           state.last_wans,
+        "gateway_info":       state.live_gw_info,
         "version":            APP_VERSION,
     }
 
