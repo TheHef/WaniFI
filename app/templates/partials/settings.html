@@ -135,17 +135,17 @@
     </div>
 
     <div class="mt-6 pt-6 border-t border-slate-800">
-      <div class="flex gap-5 items-start">
+      <div class="flex gap-5 items-stretch">
 
-        <!-- Left: action buttons -->
-        <div class="flex flex-col gap-2 shrink-0 w-36">
+        <!-- Left: action buttons, centered vertically -->
+        <div class="flex flex-col justify-center gap-2 shrink-0 w-28">
           <button @click="saveSettings()"
-                  class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl px-4 py-2.5 text-sm transition text-center">Save</button>
+                  class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl px-3 py-2.5 text-sm transition">Save</button>
           <button @click="testUnifi()"
-                  class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-4 py-2.5 text-sm transition text-center">Test Connection</button>
+                  class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-3 py-2.5 text-sm transition">Test Connection</button>
           <button @click="debugDump()"
-                  class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-500 rounded-xl px-4 py-2.5 text-sm transition text-center">Debug</button>
-          <div class="text-xs font-medium mt-1 min-h-[1rem]"
+                  class="w-full text-slate-500 hover:text-slate-300 text-sm transition py-1">Debug</button>
+          <div class="text-xs font-medium min-h-[1rem]"
                :class="settingsMsg.startsWith('✓') ? 'text-blue-400' : 'text-red-400'"
                x-show="settingsMsg" x-text="settingsMsg"></div>
         </div>
@@ -155,17 +155,22 @@
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Poll Interval <span class="normal-case font-normal text-slate-600">(seconds)</span></span>
             <input x-model.number="settings.poll_interval" type="number" min="5"
-                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
           </div>
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latency Threshold <span class="normal-case font-normal text-slate-600">(ms, 0 = off)</span></span>
             <input x-model.number="settings.latency_threshold_ms" type="number" min="0"
-                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
           </div>
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latency Cooldown <span class="normal-case font-normal text-slate-600">(min)</span></span>
             <input x-model.number="settings.latency_cooldown_min" type="number" min="1"
-                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+          </div>
+          <div class="flex items-center justify-between px-4 py-2.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Keep Events <span class="normal-case font-normal text-slate-600">(days)</span></span>
+            <input x-model.number="settings.event_retention_days" type="number" min="1"
+                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
           </div>
           <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Speedtest Server <span class="normal-case font-normal text-slate-600">(blank = auto)</span></span>
@@ -183,11 +188,6 @@
                       @click="speedtestServerOpen = false"
                       class="bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg px-2 py-1 text-xs transition">Close</button>
             </div>
-          </div>
-          <div class="flex items-center justify-between px-4 py-2.5">
-            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Keep Events <span class="normal-case font-normal text-slate-600">(days)</span></span>
-            <input x-model.number="settings.event_retention_days" type="number" min="1"
-                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
           </div>
         </div>
 
