@@ -70,7 +70,7 @@ window.app = function () {
     },
     categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
     stats: {},
-    rules: [], events: [], containers: [], discoveredWans: [],
+    rules: [], events: [], containers: [], discoveredWans: [], agents: [],
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '', delay_seconds: 0 },
     confirmModal: { open: false, label: '', confirm: () => {} },
     editModal:    { open: false, rule: {} },
@@ -159,6 +159,7 @@ window.app = function () {
       await this.loadNutSettings();
       await this.loadSpeedtestSettings();
       await this.loadIntegrations();
+      await this.loadAgents();
       await this.loadStats();
       this._setDefaultRuleType();
 
@@ -1046,6 +1047,11 @@ window.app = function () {
       this.speedtestRunning = false;
     },
 
+    // ---- Agents -----------------------------------------------------------
+    async loadAgents() {
+      try { this.agents = await fetch('/api/agents').then(r => r.json()); } catch {}
+    },
+
     // ---- Integrations -----------------------------------------------------
     async loadIntegrations() {
       this.integrations = await fetch('/api/integrations').then(r => r.json());
@@ -1078,9 +1084,10 @@ window.app = function () {
         ['cloudflare',    'cloudflare',    'enable_under_attack'],
         ['nut',           'nut',           'get_status'],
         ['webhook',       'webhook',       'send'],
+        ['remote_agent',  '_agents',       'docker'],
       ];
       for (const [rtype, ikey, action] of order) {
-        if (this.integrations[ikey]) {
+        if (ikey === '_agents' ? this.agents.length > 0 : this.integrations[ikey]) {
           this.newRule.rule_type = rtype;
           this.newRule.action    = action;
           return;

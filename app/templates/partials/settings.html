@@ -1322,7 +1322,88 @@
         <span class="text-sm font-medium" :class="gotifyMsg.startsWith('✓') ? 'text-emerald-400' : gotifyMsg === 'Sending…' ? 'text-slate-400' : 'text-red-400'" x-show="gotifyMsg" x-text="gotifyMsg"></span>
       </div>
     </div></div>
-  </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
+  </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4"
+       x-data="{
+         agents: [],
+         newAgentName: '',
+         newAgentKey: '',
+         agentMsg: '',
+         async loadAgents() {
+           const r = await fetch('/api/agents');
+           this.agents = await r.json();
+         },
+         async addAgent() {
+           if (!this.newAgentName.trim()) return;
+           const r = await fetch('/api/agents', {
+             method: 'POST',
+             headers: {'Content-Type':'application/json'},
+             body: JSON.stringify({name: this.newAgentName.trim()})
+           });
+           const data = await r.json();
+           this.newAgentKey = data.api_key;
+           this.newAgentName = '';
+           await this.loadAgents();
+         },
+         async deleteAgent(id) {
+           await fetch('/api/agents/' + id, {method: 'DELETE'});
+           await this.loadAgents();
+         },
+         copyKey() {
+           navigator.clipboard.writeText(this.newAgentKey);
+           this.agentMsg = 'Copied!';
+           setTimeout(() => this.agentMsg = '', 2000);
+         }
+       }"
+       x-init="loadAgents()">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Agents</div>
+
+    <!-- Registered agents -->
+    <div class="space-y-2 mb-4">
+      <template x-for="a in agents" :key="a.id">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-800 bg-slate-800/40">
+          <span class="w-2 h-2 rounded-full shrink-0"
+                :class="a.online ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
+          <span class="text-sm font-semibold text-slate-200 flex-1" x-text="a.name"></span>
+          <span class="text-[10px] font-mono text-slate-600 truncate max-w-[10rem]" x-text="a.api_key.slice(0,16) + '…'"></span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                :class="a.online ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-500'"
+                x-text="a.online ? 'Online' : 'Offline'"></span>
+          <button @click="deleteAgent(a.id)"
+                  class="w-6 h-6 flex items-center justify-center rounded text-slate-700 hover:text-red-400 hover:bg-red-500/10 transition ml-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </template>
+      <div x-show="agents.length === 0" class="text-xs text-slate-700 py-2">No agents registered yet</div>
+    </div>
+
+    <!-- Add new agent -->
+    <div class="flex gap-2 items-center">
+      <input x-model="newAgentName" placeholder="Agent name (e.g. Server 2)"
+             @keydown.enter="addAgent()"
+             class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition">
+      <button @click="addAgent()"
+              class="bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg px-4 py-1.5 text-sm transition">
+        Add agent
+      </button>
+    </div>
+
+    <!-- New API key reveal -->
+    <div x-show="newAgentKey" class="mt-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
+      <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-2">Save this key — it won't be shown again</div>
+      <div class="flex items-center gap-2">
+        <code class="flex-1 font-mono text-xs text-slate-300 break-all" x-text="newAgentKey"></code>
+        <button @click="copyKey()" class="shrink-0 text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <span x-text="agentMsg || 'Copy'"></span>
+        </button>
+        <button @click="newAgentKey = ''" class="shrink-0 text-slate-600 hover:text-slate-400 transition text-xs">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Backup &amp; Restore</div>
     <div class="flex gap-3 flex-wrap items-center">
       <a href="/api/backup/export"

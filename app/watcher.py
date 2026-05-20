@@ -693,6 +693,7 @@ async def fire_trigger(trigger: str):
             "cloudflare":    "integration_cloudflare",
             "nut":           "integration_nut",
             # unifi_rule reuses the global UniFi credentials — no separate toggle
+            # remote_agent has no integration toggle — availability is live connection
         }.get(rtype)
         if integration_key and get_setting(integration_key, "0") != "1":
             await a_log_event("info", f"Rule '{rule['name']}' skipped (integration disabled)")
@@ -818,6 +819,28 @@ async def fire_trigger(trigger: str):
         elif rtype == "nut":
             ok, msg = await run_nut_action(rule["action"])
             await a_log_event("info" if ok else "error", f"Rule: NUT {rule['action']} on {trigger} -> {msg}")
+        elif rtype == "remote_agent":
+            from .agent_hub import send_command as agent_send
+            from .db import list_agents
+            # rule["container"] stores the agent api_key, rule["action"] = command type
+            # rule["command"] stores the command payload (docker: "action|container", host: "cmd")
+            agent_key = rule["container"]
+            agent_name = next((a["name"] for a in list_agents() if a["api_key"] == agent_key), agent_key[:8])
+            cmd_type = rule["action"]
+            payload: dict = {"type": cmd_type}
+            if cmd_type == "docker":
+                parts = rule["command"].split("|", 1)
+                payload["action"]    = parts[0].strip()
+                payload["container"] = parts[1].strip() if len(parts) > 1 else ""
+            else:
+                payload["command"] = rule["command"]
+            result = await agent_send(agent_key, payload)
+            ok = bool(result and result.get("ok"))
+            msg = result.get("message") or result.get("error") or str(result)
+            await a_log_event(
+                "info" if ok else "error",
+                f"Rule: agent '{agent_name}' {cmd_type} on {trigger} -> {msg}",
+            )
         else:
             ok, msg = container_action(rule["container"], rule["action"])
             await a_log_event(
