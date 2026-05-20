@@ -1,6 +1,7 @@
 // UniFi device model -> icon path + display name lookups.
 
 const ICONS = {
+  'OPENWRT':   '/static/devices/openwrt-generic.svg',
   'UCGMAX':    '/static/devices/UCGMAX.avif',
   'UCGULTRA':  '/static/devices/UCG-ULTRA.avif',
   'U5GMAX':    '/static/devices/U5G_Max.avif',
@@ -21,6 +22,7 @@ const ICONS = {
 };
 
 const NAMES = {
+  'OPENWRT':   'OpenWrt Router',
   'UCGMAX':    'UCG-Max',
   'UCGULTRA':  'UCG-Ultra',
   'UDM':       'Dream Machine',

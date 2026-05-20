@@ -1,6 +1,6 @@
-"""OpenWrt LuCI RPC client — completely independent from the UniFi client."""
+"""OpenWrt LuCI RPC client."""
 import asyncio
-import re
+import time
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -138,17 +138,21 @@ class OpenWrtClient:
         return True, f"Connected ({self._mode}) — WAN candidates: {names}"
 
 
-async def ping_latency(host: str = "1.1.1.1", count: int = 3) -> Optional[float]:
-    """Ping host, return average RTT in ms or None on failure."""
+async def ping_latency(host: str = "1.1.1.1") -> Optional[float]:
+    """TCP connect latency to host:53 in ms — no ICMP/root/NET_RAW needed."""
     try:
-        proc = await asyncio.create_subprocess_exec(
-            "ping", "-c", str(count), "-W", "2", "-q", host,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.DEVNULL,
+        t0 = time.monotonic()
+        _, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, 53),
+            timeout=5.0,
         )
-        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=15)
-        m = re.search(r"min/avg/max.*?=\s*[\d.]+/([\d.]+)/", stdout.decode())
-        return round(float(m.group(1)), 1) if m else None
+        ms = round((time.monotonic() - t0) * 1000, 1)
+        writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:
+            pass
+        return ms
     except Exception:
         return None
 
@@ -202,5 +206,6 @@ def build_live_info_openwrt(
         "active_wan_latency": None,
         "gw_cpu":             None,
         "gw_mem":             None,
+        "gw_model":           "OPENWRT",
         "router_type":        "openwrt",
     }

@@ -268,9 +268,8 @@
                    @dragstart="$event.dataTransfer.setData('owrt_iface', JSON.stringify(iface))"
                    class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-3 cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition flex flex-col items-center justify-center gap-1.5 text-center">
                 <div class="font-mono font-bold text-slate-200 text-xs" x-text="iface.interface"></div>
-                <div class="w-10 h-10 flex items-center justify-center">
-                  <svg class="w-6 h-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </div>
+                <img src="/static/devices/openwrt-generic.svg" draggable="false"
+                     class="w-14 h-14 object-contain pointer-events-none opacity-80">
                 <div class="text-sky-400 text-xs font-mono" x-show="iface.ip" x-text="iface.ip"></div>
                 <div class="flex items-center justify-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
