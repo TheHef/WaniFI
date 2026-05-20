@@ -57,41 +57,7 @@
         </div>
       </div>
 
-      <!-- MIDDLE: Recent Events -->
-      <div class="p-5 flex flex-col">
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Recent Events</div>
-          <button @click="tab = 'events'" class="text-[10px] text-slate-600 hover:text-slate-400 transition">View all →</button>
-        </div>
-        <div class="flex-1 flex flex-col justify-between">
-          <div x-show="events.length === 0" class="flex-1 flex items-center justify-center">
-            <span class="text-xs text-slate-700">No events yet</span>
-          </div>
-          <div x-show="events.length > 0" class="space-y-0 divide-y divide-slate-800/60">
-            <template x-for="e in events.slice(0, 5)" :key="e.id">
-              <div class="flex items-center gap-2.5 py-2">
-                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 w-10 text-center"
-                      :class="{
-                        'bg-emerald-500/20 text-emerald-400': e.message.includes('-> primary'),
-                        'bg-red-500/20 text-red-400':         e.level === 'error' || e.message.includes('-> down'),
-                        'bg-amber-500/20 text-amber-400':     e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
-                      }"
-                      x-text="e.level"></span>
-                <span class="flex-1 text-xs truncate"
-                      :class="{
-                        'text-emerald-300': e.message.includes('-> primary'),
-                        'text-red-300':     e.level === 'error' || e.message.includes('-> down'),
-                        'text-slate-400':   e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
-                      }"
-                      x-text="e.message"></span>
-                <span class="text-[10px] font-mono text-slate-700 shrink-0" x-text="new Date(e.ts).toLocaleTimeString()"></span>
-              </div>
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT: System -->
+      <!-- MIDDLE: System -->
       <div class="p-5 flex flex-col relative">
         <div class="absolute inset-0 pointer-events-none transition-all duration-700 rounded-r-2xl"
              :class="status.last_error ? 'bg-gradient-to-br from-red-500/4 to-transparent' : 'bg-gradient-to-br from-emerald-500/3 to-transparent'"></div>
@@ -171,6 +137,40 @@
               </div>
             </div>
           </template>
+        </div>
+      </div>
+
+      <!-- RIGHT: Recent Events -->
+      <div class="p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Recent Events</div>
+          <button @click="tab = 'events'" class="text-[10px] text-slate-600 hover:text-slate-400 transition">View all →</button>
+        </div>
+        <div class="flex-1 flex flex-col justify-between">
+          <div x-show="events.length === 0" class="flex-1 flex items-center justify-center">
+            <span class="text-xs text-slate-700">No events yet</span>
+          </div>
+          <div x-show="events.length > 0" class="space-y-0 divide-y divide-slate-800/60">
+            <template x-for="e in events.slice(0, 5)" :key="e.id">
+              <div class="flex items-center gap-2.5 py-2">
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 w-10 text-center"
+                      :class="{
+                        'bg-emerald-500/20 text-emerald-400': e.message.includes('-> primary'),
+                        'bg-red-500/20 text-red-400':         e.level === 'error' || e.message.includes('-> down'),
+                        'bg-amber-500/20 text-amber-400':     e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
+                      }"
+                      x-text="e.level"></span>
+                <span class="flex-1 text-xs truncate"
+                      :class="{
+                        'text-emerald-300': e.message.includes('-> primary'),
+                        'text-red-300':     e.level === 'error' || e.message.includes('-> down'),
+                        'text-slate-400':   e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
+                      }"
+                      x-text="e.message"></span>
+                <span class="text-[10px] font-mono text-slate-700 shrink-0" x-text="new Date(e.ts).toLocaleTimeString()"></span>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
 
