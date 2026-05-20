@@ -10,11 +10,13 @@
       <option value="error">Error</option>
     </select>
     <button @click="clearAllEvents()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/50 text-red-400 transition whitespace-nowrap">
-      <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            class="group flex items-center overflow-hidden px-2 py-2 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/50 text-red-400 transition-all duration-200">
+      <span class="inline-flex max-w-0 group-hover:max-w-[8rem] overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100 whitespace-nowrap">
+        <span class="pr-1.5">Clear all events</span>
+      </span>
+      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
         <path d="M2 2l8 8M10 2L2 10"/>
       </svg>
-      Clear all events
     </button>
   </div>
   <div class="bg-slate-900 border border-slate-700/60 rounded-2xl table-shell">
