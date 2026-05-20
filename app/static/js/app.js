@@ -132,6 +132,13 @@ window.app = function () {
         if (val === 'rules') this._setDefaultRuleType();
       });
 
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          this.confirmModal.open = false;
+          this.editModal.open = false;
+        }
+      });
+
       window.addEventListener('popstate', e => {
         const t = e.state?.tab || pathMap[location.pathname];
         if (t && t !== this.tab) {
@@ -141,7 +148,7 @@ window.app = function () {
       });
 
       await this.loadSettings();
-      await this.loadOpenwrtSettings();
+      await this.loadOpenwrtSettings().catch(() => {});
       await this.loadNotifySettings();
       await this.loadDiscordSettings();
       await this.loadTelegramSettings();
