@@ -57,61 +57,37 @@
         </div>
       </div>
 
-      <!-- MIDDLE: WAN Connections -->
-      <div class="p-5 flex flex-col flex-1">
-        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">WAN Connections</div>
-        <div class="space-y-2 flex-1">
-          <div class="rounded-xl px-3.5 py-3 border transition-all"
-               :class="status.active_wan === 'primary' ? 'bg-emerald-500/8 border-emerald-500/25' : 'bg-slate-800/50 border-slate-700/50'">
-            <div class="flex items-center gap-2.5">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
-                    :class="status.active_wan === 'primary' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'"></span>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-sm font-semibold truncate"
-                        :class="status.active_wan === 'primary' ? 'text-slate-100' : 'text-slate-400'"
-                        x-text="status.primary_wan_name || 'Primary WAN'"></span>
-                  <span class="text-[10px] font-mono text-slate-600 shrink-0" x-text="status.primary_wan"></span>
-                </div>
-                <div x-show="status.active_wan === 'primary' && (liveStats||{}).active_wan_ip"
-                     class="text-xs font-mono text-emerald-600 mt-0.5" x-text="(liveStats||{}).active_wan_ip"></div>
-              </div>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                    :class="status.active_wan === 'primary' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-600 border border-slate-700'">
-                <span x-text="status.active_wan === 'primary' ? 'Active' : 'Standby'"></span>
-              </span>
-            </div>
-            <div x-show="status.active_wan === 'primary' && (liveStats||{}).active_wan_latency"
-                 class="mt-2 flex items-center gap-1 text-[10px] text-slate-600">
-              <span class="text-slate-700">Latency</span>
-              <span class="font-mono text-slate-500" x-text="(liveStats||{}).active_wan_latency + ' ms'"></span>
-              <span class="ml-auto" x-text="status.state_changed_at ? 'Active ' + fmtSince(status.state_changed_at) : ''"></span>
-            </div>
-          </div>
-          <div class="rounded-xl px-3.5 py-3 border transition-all"
-               :class="status.active_wan === 'failover' ? 'bg-amber-500/8 border-amber-500/25' : 'bg-slate-800/50 border-slate-700/50'">
-            <div class="flex items-center gap-2.5">
-              <span class="w-1.5 h-1.5 rounded-full shrink-0 mt-0.5"
-                    :class="status.active_wan === 'failover' ? 'bg-amber-400 animate-pulse' : 'bg-amber-600'"></span>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-sm font-semibold truncate"
-                        :class="status.active_wan === 'failover' ? 'text-amber-300' : 'text-amber-500/60'"
-                        x-text="status.failover_wan_name || 'Failover WAN'"></span>
-                  <span class="text-[10px] font-mono text-slate-600 shrink-0" x-text="status.failover_wan"></span>
-                </div>
-              </div>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                    :class="status.active_wan === 'failover' ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-500/10 text-amber-500/60'">
-                <span x-text="status.active_wan === 'failover' ? 'Active' : 'Standby'"></span>
-              </span>
-            </div>
-          </div>
+      <!-- MIDDLE: Recent Events -->
+      <div class="p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Recent Events</div>
+          <button @click="tab = 'events'" class="text-[10px] text-slate-600 hover:text-slate-400 transition">View all →</button>
         </div>
-        <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-          <span class="text-[10px] text-slate-700">Last poll</span>
-          <span class="text-[10px] font-mono text-slate-700"
-                x-text="status.last_check ? new Date(status.last_check).toLocaleTimeString() : '&mdash;'"></span>
+        <div class="flex-1 flex flex-col justify-between">
+          <div x-show="events.length === 0" class="flex-1 flex items-center justify-center">
+            <span class="text-xs text-slate-700">No events yet</span>
+          </div>
+          <div x-show="events.length > 0" class="space-y-0 divide-y divide-slate-800/60">
+            <template x-for="e in events.slice(0, 5)" :key="e.id">
+              <div class="flex items-center gap-2.5 py-2">
+                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 w-10 text-center"
+                      :class="{
+                        'bg-emerald-500/20 text-emerald-400': e.message.includes('-> primary'),
+                        'bg-red-500/20 text-red-400':         e.level === 'error' || e.message.includes('-> down'),
+                        'bg-amber-500/20 text-amber-400':     e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
+                      }"
+                      x-text="e.level"></span>
+                <span class="flex-1 text-xs truncate"
+                      :class="{
+                        'text-emerald-300': e.message.includes('-> primary'),
+                        'text-red-300':     e.level === 'error' || e.message.includes('-> down'),
+                        'text-slate-400':   e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
+                      }"
+                      x-text="e.message"></span>
+                <span class="text-[10px] font-mono text-slate-700 shrink-0" x-text="new Date(e.ts).toLocaleTimeString()"></span>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
 
