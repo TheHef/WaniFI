@@ -523,7 +523,7 @@
     </div>
 
     <div class="border-t border-slate-800 mb-6"></div>    <div x-show="integrations.emby" x-data="{ open: false }" x-transition class="mb-6">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Emby</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#52B54B] uppercase tracking-wider">Emby<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
@@ -549,7 +549,7 @@
               x-show="embyMsg" x-text="embyMsg"></span>
       </div>
     </div></div>    <div x-show="integrations.jellyfin" x-data="{ open: false }" x-transition class="mb-6" :class="integrations.emby ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Jellyfin</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#AA5CC3] uppercase tracking-wider">Jellyfin<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
@@ -575,7 +575,7 @@
               x-show="jellyfinMsg" x-text="jellyfinMsg"></span>
       </div>
     </div></div>    <div x-show="integrations.plex" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Plex</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#E5A00D] uppercase tracking-wider">Plex<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
@@ -601,7 +601,7 @@
               x-show="plexMsg" x-text="plexMsg"></span>
       </div>
     </div></div>    <div x-show="integrations.qb" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin || integrations.plex) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">qBittorrent</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#65A5E9] uppercase tracking-wider">qBittorrent<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">WebUI URL</label>
@@ -632,7 +632,7 @@
               x-show="qbMsg" x-text="qbMsg"></span>
       </div>
     </div></div>    <div x-show="integrations.sabnzbd" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F5A623] uppercase tracking-wider">SABnzbd</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F5A623] uppercase tracking-wider">SABnzbd<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
@@ -657,7 +657,7 @@
       </div>
     </div></div>
     <div x-show="integrations.transmission" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#C33B2E] uppercase tracking-wider">Transmission</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#C33B2E] uppercase tracking-wider">Transmission<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">RPC URL</label>
@@ -687,7 +687,7 @@
       </div>
     </div></div>
     <div x-show="integrations.deluge" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#88B04B] uppercase tracking-wider">Deluge</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#88B04B] uppercase tracking-wider">Deluge<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Web UI URL</label>
@@ -711,7 +711,7 @@
       </div>
     </div></div>
     <div x-show="integrations.discord" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#5865F2] uppercase tracking-wider">Discord</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#5865F2] uppercase tracking-wider">Discord<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div>
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Webhook URL
           <span x-show="discordSettings.discord_webhook_url_set" class="text-emerald-500 normal-case font-normal ml-1">(already saved)</span>
@@ -728,7 +728,7 @@
       </div>
     </div></div>
     <div x-show="integrations.telegram" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.discord || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#26A5E4] uppercase tracking-wider">Telegram</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#26A5E4] uppercase tracking-wider">Telegram<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bot Token
@@ -754,7 +754,7 @@
       </div>
     </div></div>
     <div x-show="integrations.pushover" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.discord || integrations.telegram || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F83600] uppercase tracking-wider">Pushover</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F83600] uppercase tracking-wider">Pushover<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">App Token
@@ -779,7 +779,7 @@
       </div>
     </div></div>
     <div x-show="integrations.homeassistant" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.discord || integrations.telegram || integrations.pushover || integrations.ntfy || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#18BCF2] uppercase tracking-wider">Home Assistant</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#18BCF2] uppercase tracking-wider">Home Assistant<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -804,7 +804,7 @@
       </div>
     </div></div>
     <div x-show="integrations.proxmox" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.homeassistant || integrations.discord || integrations.telegram || integrations.pushover || integrations.ntfy || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#E57000] uppercase tracking-wider">Proxmox</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#E57000] uppercase tracking-wider">Proxmox<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -840,7 +840,7 @@
       </div>
     </div></div>
     <div x-show="integrations.sonarr" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.proxmox || integrations.homeassistant || integrations.discord || integrations.telegram || integrations.pushover || integrations.ntfy || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#35C5F4] uppercase tracking-wider">Sonarr</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#35C5F4] uppercase tracking-wider">Sonarr<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -865,7 +865,7 @@
       </div>
     </div></div>
     <div x-show="integrations.radarr" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.discord || integrations.telegram || integrations.pushover || integrations.ntfy || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#FFC230] uppercase tracking-wider">Radarr</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#FFC230] uppercase tracking-wider">Radarr<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -890,7 +890,7 @@
       </div>
     </div></div>
     <div x-show="integrations.pihole" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.portainer || integrations.truenas || integrations.unraid || integrations.nodered || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-red-400 uppercase tracking-wider">Pi-hole</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-red-400 uppercase tracking-wider">Pi-hole<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -915,7 +915,7 @@
       </div>
     </div></div>
     <div x-show="integrations.adguard" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.portainer || integrations.truenas || integrations.unraid || integrations.nodered || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">AdGuard Home</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">AdGuard Home<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -945,7 +945,7 @@
       </div>
     </div></div>
     <div x-show="integrations.portainer" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.adguard || integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#13BEF9] uppercase tracking-wider">Portainer</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#13BEF9] uppercase tracking-wider">Portainer<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -977,7 +977,7 @@
       </div>
     </div></div>
     <div x-show="integrations.truenas" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.portainer || integrations.adguard || integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#2783C6] uppercase tracking-wider">TrueNAS</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#2783C6] uppercase tracking-wider">TrueNAS<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -1002,7 +1002,7 @@
       </div>
     </div></div>
     <div x-show="integrations.unraid" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.truenas || integrations.portainer || integrations.adguard || integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#FF6600] uppercase tracking-wider">Unraid</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#FF6600] uppercase tracking-wider">Unraid<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -1027,7 +1027,7 @@
       </div>
     </div></div>
     <div x-show="integrations.nodered" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.unraid || integrations.truenas || integrations.portainer || integrations.adguard || integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge || integrations.nzbget) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#C0392B] uppercase tracking-wider">Node-RED</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#C0392B] uppercase tracking-wider">Node-RED<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -1057,7 +1057,7 @@
       </div>
     </div></div>
     <div x-show="integrations.nzbget" x-data="{ open: false }" x-transition class="mb-6" :class="(integrations.nodered || integrations.unraid || integrations.truenas || integrations.portainer || integrations.adguard || integrations.pihole || integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">NZBGet</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">NZBGet<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -1089,7 +1089,7 @@
 
     <!-- NPM -->
     <div x-show="integrations.npm" x-data="{ open: false }" x-transition class="mb-6 pt-6 border-t border-slate-800">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#e74c3c] uppercase tracking-wider">Nginx Proxy Manager</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#e74c3c] uppercase tracking-wider">Nginx Proxy Manager<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">URL</label>
@@ -1118,7 +1118,7 @@
 
     <!-- Cloudflare -->
     <div x-show="integrations.cloudflare" x-data="{ open: false }" x-transition class="mb-6 pt-6 border-t border-slate-800">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F6821F] uppercase tracking-wider">Cloudflare</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-[#F6821F] uppercase tracking-wider">Cloudflare<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Zone ID</label>
@@ -1146,7 +1146,7 @@
 
     <!-- NUT / UPS -->
     <div x-show="integrations.nut" x-data="{ open: false }" x-transition class="mb-6 pt-6 border-t border-slate-800">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">UPS / NUT</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">UPS / NUT<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-3 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">NUT Host</label>
@@ -1184,7 +1184,7 @@
     </div></div>
 
     <div x-show="integrations.ntfy" x-data="{ open: false }" x-transition :class="(integrations.radarr || integrations.sonarr || integrations.proxmox || integrations.homeassistant || integrations.discord || integrations.telegram || integrations.pushover || integrations.emby || integrations.jellyfin || integrations.plex || integrations.qb || integrations.sabnzbd || integrations.transmission || integrations.deluge) ? 'pt-6 border-t border-slate-800' : ''">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">ntfy Notifications</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-teal-400 uppercase tracking-wider">ntfy Notifications<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
@@ -1252,7 +1252,7 @@
       </div>
     </div></div>
     <div x-show="integrations.gotify" x-data="{ open: false }" x-transition class="pt-6 border-t border-slate-800 mt-6">
-      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gotify Notifications</span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
+      <button @click="open = !open" class="w-full flex items-center justify-between py-1 group"><span class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Gotify Notifications<span class="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 normal-case tracking-normal">Active</span></span><svg class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg></button><div x-show="open" x-transition class="mt-3">
       <div class="grid md:grid-cols-2 gap-4">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Server URL</label>
