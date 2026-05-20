@@ -124,7 +124,7 @@
                   class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl px-3 py-2.5 text-sm transition">Save</button>
           <button @click="testUnifi()"
                   class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-3 py-2.5 text-sm transition">Test Connection</button>
-          <button @click="debugDump()"
+          <button @click="speedtestServerOpen = false; debugDump()"
                   class="w-full text-slate-500 hover:text-slate-300 text-sm transition py-1">Debug</button>
           <div class="text-xs font-medium min-h-[1rem]"
                :class="settingsMsg.startsWith('✓') ? 'text-blue-400' : 'text-red-400'"
@@ -177,7 +177,7 @@
                       @click="speedtestSettings.speedtest_server_id = ''; speedtestSettings.speedtest_server_name = ''; saveSpeedtestSettings()"
                       class="text-xs text-slate-500 hover:text-red-400 transition px-1">Clear</button>
               <button x-show="!speedtestServerOpen"
-                      @click="fetchSpeedtestServers()"
+                      @click="debugMsg = ''; fetchSpeedtestServers()"
                       class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg px-2 py-1 text-xs transition"
                       x-text="speedtestServersLoading ? '…' : 'Browse'"></button>
               <button x-show="speedtestServerOpen"
@@ -214,14 +214,17 @@
         </div>
       </div>
 
-      <div x-show="debugMsg" class="relative mt-3">
-        <button @click="debugMsg = ''"
-                class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-slate-700 transition z-10">
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <path d="M2 2l8 8M10 2L2 10"/>
-          </svg>
-        </button>
-        <pre x-text="debugMsg" class="bg-slate-950 border border-slate-800 rounded-xl p-3 pr-8 text-xs text-slate-400 max-h-64 scrollbar-overlay overflow-auto"></pre>
+      <div x-show="debugMsg" class="mt-3">
+        <div class="flex justify-end mb-1">
+          <button @click="debugMsg = ''"
+                  class="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition px-1.5 py-0.5 rounded hover:bg-slate-800">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M2 2l8 8M10 2L2 10"/>
+            </svg>
+            Close
+          </button>
+        </div>
+        <pre x-text="debugMsg" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 max-h-64 scrollbar-overlay"></pre>
       </div>
     </div>
   </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
