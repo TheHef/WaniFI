@@ -71,6 +71,8 @@ window.app = function () {
     categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
     stats: {},
     rules: [], events: [], containers: [], discoveredWans: [], agents: [],
+    agentContainers: [], agentContainersLoading: false,
+    agentDockerAction: 'stop', agentDockerContainer: '',
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '', delay_seconds: 0 },
     confirmModal: { open: false, label: '', confirm: () => {} },
     editModal:    { open: false, rule: {} },
@@ -269,6 +271,10 @@ window.app = function () {
       if (this.newRule.rule_type === 'docker'       && !this.newRule.container) return;
       if (this.newRule.rule_type === 'host_command' && !this.newRule.command.trim()) return;
       if (this.newRule.rule_type === 'qbittorrent'  && !this.newRule.action) return;
+      if (this.newRule.rule_type === 'remote_agent' && this.newRule.action === 'docker') {
+        if (!this.newRule.container || !this.agentDockerContainer) return;
+        this.newRule.command = this.agentDockerAction + '|' + this.agentDockerContainer;
+      }
       try {
         const r = await fetch('/api/rules', {
           method: 'POST',
@@ -1050,6 +1056,18 @@ window.app = function () {
     // ---- Agents -----------------------------------------------------------
     async loadAgents() {
       try { this.agents = await fetch('/api/agents').then(r => r.json()); } catch {}
+    },
+
+    async loadAgentContainers() {
+      const agent = this.agents.find(a => a.api_key === this.newRule.container);
+      if (!agent || this.newRule.action !== 'docker') { this.agentContainers = []; return; }
+      this.agentContainersLoading = true;
+      this.agentContainers = [];
+      try {
+        const data = await fetch(`/api/agents/${agent.id}/containers`).then(r => r.json());
+        this.agentContainers = Array.isArray(data) ? data : [];
+      } catch {}
+      this.agentContainersLoading = false;
     },
 
     // ---- Integrations -----------------------------------------------------

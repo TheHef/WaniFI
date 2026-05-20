@@ -49,6 +49,18 @@ async def remove_agent(agent_id: int, _=Depends(require_auth)):
     return {"ok": True}
 
 
+@router.get("/{agent_id}/containers")
+async def get_agent_containers(agent_id: int, _=Depends(require_auth)):
+    agents = list_agents()
+    target = next((a for a in agents if a["id"] == agent_id), None)
+    if not target:
+        raise HTTPException(404, "Agent not found")
+    result = await send_command(target["api_key"], {"type": "list_containers"})
+    if not result or not result.get("ok"):
+        raise HTTPException(502, result.get("error", "Agent unreachable") if result else "Agent unreachable")
+    return result["containers"]
+
+
 @router.post("/{agent_id}/ping")
 async def ping_agent(agent_id: int, _=Depends(require_auth)):
     agents = list_agents()

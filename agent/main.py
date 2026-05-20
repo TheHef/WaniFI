@@ -76,10 +76,20 @@ def handle_host_command(command: str) -> dict:
         return {"ok": False, "error": str(e)}
 
 
+def handle_list_containers() -> dict:
+    try:
+        cs = get_docker().containers.list(all=True)
+        return {"ok": True, "containers": [{"name": c.name, "status": c.status} for c in cs]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def dispatch(msg: dict) -> dict:
     cmd_type = msg.get("type", "")
     if cmd_type == "ping":
         return handle_ping()
+    if cmd_type == "list_containers":
+        return handle_list_containers()
     if cmd_type == "docker":
         return handle_docker(msg.get("action", ""), msg.get("container", ""))
     if cmd_type == "host_command":
