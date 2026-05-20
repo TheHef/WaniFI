@@ -4,7 +4,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from ..agent_hub import is_online, online_keys, register, send_command, unregister
+from ..agent_hub import deliver_response, is_online, online_keys, register, send_command, unregister
 from ..auth import require_auth
 from ..db import create_agent, delete_agent, get_agent_by_key, list_agents
 
@@ -102,7 +102,8 @@ async def agent_ws(ws: WebSocket):
     register(api_key, agent["name"], ws)
     try:
         while True:
-            await ws.receive_text()
+            data = await ws.receive_text()
+            deliver_response(api_key, data)
     except WebSocketDisconnect:
         pass
     finally:

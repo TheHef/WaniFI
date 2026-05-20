@@ -704,15 +704,35 @@
     </div>
 
     <!-- Remote Agent -->
-    <div x-show="newRule.rule_type === 'remote_agent'" class="grid md:grid-cols-4 gap-3">
-      <!-- Agent selector -->
-      <select x-model="newRule.container" @change="loadAgentContainers(); agentDockerContainer = ''"
-              class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500">
-        <option value="">— select agent —</option>
-        <template x-for="a in agents" :key="a.id">
-          <option :value="a.api_key" x-text="a.name + (a.online ? ' ●' : ' ○')"></option>
-        </template>
-      </select>
+    <div x-show="newRule.rule_type === 'remote_agent'" class="grid md:grid-cols-4 gap-3"
+         x-data="{ agentOpen: false }">
+      <!-- Agent selector (custom dropdown for colored dots) -->
+      <div class="relative">
+        <button type="button" @click="agentOpen = !agentOpen" @keydown.escape="agentOpen = false"
+                class="w-full flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-left focus:outline-none focus:border-violet-500 transition">
+          <template x-if="agents.find(a => a.api_key === newRule.container)">
+            <span class="w-2 h-2 rounded-full shrink-0"
+                  :class="agents.find(a => a.api_key === newRule.container)?.online ? 'bg-emerald-400' : 'bg-red-500'"></span>
+          </template>
+          <span class="flex-1 truncate"
+                :class="newRule.container ? 'text-slate-200' : 'text-slate-500'"
+                x-text="agents.find(a => a.api_key === newRule.container)?.name || '— select agent —'"></span>
+          <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div x-show="agentOpen" @click.outside="agentOpen = false"
+             class="absolute z-20 mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
+          <template x-for="a in agents" :key="a.id">
+            <button type="button"
+                    @click="newRule.container = a.api_key; agentOpen = false; loadAgentContainers(); agentDockerContainer = ''"
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-slate-700 transition text-left"
+                    :class="newRule.container === a.api_key ? 'bg-violet-500/10 text-violet-300' : 'text-slate-200'">
+              <span class="w-2 h-2 rounded-full shrink-0" :class="a.online ? 'bg-emerald-400' : 'bg-red-500'"></span>
+              <span x-text="a.name"></span>
+              <span class="ml-auto text-[10px] font-semibold" :class="a.online ? 'text-emerald-500' : 'text-red-500'" x-text="a.online ? 'Online' : 'Offline'"></span>
+            </button>
+          </template>
+        </div>
+      </div>
       <!-- Command type -->
       <select x-model="newRule.action" @change="loadAgentContainers(); agentDockerContainer = ''"
               class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500">
