@@ -1328,6 +1328,7 @@
          newAgentName: '',
          newAgentKey: '',
          agentMsg: '',
+         keyTab: 'cli',
          async loadAgents() {
            const r = await fetch('/api/agents');
            this.agents = await r.json();
@@ -1341,6 +1342,7 @@
            });
            const data = await r.json();
            this.newAgentKey = data.api_key;
+           this.keyTab = 'cli';
            this.newAgentName = '';
            await this.loadAgents();
          },
@@ -1348,8 +1350,17 @@
            await fetch('/api/agents/' + id, {method: 'DELETE'});
            await this.loadAgents();
          },
+         cliSnippet() {
+           const url = window.location.origin;
+           return `docker run -d \\\n  --name wanifi-agent \\\n  -e WANIFI_URL=${url} \\\n  -e AGENT_API_KEY=${this.newAgentKey} \\\n  --restart unless-stopped \\\n  ghcr.io/thehef/wanifi-agent:latest`;
+         },
+         composeSnippet() {
+           const url = window.location.origin;
+           return `services:\n  wanifi-agent:\n    image: ghcr.io/thehef/wanifi-agent:latest\n    environment:\n      - WANIFI_URL=${url}\n      - AGENT_API_KEY=${this.newAgentKey}\n    restart: unless-stopped`;
+         },
          copyKey() {
-           navigator.clipboard.writeText(this.newAgentKey);
+           const text = this.keyTab === 'cli' ? this.cliSnippet() : this.composeSnippet();
+           navigator.clipboard.writeText(text);
            this.agentMsg = 'Copied!';
            setTimeout(() => this.agentMsg = '', 2000);
          }
@@ -1391,14 +1402,31 @@
     </div>
 
     <!-- New API key reveal -->
-    <div x-show="newAgentKey" class="mt-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
-      <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-2">Save this key — it won't be shown again</div>
-      <div class="flex items-center gap-2">
-        <code class="flex-1 font-mono text-xs text-slate-300 break-all" x-text="newAgentKey"></code>
-        <button @click="copyKey()" class="shrink-0 text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+    <div x-show="newAgentKey" class="mt-3 bg-slate-950 border border-amber-500/20 rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-slate-800">
+        <span class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Save this key — it won't be shown again</span>
+        <button @click="newAgentKey = ''" class="text-slate-600 hover:text-slate-400 transition text-xs leading-none">✕</button>
+      </div>
+      <!-- Tabs -->
+      <div class="flex gap-0 border-b border-slate-800">
+        <button @click="keyTab = 'cli'"
+                class="px-4 py-1.5 text-xs font-semibold transition border-b-2 -mb-px"
+                :class="keyTab === 'cli' ? 'text-slate-200 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'">
+          CLI
+        </button>
+        <button @click="keyTab = 'compose'"
+                class="px-4 py-1.5 text-xs font-semibold transition border-b-2 -mb-px"
+                :class="keyTab === 'compose' ? 'text-slate-200 border-blue-500' : 'text-slate-500 border-transparent hover:text-slate-300'">
+          Compose
+        </button>
+      </div>
+      <!-- Code block -->
+      <div class="relative group">
+        <pre class="p-3 text-[11px] font-mono text-slate-300 leading-relaxed overflow-x-auto whitespace-pre" x-text="keyTab === 'cli' ? cliSnippet() : composeSnippet()"></pre>
+        <button @click="copyKey()"
+                class="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-700 transition opacity-0 group-hover:opacity-100">
           <span x-text="agentMsg || 'Copy'"></span>
         </button>
-        <button @click="newAgentKey = ''" class="shrink-0 text-slate-600 hover:text-slate-400 transition text-xs">✕</button>
       </div>
     </div>
   </div>
