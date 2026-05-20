@@ -80,7 +80,7 @@ async def get_settings(_: bool = Depends(require_auth)):
 
 @router.post("")
 async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
-    rtype = payload.router_type.strip() if payload.router_type in ("unifi", "openwrt") else "unifi"
+    rtype = payload.router_type.strip() if payload.router_type in ("unifi", "openwrt", "glinet") else "unifi"
     set_setting("router_type",         rtype)
     set_setting("unifi_host",          payload.unifi_host.strip())
     if payload.unifi_api_key:
