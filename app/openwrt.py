@@ -127,6 +127,19 @@ class OpenWrtClient:
         data = await self._ubus("network.device", "status", {"name": device_name})
         return (data or {}).get("statistics", {})
 
+    async def get_luci_realtime_stats(self, device: str) -> dict:
+        """Return cumulative rx/tx bytes via luci.getRealtimeStats (network mode).
+        Returns {rx_bytes, tx_bytes} or {} if unavailable."""
+        data = await self._ubus("luci", "getRealtimeStats", {"device": device, "mode": "network"})
+        if not data:
+            return {}
+        # LuCI returns a list of rows: [[ts, rx_bytes, tx_bytes, rx_pkts, tx_pkts], ...]
+        # Take the last (most recent) row
+        rows = data if isinstance(data, list) else data.get("result", [])
+        if rows and isinstance(rows[-1], list) and len(rows[-1]) >= 3:
+            return {"rx_bytes": rows[-1][1], "tx_bytes": rows[-1][2]}
+        return {}
+
     async def read_proc_net_dev(self) -> dict:
         """Read /proc/net/dev via rpcd file service — returns {iface: {rx_bytes, tx_bytes}}."""
         data = await self._ubus("file", "read", {"path": "/proc/net/dev"})

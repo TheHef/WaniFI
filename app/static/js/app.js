@@ -221,6 +221,8 @@ window.app = function () {
         this.containers = c.containers;
         this.agents     = a;
         this.appConnected = true;
+        // Docker availability is determined by socket mount — sync and lock the toggle
+        if (s.docker_ok !== undefined) this.integrations.docker = s.docker_ok;
         await this.loadStats();
       } catch { this.appConnected = false; }
     },
