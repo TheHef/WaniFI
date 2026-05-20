@@ -60,6 +60,8 @@ class UniFiClient:
                 "active_wan_ip": uplink.get("ip", ""),
                 "active_wan_rx_mbps": round(uplink.get("rx_bytes-r", 0) * 8 / 1_000_000, 2),
                 "active_wan_tx_mbps": round(uplink.get("tx_bytes-r", 0) * 8 / 1_000_000, 2),
+                "active_wan_rx_bytes": uplink.get("rx_bytes", 0),
+                "active_wan_tx_bytes": uplink.get("tx_bytes", 0),
                 "active_wan_latency": uplink.get("latency"),
                 "active_wan_uptime":  uplink.get("uptime"),
                 "active_wan_xput_down": uplink.get("xput_down"),

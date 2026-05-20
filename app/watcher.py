@@ -46,6 +46,7 @@ class WatcherState:
         self.live_gw_info: dict = {}
         self.last_wans: list = []
         self.latency_last_fired: float = 0.0
+        self._prev_wan_bytes: dict = {}  # {rx, tx, ts} for delta-rate calculation
 
 
 state = WatcherState()
@@ -866,6 +867,18 @@ async def live_stats_loop():
             if raw_cpu is not None:
                 _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
                 info["gw_cpu"] = _cpu_ema
+
+            now = time.monotonic()
+            rx_bytes = info.get("active_wan_rx_bytes", 0)
+            tx_bytes = info.get("active_wan_tx_bytes", 0)
+            prev = state._prev_wan_bytes
+            if prev and rx_bytes and tx_bytes and rx_bytes >= prev["rx"] and tx_bytes >= prev["tx"]:
+                elapsed = now - prev["ts"]
+                if elapsed > 0:
+                    info["active_wan_rx_mbps"] = round((rx_bytes - prev["rx"]) / elapsed * 8 / 1_000_000, 2)
+                    info["active_wan_tx_mbps"] = round((tx_bytes - prev["tx"]) / elapsed * 8 / 1_000_000, 2)
+            state._prev_wan_bytes = {"rx": rx_bytes, "tx": tx_bytes, "ts": now}
+
             state.live_gw_info = info
             ticks += 1
             if ticks % metrics_every == 0:
