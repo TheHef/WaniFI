@@ -178,13 +178,11 @@
                       class="text-xs text-slate-500 hover:text-red-400 transition px-1">Clear</button>
               <button x-show="!speedtestServerOpen"
                       @click="debugMsg = ''; fetchSpeedtestServers()"
-                      class="group flex items-center overflow-hidden px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200">
+                      class="flex items-center gap-1.5 px-2 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition">
                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
                 </svg>
-                <span class="inline-flex max-w-0 group-hover:max-w-[4rem] overflow-hidden transition-all duration-200 opacity-0 group-hover:opacity-100 whitespace-nowrap">
-                  <span class="pl-1.5" x-text="speedtestServersLoading ? '…' : 'Browse'"></span>
-                </span>
+                <span x-text="speedtestServersLoading ? '…' : 'Browse'"></span>
               </button>
               <button x-show="speedtestServerOpen"
                       @click="speedtestServerOpen = false"
