@@ -10,6 +10,8 @@ from ..openwrt import OpenWrtClient
 
 router = APIRouter(prefix="/api/openwrt")
 
+_NULL_SESSION = "00000000000000000000000000000000"
+
 
 @router.get("/settings")
 async def get_openwrt_settings(_=Depends(require_auth)):
@@ -94,49 +96,110 @@ async def debug_openwrt(_=Depends(require_auth)):
         result["steps"].append({"step": "reachable", "ok": False, "detail": str(e)})
         return result
 
-    # Step 2: raw auth call
-    auth_url = url.rstrip("/") + "/cgi-bin/luci/rpc/auth"
-    try:
-        async with httpx.AsyncClient(verify=False, timeout=10) as http:
-            r = await http.post(
-                auth_url,
-                json={"id": 1, "method": "login", "params": [username, password]},
-            )
-            raw_text = r.text[:500]  # first 500 chars of response
-            try:
-                body = r.json()
-                token = body.get("result", "")
-                auth_ok = bool(token and token.replace("0", ""))
-                result["steps"].append({
-                    "step": "auth", "ok": auth_ok,
-                    "detail": f"HTTP {r.status_code} — result={token!r}",
-                    "raw": body,
-                })
-            except Exception:
-                auth_ok = False
-                result["steps"].append({
-                    "step": "auth", "ok": False,
-                    "detail": f"HTTP {r.status_code} — response is not JSON",
-                    "raw_text": raw_text,
-                })
-            if not auth_ok:
-                return result
-    except Exception as e:
-        result["steps"].append({"step": "auth", "ok": False, "detail": str(e)})
-        return result
+    base = url.rstrip("/")
+    token = None
+    auth_mode = None
 
-    # Step 3: raw ubus call — show full response so we can diagnose ACL issues
-    ubus_url = url.rstrip("/") + "/cgi-bin/luci/rpc/ubus"
+    # Step 2a: try native rpcd auth (/ubus)
     try:
         async with httpx.AsyncClient(verify=False, timeout=10) as http:
             r = await http.post(
-                ubus_url,
+                f"{base}/ubus",
                 json={
                     "jsonrpc": "2.0", "id": 1, "method": "call",
-                    "params": [token, "network.interface", "dump", {}],
+                    "params": [_NULL_SESSION, "session", "login", {
+                        "username": username, "password": password,
+                    }],
                 },
-                cookies={"sysauth": token, "sysauth_https": token},
             )
+            try:
+                body = r.json()
+                res = body.get("result")
+                if isinstance(res, list) and res[0] == 0:
+                    session = res[1].get("ubus_rpc_session", "")
+                    if session and session.replace("0", ""):
+                        token = session
+                        auth_mode = "ubus"
+                        result["steps"].append({
+                            "step": "auth_ubus", "ok": True,
+                            "detail": f"HTTP {r.status_code} — native ubus session OK, token={token[:8]}…",
+                        })
+                    else:
+                        result["steps"].append({
+                            "step": "auth_ubus", "ok": False,
+                            "detail": f"HTTP {r.status_code} — got null/zero session (wrong password?)",
+                            "raw": body,
+                        })
+                else:
+                    result["steps"].append({
+                        "step": "auth_ubus", "ok": False,
+                        "detail": f"HTTP {r.status_code} — ubus error code {res[0] if isinstance(res, list) else 'N/A'}",
+                        "raw": body,
+                    })
+            except Exception:
+                result["steps"].append({
+                    "step": "auth_ubus", "ok": False,
+                    "detail": f"HTTP {r.status_code} — response is not JSON",
+                    "raw_text": r.text[:300],
+                })
+    except Exception as e:
+        result["steps"].append({"step": "auth_ubus", "ok": False, "detail": str(e)})
+
+    # Step 2b: try LuCI RPC auth (/cgi-bin/luci/rpc/auth) — only if ubus auth failed
+    if not token:
+        try:
+            async with httpx.AsyncClient(verify=False, timeout=10) as http:
+                r = await http.post(
+                    f"{base}/cgi-bin/luci/rpc/auth",
+                    json={"id": 1, "method": "login", "params": [username, password]},
+                )
+                try:
+                    body = r.json()
+                    luci_token = body.get("result", "")
+                    auth_ok = bool(luci_token and luci_token.replace("0", ""))
+                    if auth_ok:
+                        token = luci_token
+                        auth_mode = "luci"
+                    result["steps"].append({
+                        "step": "auth_luci", "ok": auth_ok,
+                        "detail": f"HTTP {r.status_code} — result={luci_token!r}",
+                        "raw": body,
+                    })
+                except Exception:
+                    result["steps"].append({
+                        "step": "auth_luci", "ok": False,
+                        "detail": f"HTTP {r.status_code} — response is not JSON",
+                        "raw_text": r.text[:300],
+                    })
+        except Exception as e:
+            result["steps"].append({"step": "auth_luci", "ok": False, "detail": str(e)})
+
+    if not token:
+        result["steps"].append({"step": "interfaces", "ok": False, "detail": "Skipped — no auth token"})
+        return result
+
+    result["steps"].append({"step": "auth_mode", "ok": True, "detail": f"Using mode={auth_mode}"})
+
+    # Step 3: ubus call via whichever path authenticated
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=10) as http:
+            if auth_mode == "ubus":
+                r = await http.post(
+                    f"{base}/ubus",
+                    json={
+                        "jsonrpc": "2.0", "id": 1, "method": "call",
+                        "params": [token, "network.interface", "dump", {}],
+                    },
+                )
+            else:
+                r = await http.post(
+                    f"{base}/cgi-bin/luci/rpc/ubus",
+                    json={
+                        "jsonrpc": "2.0", "id": 1, "method": "call",
+                        "params": [token, "network.interface", "dump", {}],
+                    },
+                    cookies={"sysauth": token, "sysauth_https": token},
+                )
             try:
                 ubus_body = r.json()
             except Exception:
