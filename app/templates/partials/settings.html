@@ -257,15 +257,29 @@
 
     <!-- Discovered interfaces -->
     <div x-show="openwrtDiscoveredIfaces.length > 0" class="mb-5">
-      <p class="text-xs text-slate-500 mb-2">Discovered WAN interfaces — set Primary and Failover below:</p>
+      <p class="text-xs text-slate-500 mb-2">Click to assign interfaces:</p>
       <div class="flex flex-wrap gap-2">
         <template x-for="iface in openwrtDiscoveredIfaces" :key="iface.interface">
-          <div class="bg-slate-800 border rounded-xl px-3 py-2 text-xs flex items-center gap-2"
+          <div class="bg-slate-800 border rounded-xl px-3 py-2 text-xs flex flex-col gap-1.5"
                :class="iface.up ? 'border-emerald-600/40' : 'border-slate-700'">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="iface.up ? 'bg-emerald-400' : 'bg-slate-600'"></span>
-            <span class="font-mono font-bold text-slate-200" x-text="iface.interface"></span>
-            <span x-show="iface.ip" class="text-sky-400" x-text="iface.ip"></span>
-            <span x-show="!iface.up" class="text-slate-600">down</span>
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="iface.up ? 'bg-emerald-400' : 'bg-slate-600'"></span>
+              <span class="font-mono font-bold text-slate-200" x-text="iface.interface"></span>
+              <span x-show="iface.ip" class="text-sky-400" x-text="iface.ip"></span>
+              <span x-show="!iface.up" class="text-slate-600">down</span>
+            </div>
+            <div class="flex gap-1">
+              <button @click="openwrtSettings.openwrt_primary_iface = iface.interface"
+                      class="px-2 py-0.5 rounded text-[10px] font-bold transition"
+                      :class="openwrtSettings.openwrt_primary_iface === iface.interface
+                        ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                        : 'bg-slate-700/60 text-slate-500 hover:text-emerald-400'">Primary</button>
+              <button @click="openwrtSettings.openwrt_failover_iface = iface.interface"
+                      class="px-2 py-0.5 rounded text-[10px] font-bold transition"
+                      :class="openwrtSettings.openwrt_failover_iface === iface.interface
+                        ? 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40'
+                        : 'bg-slate-700/60 text-slate-500 hover:text-amber-400'">Failover</button>
+            </div>
           </div>
         </template>
       </div>

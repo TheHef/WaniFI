@@ -4,6 +4,7 @@ import json
 import time
 from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import urlparse
 
 from .config import (
     LIVE_INTERVAL,
@@ -22,7 +23,7 @@ from .db import (
 )
 from .docker_ops import container_action
 from .notify import send_notification
-from .openwrt import OpenWrtClient, build_live_info_openwrt, determine_active_wan_openwrt
+from .openwrt import OpenWrtClient, build_live_info_openwrt, determine_active_wan_openwrt, ping_latency
 from .unifi import UniFiClient
 
 _bg_tasks: set[asyncio.Task] = set()
@@ -869,6 +870,8 @@ async def live_stats_loop():
     # OpenWrt state
     owrt_client: Optional[OpenWrtClient] = None
     owrt_last_settings: Optional[tuple] = None
+    _owrt_prev_bytes: dict = {}   # iface -> (rx_bytes, tx_bytes, timestamp)
+    _owrt_last_latency: Optional[float] = None
 
     ticks = 0
     metrics_every = max(1, METRICS_WRITE_INTERVAL // LIVE_INTERVAL)
@@ -902,6 +905,44 @@ async def live_stats_loop():
                 ifaces = await owrt_client.get_interfaces()
                 wan_state = state.current_wan or "down"
                 info = build_live_info_openwrt(ifaces, primary, failover, wan_state)
+
+                # Throughput — diff interface rx/tx bytes
+                active_iface = primary if wan_state == "primary" else (failover if wan_state == "failover" else None)
+                if active_iface:
+                    imap = {i["interface"]: i for i in ifaces}
+                    stats = imap.get(active_iface, {}).get("statistics", {})
+                    rx = stats.get("rx_bytes", 0)
+                    tx = stats.get("tx_bytes", 0)
+                    now = time.monotonic()
+                    if active_iface in _owrt_prev_bytes:
+                        p_rx, p_tx, p_t = _owrt_prev_bytes[active_iface]
+                        dt = now - p_t
+                        if dt > 0 and rx >= p_rx and tx >= p_tx:
+                            info["active_wan_rx_mbps"] = round((rx - p_rx) * 8 / dt / 1_000_000, 2)
+                            info["active_wan_tx_mbps"] = round((tx - p_tx) * 8 / dt / 1_000_000, 2)
+                    _owrt_prev_bytes[active_iface] = (rx, tx, now)
+
+                # System info — CPU load + memory
+                sys_info = await owrt_client.get_system_info()
+                if sys_info:
+                    mem = sys_info.get("memory", {})
+                    mem_total = mem.get("total", 0)
+                    mem_free = mem.get("free", 0) + mem.get("buffered", 0)
+                    if mem_total:
+                        info["gw_mem"] = round((1 - mem_free / mem_total) * 100)
+                    load = sys_info.get("load", [])
+                    if load:
+                        info["gw_cpu"] = round(min(load[0] / 65536 * 100, 100))
+
+                # Latency — ping every 3rd tick
+                if ticks % 3 == 0:
+                    lat = await ping_latency("1.1.1.1")
+                    _owrt_last_latency = lat if lat is not None else _owrt_last_latency
+                info["active_wan_latency"] = _owrt_last_latency
+
+                # Device IP — router hostname from URL
+                info["gw_ip"] = urlparse(url).hostname or ""
+
                 state.live_gw_info = info
 
             else:

@@ -1,5 +1,8 @@
 """OpenWrt LuCI RPC client — completely independent from the UniFi client."""
+import asyncio
+import re
 from typing import Optional
+from urllib.parse import urlparse
 
 import httpx
 
@@ -111,6 +114,10 @@ class OpenWrtClient:
         data = await self._ubus("network.interface", "dump")
         return (data or {}).get("interface", [])
 
+    async def get_system_info(self) -> dict:
+        """Return system memory and load from OpenWrt."""
+        return await self._ubus("system", "info") or {}
+
     async def get_wan_interfaces(self) -> list[dict]:
         """Return WAN-candidate interfaces (excludes LAN, loopback, IPv6 aliases)."""
         ifaces = await self.get_interfaces()
@@ -129,6 +136,21 @@ class OpenWrtClient:
         wan_ifaces = await self.get_wan_interfaces()
         names = ", ".join(i["interface"] for i in wan_ifaces) or "none detected"
         return True, f"Connected ({self._mode}) — WAN candidates: {names}"
+
+
+async def ping_latency(host: str = "1.1.1.1", count: int = 3) -> Optional[float]:
+    """Ping host, return average RTT in ms or None on failure."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "ping", "-c", str(count), "-W", "2", "-q", host,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=15)
+        m = re.search(r"min/avg/max.*?=\s*[\d.]+/([\d.]+)/", stdout.decode())
+        return round(float(m.group(1)), 1) if m else None
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
