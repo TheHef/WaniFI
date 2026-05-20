@@ -118,6 +118,11 @@ class OpenWrtClient:
         """Return system memory and load from OpenWrt."""
         return await self._ubus("system", "info") or {}
 
+    async def get_device_stats(self, device_name: str) -> dict:
+        """Return rx_bytes/tx_bytes for a kernel device via network.device status."""
+        data = await self._ubus("network.device", "status", {"name": device_name})
+        return (data or {}).get("statistics", {})
+
     async def get_wan_interfaces(self) -> list[dict]:
         """Return WAN-candidate interfaces (excludes LAN, loopback, IPv6 aliases)."""
         ifaces = await self.get_interfaces()

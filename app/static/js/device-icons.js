@@ -1,7 +1,7 @@
 // UniFi device model -> icon path + display name lookups.
 
 const ICONS = {
-  'OPENWRT':   '/static/devices/openwrt-generic.svg',
+  'OPENWRT':   '/static/devices/generic.png',
   'UCGMAX':    '/static/devices/UCGMAX.avif',
   'UCGULTRA':  '/static/devices/UCG-ULTRA.avif',
   'U5GMAX':    '/static/devices/U5G_Max.avif',

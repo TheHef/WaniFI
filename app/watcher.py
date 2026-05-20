@@ -906,11 +906,17 @@ async def live_stats_loop():
                 wan_state = state.current_wan or "down"
                 info = build_live_info_openwrt(ifaces, primary, failover, wan_state)
 
-                # Throughput — diff interface rx/tx bytes
+                # Throughput — diff rx/tx bytes via network.device (interface dump lacks stats on GL-iNet)
                 active_iface = primary if wan_state == "primary" else (failover if wan_state == "failover" else None)
                 if active_iface:
                     imap = {i["interface"]: i for i in ifaces}
-                    stats = imap.get(active_iface, {}).get("statistics", {})
+                    iface_obj = imap.get(active_iface, {})
+                    # Prefer interface-level statistics, fall back to network.device for the kernel device
+                    stats = iface_obj.get("statistics") or {}
+                    if not stats:
+                        dev_name = iface_obj.get("device", "")
+                        if dev_name:
+                            stats = await owrt_client.get_device_stats(dev_name)
                     rx = stats.get("rx_bytes", 0)
                     tx = stats.get("tx_bytes", 0)
                     now = time.monotonic()

@@ -318,15 +318,12 @@
           <span x-text="status.active_wan === 'failover' ? 'Active' : 'Standby'"></span>
         </span>
       </div>      <div class="flex flex-1">
-        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-r border-slate-800 py-4 gap-2">
-          <img x-show="((liveStats||{}).extra_devices||[]).length > 0 && (deviceIcon(xdev.model) || deviceIcon(xdev.name))"
-               :src="deviceIcon(xdev.model) || deviceIcon(xdev.name)"
-               class="w-14 h-14 object-contain" alt="device">
-          <div class="w-14 h-14"
-               x-show="!(((liveStats||{}).extra_devices||[]).length > 0 && (deviceIcon(xdev.model) || deviceIcon(xdev.name)))"></div>
+        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-r border-slate-800 py-4 gap-2"
+             x-data="{ get fwIcon() { return deviceIcon(xdev.model) || deviceIcon(xdev.name) || deviceIcon((liveStats||{}).gw_model); }, get fwName() { return fmtModel(xdev.model) || fmtModel(xdev.name) || fmtModel((liveStats||{}).gw_model) || xdev.model || xdev.name || (liveStats||{}).gw_model; } }">
+          <img x-show="fwIcon" :src="fwIcon" class="w-14 h-14 object-contain" alt="device">
+          <div class="w-14 h-14" x-show="!fwIcon"></div>
           <span class="text-xs font-semibold text-slate-500 text-center leading-tight px-2"
-                x-show="xdev.model || xdev.name"
-                x-text="fmtModel(xdev.model) || fmtModel(xdev.name) || xdev.model || xdev.name"></span>
+                x-show="fwName" x-text="fwName"></span>
         </div>
         <div class="flex-1 min-w-0 divide-y divide-slate-800/60 px-4 py-1 self-center">
           <div class="flex items-center justify-between py-1.5 gap-4">
