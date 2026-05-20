@@ -379,10 +379,10 @@
             <span class="font-mono text-sm truncate text-right" :class="status.active_wan === 'failover' ? 'text-slate-100' : 'text-slate-600'"
                   x-text="xdev.ip || '—'"></span>
           </div>
-          <div class="flex items-center justify-between py-1.5 gap-4" x-show="fw.isp_name || xdev.isp_name">
+          <div class="flex items-center justify-between py-1.5 gap-4">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 shrink-0">ISP</span>
             <span class="text-sm truncate text-right" :class="status.active_wan === 'failover' ? 'text-slate-100' : 'text-slate-600'"
-                  x-text="fw.isp_name || xdev.isp_name"></span>
+                  x-text="fw.isp_name || xdev.isp_name || '—'"></span>
           </div>
           <div class="flex items-center justify-between py-1.5 gap-4">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 shrink-0">Latency</span>
