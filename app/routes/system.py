@@ -22,7 +22,11 @@ async def api_status(_: bool = Depends(require_auth)):
         "last_check":         state.last_check,
         "last_error":         state.last_error,
         "state_changed_at":   state.state_changed_at,
-        "configured":         bool(get_setting("unifi_host") and get_setting("unifi_api_key")),
+        "configured":         (
+            bool(get_setting("openwrt_url") and get_setting("openwrt_password"))
+            if get_setting("router_type", "unifi") == "openwrt"
+            else bool(get_setting("unifi_host") and get_setting("unifi_api_key"))
+        ),
         "docker_ok":          docker_ok(),
         "primary_wan":        get_setting("primary_wan", "wan"),
         "failover_wan":       get_setting("failover_wan", "wan2"),

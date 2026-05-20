@@ -1,4 +1,22 @@
 <section x-show="tab === 'settings'">  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Router Type</div>
+    <div class="flex gap-2 mb-6">
+      <button @click="settings.router_type = 'unifi'; saveSettings()"
+              :class="settings.router_type === 'unifi' ? 'border-sky-500 bg-sky-500/10 text-sky-300' : 'border-slate-700 text-slate-500 hover:border-slate-600'"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01"/></svg>
+        UniFi
+      </button>
+      <button @click="settings.router_type = 'openwrt'; saveSettings()"
+              :class="settings.router_type === 'openwrt' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-slate-700 text-slate-500 hover:border-slate-600'"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        OpenWrt / GL-iNet
+      </button>
+    </div>
+
+    <!-- ===== UniFi section ===== -->
+    <div x-show="settings.router_type === 'unifi'">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">UniFi &amp; WAN</div>
 
     <div>
@@ -231,6 +249,93 @@
         <pre x-text="debugMsg" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 max-h-64 scrollbar-overlay"></pre>
       </div>
     </div>
+  </div>
+  </div><!-- end x-show unifi -->
+
+  <!-- ===== OpenWrt section ===== -->
+  <div x-show="settings.router_type === 'openwrt'">
+    <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">OpenWrt / GL-iNet</div>
+
+    <!-- Discovered interfaces -->
+    <div x-show="openwrtDiscoveredIfaces.length > 0" class="mb-5">
+      <p class="text-xs text-slate-500 mb-2">Discovered WAN interfaces — set Primary and Failover below:</p>
+      <div class="flex flex-wrap gap-2">
+        <template x-for="iface in openwrtDiscoveredIfaces" :key="iface.interface">
+          <div class="bg-slate-800 border rounded-xl px-3 py-2 text-xs flex items-center gap-2"
+               :class="iface.up ? 'border-emerald-600/40' : 'border-slate-700'">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="iface.up ? 'bg-emerald-400' : 'bg-slate-600'"></span>
+            <span class="font-mono font-bold text-slate-200" x-text="iface.interface"></span>
+            <span x-show="iface.ip" class="text-sky-400" x-text="iface.ip"></span>
+            <span x-show="!iface.up" class="text-slate-600">down</span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="mt-4 flex gap-5 items-stretch">
+      <!-- Action buttons -->
+      <div class="flex flex-col justify-start gap-2 shrink-0 w-36">
+        <button @click="saveOpenwrtSettings(); saveSettings()"
+                class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl px-3 py-2.5 text-sm transition">Save</button>
+        <button @click="testOpenwrt()"
+                class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-3 py-2.5 text-sm transition">Test Connection</button>
+        <div class="text-xs font-medium min-h-[1rem]"
+             :class="openwrtMsg.startsWith('✓') ? 'text-blue-400' : 'text-red-400'"
+             x-show="openwrtMsg" x-text="openwrtMsg"></div>
+      </div>
+      <!-- Settings rows -->
+      <div class="flex-1 min-w-0 divide-y divide-slate-800/80 border border-slate-800 rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">URL</span>
+          <input x-model="openwrtSettings.openwrt_url" placeholder="http://192.168.1.1"
+                 autocomplete="off" spellcheck="false"
+                 class="w-44 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Username</span>
+          <input x-model="openwrtSettings.openwrt_username" placeholder="root"
+                 autocomplete="off" spellcheck="false"
+                 class="w-32 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Password
+            <span x-show="openwrtSettings.openwrt_password_set" class="normal-case font-normal text-emerald-500 ml-1">(already saved)</span>
+          </span>
+          <input x-ref="openwrtPassword" type="password" placeholder="••••••••"
+                 autocomplete="new-password" spellcheck="false"
+                 class="w-36 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary Interface</span>
+          <input x-model="openwrtSettings.openwrt_primary_iface" placeholder="wan"
+                 autocomplete="off" spellcheck="false"
+                 class="w-28 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right font-mono text-emerald-300 focus:outline-none focus:border-emerald-500 transition">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Failover Interface</span>
+          <input x-model="openwrtSettings.openwrt_failover_iface" placeholder="wwan"
+                 autocomplete="off" spellcheck="false"
+                 class="w-28 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right font-mono text-amber-300 focus:outline-none focus:border-amber-500 transition">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Poll Interval <span class="normal-case font-normal text-slate-600">(seconds)</span></span>
+          <input x-model.number="settings.poll_interval" type="number" min="5"
+                 class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latency Threshold <span class="normal-case font-normal text-slate-600">(ms, 0 = off)</span></span>
+          <input x-model.number="settings.latency_threshold_ms" type="number" min="0"
+                 class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+        </div>
+        <div class="flex items-center justify-between px-4 py-2.5">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Keep Events <span class="normal-case font-normal text-slate-600">(days)</span></span>
+          <input x-model.number="settings.event_retention_days" type="number" min="1"
+                 class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+        </div>
+      </div>
+    </div>
+  </div><!-- end x-show openwrt -->
+
   </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">API's</div>    <div class="space-y-2 mb-6">      <div class="grid grid-cols-3 gap-2">        <button @click="toggleIntegration('host_command')"
                 :class="integrations.host_command ? 'border-red-500/40 bg-red-500/5' : 'border-slate-700/80 hover:border-slate-600'"

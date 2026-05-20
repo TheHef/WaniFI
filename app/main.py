@@ -28,6 +28,7 @@ from .routes import jellyfin as jellyfin_routes
 from .routes import plex as plex_routes
 from .routes import qbittorrent as qb_routes
 from .routes import rules as rules_routes
+from .routes import openwrt as openwrt_routes
 from .routes import settings as settings_routes
 from .routes import stats as stats_routes
 from .routes import system as system_routes
@@ -76,6 +77,7 @@ app.include_router(agent_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(system_routes.router)
 app.include_router(rules_routes.router)
+app.include_router(openwrt_routes.router)
 app.include_router(settings_routes.router)
 app.include_router(events_routes.router)
 app.include_router(manual_routes.router)

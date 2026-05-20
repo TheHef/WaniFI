@@ -38,17 +38,26 @@ class SetupIn(BaseModel):
 
 
 class SettingsIn(BaseModel):
-    unifi_host: str
+    router_type: str = "unifi"
+    unifi_host: str = ""
     unifi_api_key: Optional[str] = None
     unifi_site: str = "default"
-    primary_wan: str
-    failover_wan: str
+    primary_wan: str = ""
+    failover_wan: str = ""
     primary_wan_name: str = ""
     failover_wan_name: str = ""
     poll_interval: int = POLL_INTERVAL_DEFAULT
     event_retention_days: int = 30
     latency_threshold_ms: int = 0
     latency_cooldown_min: int = 5
+
+
+class OpenWrtSettingsIn(BaseModel):
+    openwrt_url: str = ""
+    openwrt_username: str = "root"
+    openwrt_password: Optional[str] = None
+    openwrt_primary_iface: str = "wan"
+    openwrt_failover_iface: str = "wwan"
 
 
 class RuleIn(BaseModel):

@@ -11,8 +11,11 @@ from ..models import SettingsIn
 router = APIRouter(prefix="/api/settings")
 
 EXPORT_KEYS = (
+    "router_type",
     "unifi_host", "unifi_api_key", "unifi_site",
     "primary_wan", "failover_wan",
+    "openwrt_url", "openwrt_username", "openwrt_password",
+    "openwrt_primary_iface", "openwrt_failover_iface",
     "primary_wan_name", "failover_wan_name",
     "poll_interval", "event_retention_days",
     "latency_threshold_ms", "latency_cooldown_min",
@@ -60,6 +63,7 @@ EXPORT_KEYS = (
 @router.get("")
 async def get_settings(_: bool = Depends(require_auth)):
     return {
+        "router_type":          get_setting("router_type", "unifi"),
         "unifi_host":           get_setting("unifi_host", ""),
         "unifi_api_key_set":    bool(get_setting("unifi_api_key")),
         "unifi_site":           get_setting("unifi_site", "default"),
@@ -76,6 +80,8 @@ async def get_settings(_: bool = Depends(require_auth)):
 
 @router.post("")
 async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
+    rtype = payload.router_type.strip() if payload.router_type in ("unifi", "openwrt") else "unifi"
+    set_setting("router_type",         rtype)
     set_setting("unifi_host",          payload.unifi_host.strip())
     if payload.unifi_api_key:
         set_setting("unifi_api_key",   payload.unifi_api_key.strip())

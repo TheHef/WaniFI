@@ -7,6 +7,7 @@ window.app = function () {
     status:    { active_wan: null, raw_wans: [] },
     liveStats: {},
     settings:  {
+      router_type: 'unifi',
       unifi_host: '', unifi_api_key: '', unifi_site: 'default',
       primary_wan: 'wan', failover_wan: 'wan2',
       primary_wan_name: '', failover_wan_name: '',
@@ -14,6 +15,12 @@ window.app = function () {
       unifi_api_key_set: false,
       latency_threshold_ms: 0, latency_cooldown_min: 5,
     },
+    openwrtSettings: {
+      openwrt_url: '', openwrt_username: 'root', openwrt_password: '',
+      openwrt_password_set: false,
+      openwrt_primary_iface: 'wan', openwrt_failover_iface: 'wwan',
+    },
+    openwrtMsg: '', openwrtDiscoveredIfaces: [],
     notifySettings: {
       ntfy_url: '', ntfy_topic: '', ntfy_token: '', ntfy_token_set: false,
       ntfy_on_failover: true, ntfy_on_restored: true,
@@ -134,6 +141,7 @@ window.app = function () {
       });
 
       await this.loadSettings();
+      await this.loadOpenwrtSettings();
       await this.loadNotifySettings();
       await this.loadDiscordSettings();
       await this.loadTelegramSettings();
@@ -166,8 +174,10 @@ window.app = function () {
       await this.loadStats();
       this._setDefaultRuleType();
 
-      if (!this.settings.unifi_api_key_set && !fromPath) {
-        // Update the URL before setting the tab so $watch sees a match and skips pushState
+      const isConfigured = this.settings.router_type === 'openwrt'
+        ? (this.openwrtSettings.openwrt_url && this.openwrtSettings.openwrt_password_set)
+        : this.settings.unifi_api_key_set;
+      if (!isConfigured && !fromPath) {
         history.replaceState({ tab: 'settings' }, '', '/settings');
         this.tab = 'settings';
       }
@@ -256,17 +266,57 @@ window.app = function () {
     async debugDump() {
       const live = await fetch('/api/live').then(r => r.json()).catch(() => ({}));
       const dump = {
+        router_type: this.settings.router_type,
         host: this.settings.unifi_host,
         api_key_saved: this.settings.unifi_api_key_set,
         site: this.settings.unifi_site,
         primary_wan: this.settings.primary_wan,
         failover_wan: this.settings.failover_wan,
+        openwrt_url: this.openwrtSettings.openwrt_url,
+        openwrt_primary_iface: this.openwrtSettings.openwrt_primary_iface,
+        openwrt_failover_iface: this.openwrtSettings.openwrt_failover_iface,
         active_wan: live.active_wan,
         active_wan_ip: live.active_wan_ip,
         extra_devices: live.extra_devices || [],
       };
       console.log('WaniFi debug:', dump);
       this.debugMsg = JSON.stringify(dump, null, 2);
+    },
+
+    // ---- OpenWrt settings --------------------------------------------------
+    async loadOpenwrtSettings() {
+      const s = await fetch('/api/openwrt/settings').then(r => r.json());
+      this.openwrtSettings = { ...s, openwrt_password: '' };
+    },
+
+    async saveOpenwrtSettings() {
+      const payload = {
+        ...this.openwrtSettings,
+        openwrt_password: this.$refs.openwrtPassword ? this.$refs.openwrtPassword.value : this.openwrtSettings.openwrt_password,
+      };
+      const r = await fetch('/api/openwrt/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      this.openwrtMsg = r.ok ? '✓ Saved' : '✗ Error';
+      setTimeout(() => this.openwrtMsg = '', 3000);
+      await this.loadOpenwrtSettings();
+      if (this.$refs.openwrtPassword) this.$refs.openwrtPassword.value = '';
+    },
+
+    async testOpenwrt() {
+      await this.saveOpenwrtSettings();
+      await this.saveSettings();
+      this.openwrtMsg = 'Testing…';
+      const d = await fetch('/api/openwrt/test', { method: 'POST' }).then(r => r.json());
+      if (d.ok) {
+        this.openwrtDiscoveredIfaces = d.interfaces || [];
+        this.openwrtMsg = `✓ ${d.message}`;
+      } else {
+        this.openwrtDiscoveredIfaces = [];
+        this.openwrtMsg = '✗ ' + (d.error || 'Test failed');
+      }
     },
 
     // ---- Rules ------------------------------------------------------------

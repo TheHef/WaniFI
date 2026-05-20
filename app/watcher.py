@@ -22,6 +22,7 @@ from .db import (
 )
 from .docker_ops import container_action
 from .notify import send_notification
+from .openwrt import OpenWrtClient, build_live_info_openwrt, determine_active_wan_openwrt
 from .unifi import UniFiClient
 
 _bg_tasks: set[asyncio.Task] = set()
@@ -860,37 +861,77 @@ async def apply_rules(new_state: str):
 
 async def live_stats_loop():
     log.info("Live stats loop started")
-    client: Optional[UniFiClient] = None
-    last_settings: Optional[tuple] = None
+    # UniFi state
+    unifi_client: Optional[UniFiClient] = None
+    unifi_last_settings: Optional[tuple] = None
+    _cpu_ema: Optional[float] = None
+    _EMA_ALPHA = 0.2
+    # OpenWrt state
+    owrt_client: Optional[OpenWrtClient] = None
+    owrt_last_settings: Optional[tuple] = None
+
     ticks = 0
     metrics_every = max(1, METRICS_WRITE_INTERVAL // LIVE_INTERVAL)
-    _cpu_ema: Optional[float] = None   # exponential moving average for CPU
-    _EMA_ALPHA = 0.2                   # ~5-sample smoothing (matches UniFi's display)
 
     while True:
         try:
-            host    = get_setting("unifi_host")
-            api_key = get_setting("unifi_api_key")
-            site    = get_setting("unifi_site", "default")
-            if not (host and api_key):
-                await asyncio.sleep(LIVE_INTERVAL)
-                continue
+            router_type = get_setting("router_type", "unifi")
 
-            current = (host, api_key, site)
-            if client is None or current != last_settings:
-                if client:
-                    await client.close()
-                client = UniFiClient(host, api_key, site)
-                last_settings = current
-                _cpu_ema = None
+            if router_type == "openwrt":
+                # --- OpenWrt live stats ---
+                if unifi_client:
+                    await unifi_client.close()
+                    unifi_client, unifi_last_settings, _cpu_ema = None, None, None
 
-            info = await client.get_gateway_info()
-            raw_cpu = info.get("gw_cpu")
-            if raw_cpu is not None:
-                _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
-                info["gw_cpu"] = _cpu_ema
+                url      = get_setting("openwrt_url", "")
+                username = get_setting("openwrt_username", "root")
+                password = get_setting("openwrt_password", "")
+                primary  = get_setting("openwrt_primary_iface", "wan")
+                failover = get_setting("openwrt_failover_iface", "wwan")
+                if not (url and password):
+                    await asyncio.sleep(LIVE_INTERVAL)
+                    continue
 
-            state.live_gw_info = info
+                current = (url, username, password)
+                if owrt_client is None or current != owrt_last_settings:
+                    if owrt_client:
+                        await owrt_client.close()
+                    owrt_client = OpenWrtClient(url, password, username)
+                    owrt_last_settings = current
+
+                ifaces = await owrt_client.get_interfaces()
+                wan_state = state.current_wan or "down"
+                info = build_live_info_openwrt(ifaces, primary, failover, wan_state)
+                state.live_gw_info = info
+
+            else:
+                # --- UniFi live stats ---
+                if owrt_client:
+                    await owrt_client.close()
+                    owrt_client, owrt_last_settings = None, None
+
+                host    = get_setting("unifi_host")
+                api_key = get_setting("unifi_api_key")
+                site    = get_setting("unifi_site", "default")
+                if not (host and api_key):
+                    await asyncio.sleep(LIVE_INTERVAL)
+                    continue
+
+                current = (host, api_key, site)
+                if unifi_client is None or current != unifi_last_settings:
+                    if unifi_client:
+                        await unifi_client.close()
+                    unifi_client = UniFiClient(host, api_key, site)
+                    unifi_last_settings = current
+                    _cpu_ema = None
+
+                info = await unifi_client.get_gateway_info()
+                raw_cpu = info.get("gw_cpu")
+                if raw_cpu is not None:
+                    _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
+                    info["gw_cpu"] = _cpu_ema
+                state.live_gw_info = info
+
             ticks += 1
             if ticks % metrics_every == 0:
                 await a_write_metric(state.live_gw_info)
@@ -910,47 +951,91 @@ async def live_stats_loop():
                         event="high_latency",
                     ))
         except asyncio.CancelledError:
-            if client:
-                await client.close()
+            for c in (unifi_client, owrt_client):
+                if c:
+                    await c.close()
             raise
         except Exception as e:
             log.warning("Live stats error: %s", e)
-            if client:
-                await client.close()
-            client, last_settings = None, None
+            if unifi_client:
+                await unifi_client.close()
+            if owrt_client:
+                await owrt_client.close()
+            unifi_client, unifi_last_settings, _cpu_ema = None, None, None
+            owrt_client, owrt_last_settings = None, None
         await asyncio.sleep(LIVE_INTERVAL)
 
 
 async def watcher_loop():
     log.info("Watcher loop started")
-    client: Optional[UniFiClient] = None
-    last_settings: Optional[tuple] = None
+    # UniFi client
+    unifi_client: Optional[UniFiClient] = None
+    unifi_last_settings: Optional[tuple] = None
+    # OpenWrt client
+    owrt_client: Optional[OpenWrtClient] = None
+    owrt_last_settings: Optional[tuple] = None
+
     last_purge_day: Optional[str] = None
 
     while True:
         try:
-            host    = get_setting("unifi_host")
-            api_key = get_setting("unifi_api_key")
-            site    = get_setting("unifi_site", "default")
-            primary  = get_setting("primary_wan", "wan")
-            failover = get_setting("failover_wan", "wan2")
-            interval = int(get_setting("poll_interval", str(POLL_INTERVAL_DEFAULT)))
+            router_type = get_setting("router_type", "unifi")
+            interval    = int(get_setting("poll_interval", str(POLL_INTERVAL_DEFAULT)))
 
-            if not (host and api_key):
-                state.last_error = "UniFi not configured"
-                await asyncio.sleep(10)
-                continue
+            if router_type == "openwrt":
+                # --- OpenWrt watcher ---
+                if unifi_client:
+                    await unifi_client.close()
+                    unifi_client, unifi_last_settings = None, None
 
-            current = (host, api_key, site)
-            if client is None or current != last_settings:
-                if client:
-                    await client.close()
-                client = UniFiClient(host, api_key, site)
-                last_settings = current
+                url      = get_setting("openwrt_url", "")
+                username = get_setting("openwrt_username", "root")
+                password = get_setting("openwrt_password", "")
+                primary  = get_setting("openwrt_primary_iface", "wan")
+                failover = get_setting("openwrt_failover_iface", "wwan")
+                if not (url and password):
+                    state.last_error = "OpenWrt not configured"
+                    await asyncio.sleep(10)
+                    continue
 
-            wans = await client.get_gateway_health()
-            state.last_wans = wans
-            new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
+                current = (url, username, password)
+                if owrt_client is None or current != owrt_last_settings:
+                    if owrt_client:
+                        await owrt_client.close()
+                    owrt_client = OpenWrtClient(url, password, username)
+                    owrt_last_settings = current
+
+                ifaces   = await owrt_client.get_interfaces()
+                state.last_wans = ifaces
+                new_state = determine_active_wan_openwrt(ifaces, primary, failover)
+
+            else:
+                # --- UniFi watcher ---
+                if owrt_client:
+                    await owrt_client.close()
+                    owrt_client, owrt_last_settings = None, None
+
+                host    = get_setting("unifi_host")
+                api_key = get_setting("unifi_api_key")
+                site    = get_setting("unifi_site", "default")
+                primary  = get_setting("primary_wan", "wan")
+                failover = get_setting("failover_wan", "wan2")
+                if not (host and api_key):
+                    state.last_error = "UniFi not configured"
+                    await asyncio.sleep(10)
+                    continue
+
+                current = (host, api_key, site)
+                if unifi_client is None or current != unifi_last_settings:
+                    if unifi_client:
+                        await unifi_client.close()
+                    unifi_client = UniFiClient(host, api_key, site)
+                    unifi_last_settings = current
+
+                wans = await unifi_client.get_gateway_health()
+                state.last_wans = wans
+                new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
+
             state.last_check = datetime.now(timezone.utc).isoformat()
             state.last_error = None
 
@@ -1011,8 +1096,9 @@ async def watcher_loop():
             await asyncio.sleep(interval)
         except asyncio.CancelledError:
             log.info("Watcher loop cancelled")
-            if client:
-                await client.close()
+            for c in (unifi_client, owrt_client):
+                if c:
+                    await c.close()
             raise
         except Exception as e:
             msg = str(e) or repr(e) or type(e).__name__
@@ -1022,7 +1108,10 @@ async def watcher_loop():
                 "WaniFi Watcher Error", msg, priority="low", tags="x",
                 event="error",
             ))
-            if client:
-                await client.close()
-            client, last_settings = None, None
+            if unifi_client:
+                await unifi_client.close()
+            if owrt_client:
+                await owrt_client.close()
+            unifi_client, unifi_last_settings = None, None
+            owrt_client, owrt_last_settings = None, None
             await asyncio.sleep(15)
