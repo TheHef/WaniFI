@@ -20,7 +20,7 @@ window.app = function () {
       openwrt_password_set: false,
       openwrt_primary_iface: 'wan', openwrt_failover_iface: 'wwan',
     },
-    openwrtMsg: '', openwrtDiscoveredIfaces: [],
+    openwrtMsg: '', openwrtDiscoveredIfaces: [], openwrtDebugMsg: '',
     notifySettings: {
       ntfy_url: '', ntfy_topic: '', ntfy_token: '', ntfy_token_set: false,
       ntfy_on_failover: true, ntfy_on_restored: true,
@@ -324,6 +324,14 @@ window.app = function () {
         this.openwrtDiscoveredIfaces = [];
         this.openwrtMsg = '✗ ' + (d.error || 'Test failed');
       }
+    },
+
+    async debugOpenwrt() {
+      await this.saveOpenwrtSettings();
+      this.openwrtMsg = 'Debugging…';
+      const d = await fetch('/api/openwrt/debug', { method: 'POST' }).then(r => r.json());
+      this.openwrtDebugMsg = JSON.stringify(d, null, 2);
+      this.openwrtMsg = '';
     },
 
     // ---- Rules ------------------------------------------------------------

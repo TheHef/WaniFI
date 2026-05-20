@@ -1,4 +1,5 @@
 """OpenWrt router settings and connection test endpoints."""
+import httpx
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
@@ -63,3 +64,70 @@ async def test_openwrt_connection(_=Depends(require_auth)):
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
     finally:
         await client.close()
+
+
+@router.post("/debug")
+async def debug_openwrt(_=Depends(require_auth)):
+    url      = get_setting("openwrt_url", "")
+    username = get_setting("openwrt_username", "root")
+    password = get_setting("openwrt_password", "")
+    result: dict = {"url": url, "username": username, "steps": []}
+
+    if not url:
+        result["steps"].append({"step": "config", "ok": False, "detail": "No URL configured"})
+        return result
+    if not password:
+        result["steps"].append({"step": "config", "ok": False, "detail": "No password configured"})
+        return result
+
+    result["steps"].append({"step": "config", "ok": True, "detail": f"URL={url} user={username}"})
+
+    # Step 1: raw HTTP reachability
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=10) as http:
+            r = await http.get(url)
+            result["steps"].append({
+                "step": "reachable", "ok": True,
+                "detail": f"HTTP {r.status_code} — router is reachable",
+            })
+    except Exception as e:
+        result["steps"].append({"step": "reachable", "ok": False, "detail": str(e)})
+        return result
+
+    # Step 2: raw auth call
+    auth_url = url.rstrip("/") + "/cgi-bin/luci/rpc/auth"
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=10) as http:
+            r = await http.post(
+                auth_url,
+                json={"id": 1, "method": "login", "params": [username, password]},
+            )
+            body = r.json()
+            token = body.get("result", "")
+            auth_ok = bool(token and token.replace("0", ""))
+            result["steps"].append({
+                "step": "auth", "ok": auth_ok,
+                "detail": f"HTTP {r.status_code} — result={token!r}",
+                "raw": body,
+            })
+            if not auth_ok:
+                return result
+    except Exception as e:
+        result["steps"].append({"step": "auth", "ok": False, "detail": str(e)})
+        return result
+
+    # Step 3: raw interface dump
+    client = OpenWrtClient(url, password, username)
+    try:
+        ifaces = await client.get_interfaces()
+        result["steps"].append({
+            "step": "interfaces", "ok": bool(ifaces),
+            "detail": f"{len(ifaces)} interface(s) returned",
+            "raw": ifaces,
+        })
+    except Exception as e:
+        result["steps"].append({"step": "interfaces", "ok": False, "detail": str(e)})
+    finally:
+        await client.close()
+
+    return result
