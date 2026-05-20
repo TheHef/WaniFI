@@ -64,8 +64,8 @@ async def ping_agent(agent_id: int, _=Depends(require_auth)):
 # ---------------------------------------------------------------------------
 
 @router.websocket("/ws")
-async def agent_ws(ws: WebSocket):
-    api_key = ws.headers.get("x-agent-key", "")
+async def agent_ws(ws: WebSocket, key: str = ""):
+    api_key = key or ws.headers.get("x-agent-key", "")
     agent = get_agent_by_key(api_key)
     if not agent:
         await ws.close(code=4401)

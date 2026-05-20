@@ -17,7 +17,7 @@ WANIFI_URL: str = os.environ["WANIFI_URL"].rstrip("/")   # e.g. wss://wanifi.exa
 AGENT_KEY:  str = os.environ["AGENT_API_KEY"]
 RECONNECT_DELAY = 10  # seconds between reconnect attempts
 
-WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws"
+WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws?key=" + os.environ["AGENT_API_KEY"]
 
 _docker_client = None
 
@@ -92,11 +92,10 @@ def dispatch(msg: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 async def run():
-    headers = {"x-agent-key": AGENT_KEY}
     while True:
         try:
             log.info("Connecting to %s", WS_URL)
-            async with websockets.connect(WS_URL, additional_headers=headers) as ws:
+            async with websockets.connect(WS_URL) as ws:
                 log.info("Connected to WaniFi server")
                 async for raw in ws:
                     try:
