@@ -1056,7 +1056,8 @@ async def watcher_loop():
                     {
                         **i,
                         "subsystem": i.get("interface", ""),
-                        "wan_ip": (i.get("ipv4-address") or [{}])[0].get("address", ""),
+                        "wan_ip":    (i.get("ipv4-address") or [{}])[0].get("address", ""),
+                        "isp_name":  (i.get("dns-search") or [""])[0],
                     }
                     for i in ifaces
                 ]
