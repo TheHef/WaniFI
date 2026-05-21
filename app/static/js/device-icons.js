@@ -2,6 +2,7 @@
 
 const ICONS = {
   'OPENWRT':   '/static/devices/generic.png',
+  'GLMT6000':  '/static/devices/GL-MT6000.png',
   'UCGMAX':    '/static/devices/UCGMAX.avif',
   'UCGULTRA':  '/static/devices/UCG-ULTRA.avif',
   'U5GMAX':    '/static/devices/U5G_Max.avif',
@@ -23,6 +24,7 @@ const ICONS = {
 
 const NAMES = {
   'OPENWRT':   'OpenWrt Router',
+  'GLMT6000':  'GL-MT6000',
   'UCGMAX':    'UCG-Max',
   'UCGULTRA':  'UCG-Ultra',
   'UDM':       'Dream Machine',

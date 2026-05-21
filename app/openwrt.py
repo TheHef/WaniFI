@@ -235,6 +235,15 @@ def determine_active_wan_openwrt(
     return "down"
 
 
+def _router_model(interfaces: list[dict]) -> str:
+    """Extract router model from DHCP hostname reported in interface data."""
+    for iface in interfaces:
+        hostname = (iface.get("data") or {}).get("hostname", "")
+        if hostname:
+            return hostname.upper().replace("-", "").replace(" ", "")
+    return "OPENWRT"
+
+
 def build_live_info_openwrt(
     interfaces: list[dict],
     primary_iface: str,
@@ -262,6 +271,6 @@ def build_live_info_openwrt(
         "active_wan_latency": None,
         "gw_cpu":             None,
         "gw_mem":             None,
-        "gw_model":           "OPENWRT",
+        "gw_model":           _router_model(interfaces),
         "router_type":        "openwrt",
     }

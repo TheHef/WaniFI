@@ -48,10 +48,14 @@ async def test_openwrt_connection(_=Depends(require_auth)):
         ok, msg = await client.test_connection()
         if not ok:
             return JSONResponse({"ok": False, "error": msg}, status_code=400)
-        wan_ifaces = await client.get_wan_interfaces()
+        all_ifaces  = await client.get_interfaces()
+        wan_ifaces  = await client.get_wan_interfaces()
+        from ..openwrt import _router_model
+        model = _router_model(all_ifaces)
         return {
             "ok": True,
             "message": msg,
+            "router_model": model,
             "interfaces": [
                 {
                     "interface": i.get("interface", ""),

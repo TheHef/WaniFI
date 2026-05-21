@@ -268,9 +268,9 @@
                    @dragstart="$event.dataTransfer.setData('owrt_iface', JSON.stringify(iface))"
                    class="flex-1 bg-slate-800 border border-slate-600 rounded-xl px-3 py-3 cursor-grab active:cursor-grabbing select-none hover:border-slate-400 transition flex flex-col items-center justify-center gap-1.5 text-center">
                 <div class="font-mono font-bold text-slate-200 text-xs" x-text="iface.interface"></div>
-                <img src="/static/devices/generic.png" draggable="false"
+                <img :src="deviceIcon(openwrtRouterModel) || '/static/devices/generic.png'" draggable="false"
                      class="w-14 h-14 object-contain pointer-events-none opacity-80">
-                <div class="text-sky-400 text-xs font-semibold">OpenWrt Router</div>
+                <div class="text-sky-400 text-xs font-semibold" x-text="fmtModel(openwrtRouterModel) || openwrtRouterModel"></div>
                 <div class="text-sky-400 text-xs font-mono" x-show="iface.ip" x-text="iface.ip"></div>
                 <div class="flex items-center justify-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -312,10 +312,10 @@
             <template x-if="openwrtSettings.openwrt_primary_iface">
               <div>
                 <div class="flex items-center gap-2 mb-2">
-                  <img src="/static/devices/generic.png" class="w-7 h-7 object-contain shrink-0">
+                  <img :src="deviceIcon(openwrtRouterModel) || '/static/devices/generic.png'" class="w-7 h-7 object-contain shrink-0">
                   <div class="min-w-0">
                     <div class="font-mono font-bold text-emerald-300 text-xs truncate" x-text="openwrtSettings.openwrt_primary_iface"></div>
-                    <div class="text-xs text-sky-400">OpenWrt Router</div>
+                    <div class="text-xs text-sky-400" x-text="fmtModel(openwrtRouterModel) || openwrtRouterModel"></div>
                   </div>
                 </div>
                 <div class="text-xs text-slate-500 font-mono mb-2"
@@ -340,10 +340,10 @@
             <template x-if="openwrtSettings.openwrt_failover_iface">
               <div>
                 <div class="flex items-center gap-2 mb-2">
-                  <img src="/static/devices/generic.png" class="w-7 h-7 object-contain shrink-0">
+                  <img :src="deviceIcon(openwrtRouterModel) || '/static/devices/generic.png'" class="w-7 h-7 object-contain shrink-0">
                   <div class="min-w-0">
                     <div class="font-mono font-bold text-amber-300 text-xs truncate" x-text="openwrtSettings.openwrt_failover_iface"></div>
-                    <div class="text-xs text-sky-400">OpenWrt Router</div>
+                    <div class="text-xs text-sky-400" x-text="fmtModel(openwrtRouterModel) || openwrtRouterModel"></div>
                   </div>
                 </div>
                 <div class="text-xs text-slate-500 font-mono mb-2"

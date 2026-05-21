@@ -20,7 +20,7 @@ window.app = function () {
       openwrt_password_set: false,
       openwrt_primary_iface: 'wan', openwrt_failover_iface: 'wwan',
     },
-    openwrtMsg: '', openwrtDiscoveredIfaces: [], openwrtDebugMsg: '',
+    openwrtMsg: '', openwrtDiscoveredIfaces: [], openwrtDebugMsg: '', openwrtRouterModel: 'OPENWRT',
     notifySettings: {
       ntfy_url: '', ntfy_topic: '', ntfy_token: '', ntfy_token_set: false,
       ntfy_on_failover: true, ntfy_on_restored: true,
@@ -114,6 +114,8 @@ window.app = function () {
       if (saved) { try { this.discoveredWans = JSON.parse(saved); } catch {} }
       const savedOwrt = localStorage.getItem('wanifi_discovered_owrt');
       if (savedOwrt) { try { this.openwrtDiscoveredIfaces = JSON.parse(savedOwrt); } catch {} }
+      const savedOwrtModel = localStorage.getItem('wanifi_owrt_model');
+      if (savedOwrtModel) this.openwrtRouterModel = savedOwrtModel;
 
       const pathMap = { '/overview':'dashboard', '/rules':'rules', '/settings':'settings', '/events':'events' };
       const tabPaths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
@@ -323,7 +325,9 @@ window.app = function () {
       const d = await fetch('/api/openwrt/test', { method: 'POST' }).then(r => r.json());
       if (d.ok) {
         this.openwrtDiscoveredIfaces = d.interfaces || [];
+        this.openwrtRouterModel = d.router_model || 'OPENWRT';
         localStorage.setItem('wanifi_discovered_owrt', JSON.stringify(this.openwrtDiscoveredIfaces));
+        localStorage.setItem('wanifi_owrt_model', this.openwrtRouterModel);
         this.openwrtMsg = `✓ ${d.message}`;
       } else {
         this.openwrtDiscoveredIfaces = [];
