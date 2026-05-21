@@ -880,7 +880,7 @@ async def live_stats_loop():
         try:
             router_type = get_setting("router_type", "unifi")
 
-            if router_type == "openwrt":
+            if router_type in ("openwrt", "glinet"):
                 # --- OpenWrt live stats ---
                 if unifi_client:
                     await unifi_client.close()
@@ -1046,7 +1046,7 @@ async def watcher_loop():
             router_type = get_setting("router_type", "unifi")
             interval    = int(get_setting("poll_interval", str(POLL_INTERVAL_DEFAULT)))
 
-            if router_type == "openwrt":
+            if router_type in ("openwrt", "glinet"):
                 # --- OpenWrt watcher ---
                 if unifi_client:
                     await unifi_client.close()
