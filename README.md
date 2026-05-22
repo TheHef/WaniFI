@@ -13,7 +13,7 @@
 
 ---
 
-Self-hosted dashboard for WAN failover monitoring. Supports **UniFi** gateways and **OpenWrt / GL-iNet** routers.
+Self-hosted dashboard for **UniFi** WAN failover monitoring, with experimental OpenWrt support.
 
 When your gateway switches to a failover WAN, WaniFi can automatically throttle downloads, cap streaming bitrate, disable DNS filtering, trigger home automations, run shell commands, protect infrastructure with Cloudflare Under Attack mode, and much more — all without any manual intervention.
 
@@ -24,7 +24,7 @@ When your gateway switches to a failover WAN, WaniFi can automatically throttle 
 > figured I'd share it in case anyone else is in the same boat. Expect rough
 > edges, missing features, and code that an actual engineer would probably rewrite.
 >
-> Not affiliated with Ubiquiti, UniFi, or GL-iNet in any way.
+> Not affiliated with Ubiquiti or UniFi in any way.
 
 ![Overview](docs/screenshots/overview.png)
 
@@ -41,7 +41,7 @@ When your gateway switches to a failover WAN, WaniFi can automatically throttle 
 - **Backup / restore** — full JSON export and import of all settings, rules, and events
 - **Single-user login** — bcrypt password, rate-limited login (10 attempts / 5 min / IP)
 - **Self-contained** — SQLite only, all JS/CSS bundled, no CDN calls
-- **OpenWrt / GL-iNet support** *(experimental)* — monitor failover on OpenWrt-based routers via ubus JSON-RPC
+- **OpenWrt support** *(experimental)* — basic failover monitoring on OpenWrt-based routers via ubus JSON-RPC
 
 ---
 
@@ -175,7 +175,7 @@ Go to **Settings → Network** and choose your router type.
 - Click **Test Connection** — your WAN interfaces appear as chips
 - Assign one to **Primary WAN** and one to **Failover WAN**, give them friendly names, and hit **Save**
 
-#### OpenWrt / GL-iNet *(experimental)*
+#### OpenWrt *(experimental)*
 
 > OpenWrt support is functional but still has rough edges. Treat it as a beta feature.
 
