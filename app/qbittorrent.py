@@ -93,15 +93,17 @@ class QBittorrentClient:
         )
 
     async def pause_all(self) -> tuple[bool, str]:
+        # qBittorrent <5.0: /torrents/pause  — 5.0+: renamed to /torrents/stop
         ok, msg = await self._post("/api/v2/torrents/pause", {"hashes": "all"})
         if not ok:
-            ok, msg = await self._post("/api/v2/torrents/stopAll")
+            ok, msg = await self._post("/api/v2/torrents/stop", {"hashes": "all"})
         return ok, msg
 
     async def resume_all(self) -> tuple[bool, str]:
+        # qBittorrent <5.0: /torrents/resume — 5.0+: renamed to /torrents/start
         ok, msg = await self._post("/api/v2/torrents/resume", {"hashes": "all"})
         if not ok:
-            ok, msg = await self._post("/api/v2/torrents/startAll")
+            ok, msg = await self._post("/api/v2/torrents/start", {"hashes": "all"})
         return ok, msg
 
     async def close(self):
