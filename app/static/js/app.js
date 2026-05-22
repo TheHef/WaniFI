@@ -135,6 +135,7 @@ window.app = function () {
         history.pushState({ tab: val }, '', target);
         window.scrollTo(0, 0);
         if (val === 'rules') this._setDefaultRuleType();
+        if (val === 'events') this.eventsLimit = 20;
       });
 
       window.addEventListener('keydown', e => {
