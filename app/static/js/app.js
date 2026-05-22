@@ -246,7 +246,7 @@ window.app = function () {
       this.settings = { ...s, unifi_api_key: '' };
     },
 
-    async saveSettings() {
+    async saveSettings(silent = false) {
       const payload = {
         ...this.settings,
         unifi_api_key: this.$refs.unifiApiKey ? this.$refs.unifiApiKey.value : this.settings.unifi_api_key,
@@ -256,8 +256,10 @@ window.app = function () {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      this.settingsMsg = r.ok ? '✓ Saved' : '✗ Error';
-      setTimeout(() => this.settingsMsg = '', 3000);
+      if (!silent) {
+        this.settingsMsg = r.ok ? '✓ Saved' : '✗ Error';
+        setTimeout(() => this.settingsMsg = '', 3000);
+      }
       await this.loadSettings();
       if (this.$refs.unifiApiKey) this.$refs.unifiApiKey.value = '';
     },
