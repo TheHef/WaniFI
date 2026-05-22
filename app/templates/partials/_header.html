@@ -54,9 +54,11 @@
       <template x-if="status.docker_ok">
         <span class="text-slate-700">|</span>
       </template>
-      <span class="text-xs font-medium" :class="liveConnected ? 'text-emerald-400' : 'text-red-400'"
+      <span class="text-xs font-medium"
+            :class="liveConnected ? 'text-emerald-400' : status.controller_offline ? 'text-amber-400' : 'text-red-400'"
             x-text="liveConnected
               ? (settings.router_type === 'unifi' ? 'UniFi Connected' : 'OpenWrt Connected')
+              : status.controller_offline ? 'Controller offline'
               : 'Router not connected'"></span>
       <template x-if="versionStatus !== null && versionStatus.up_to_date !== null">
         <span class="text-slate-700">|</span>

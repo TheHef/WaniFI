@@ -48,6 +48,7 @@ class WatcherState:
         self.live_gw_info: dict = {}
         self.last_wans: list = []
         self.latency_last_fired: float = 0.0
+        self.controller_offline: bool = False
 
 
 state = WatcherState()
@@ -1093,6 +1094,9 @@ async def watcher_loop():
                 new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
 
             state.last_check = datetime.now(timezone.utc).isoformat()
+            if state.controller_offline:
+                await a_log_event("info", "Controller reconnected")
+                state.controller_offline = False
             state.last_error = None
 
             previous = state.current_wan
@@ -1161,12 +1165,19 @@ async def watcher_loop():
             msg = str(e) or repr(e) or type(e).__name__
             state.last_error = msg
             now = time.monotonic()
-            if msg != _last_err_msg or now - _last_err_time >= 300:
-                await a_log_event("error", f"Watcher error: {msg}")
+            if not state.controller_offline:
+                # First time losing connection — log as info, not error
+                await a_log_event("info", f"Controller offline — retrying… ({msg})")
                 _create_task(send_notification(
-                    "WaniFi Watcher Error", msg, priority="low", tags="x",
+                    "WaniFi Controller Offline", msg, priority="low", tags="warning",
                     event="error",
                 ))
+                state.controller_offline = True
+                _last_err_msg  = msg
+                _last_err_time = now
+            elif msg != _last_err_msg or now - _last_err_time >= 300:
+                # Different error while already offline — log it
+                await a_log_event("error", f"Watcher error: {msg}")
                 _last_err_msg  = msg
                 _last_err_time = now
             if unifi_client:

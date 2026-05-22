@@ -34,6 +34,7 @@ async def api_status(_: bool = Depends(require_auth)):
         "failover_wan_name":  get_setting("failover_wan_name", ""),
         "raw_wans":           state.last_wans,
         "gateway_info":       state.live_gw_info,
+        "controller_offline": state.controller_offline,
         "version":            APP_VERSION,
     }
 
