@@ -18,8 +18,18 @@ class UniFiSSHClient:
     """Async SSH client that mimics the shape of UniFiClient for the watcher loops.
 
     Supports two data sources:
-    1. ``mca-dump`` — available on UDM/UCG/UDR/UDM-Pro, returns rich JSON with uplink info.
-    2. /proc fallback — ``ip route``, ``/proc/net/dev``, ``/proc/loadavg``, ``/proc/meminfo``.
+    1. ``mca-dump`` — available on UDM/UCG/UDR/UDM-Pro.
+       On UCG-Max / newer UniFi OS the JSON layout differs from older UDM:
+         - ``uplink``      → **string** (Linux interface name, e.g. "eth4")
+         - ``if_table``    → list of interface dicts with WAN traffic data
+         - ``system-stats``→ dict with cpu/mem as *string* percentages ("25.9")
+         - ``uptime_stats``→ dict keyed by WAN name ("WAN", "WAN3") with
+                             availability float and latency_average int
+       On older UDM / UDM-Pro the layout is:
+         - ``uplink``      → dict with ip, rx_bytes-r, tx_bytes-r, latency …
+         - ``sys_stats``   → dict with cpu/mem as numbers or fractions
+    2. /proc fallback — ``ip route``, ``/proc/net/dev``, ``/proc/loadavg``,
+       ``/proc/meminfo``.  Useful for plain OpenWrt or similar devices.
     """
 
     def __init__(self, host: str, port: int = 22, username: str = "root", password: str = ""):
@@ -141,57 +151,80 @@ class UniFiSSHClient:
 
     @staticmethod
     def _parse_mca_dump(text: str, host: str) -> Optional[dict]:
-        """Parse mca-dump JSON into a gateway-info dict.  Returns None on parse failure."""
+        """Parse mca-dump JSON into a gateway-info dict.
+
+        Handles two different JSON layouts:
+
+        **UCG-Max / newer UniFi OS:**
+        - ``uplink``       string  — Linux interface name of the active WAN
+        - ``if_table``     list    — per-interface stats including rx_rate/tx_rate
+        - ``system-stats`` dict    — {"cpu": "25.9", "mem": "75.5", "uptime": "…"}
+        - ``uptime_stats`` dict    — {"WAN": {"availability": 100.0, "latency_average": 13}}
+        - ``geo_info``     dict    — {"WAN": {"isp_name": "…"}}
+
+        **Older UDM / UDM-Pro:**
+        - ``uplink``       dict    — {ip, rx_bytes-r, tx_bytes-r, latency, comment, …}
+        - ``sys_stats``    dict    — {cpu, mem, loadavg_1, mem_total, mem_used, …}
+        """
         try:
             data = json.loads(text.replace("\x00", ""))
         except Exception:
             return None
 
-        uplink    = data.get("uplink") or {}
-        sys_stats = data.get("sys_stats") or {}
+        uplink_raw = data.get("uplink")
 
-        # WAN identifier — try every field that might carry the logical WAN name.
-        # On older UDM/UCG: uplink.comment = "WAN" or uplink.name = "WAN"
-        # On UCG-Max / newer OS: uplink.type = "wan" / "wan2" / "wan3"
-        # uplink.ifname is the Linux device name (eth8 etc.) — less useful for matching
-        wan_name = (
-            uplink.get("comment") or
-            uplink.get("name")    or
-            uplink.get("type")    or   # "wan", "wan2", "wan3" — matches setting values
-            ""
-        )
-
-        # mca-dump reports per-second byte rates in rx_bytes-r / tx_bytes-r
-        rx = uplink.get("rx_bytes-r") or uplink.get("rxbytes-r") or 0
-        tx = uplink.get("tx_bytes-r") or uplink.get("txbytes-r") or 0
-
-        # CPU — normalise both 0-100 integers and 0.0-1.0 floats
-        cpu_raw = (
-            sys_stats.get("cpu") or
-            sys_stats.get("loadavg_1") or          # some UCG-Max versions
-            (data.get("cpu") or {}).get("avg_5s") or
-            None
-        )
+        # ── CPU ──────────────────────────────────────────────────────────────
         cpu_val: Optional[float] = None
-        if cpu_raw is not None:
+
+        # 1. Try UCG-Max "system-stats" (hyphenated key) — string percentages
+        sys_stats_h = data.get("system-stats") or {}
+        if sys_stats_h.get("cpu") is not None:
             try:
-                cpu_val = float(cpu_raw)
-                if cpu_val <= 1.0:               # 0-1 fraction → percent
-                    cpu_val = round(cpu_val * 100, 1)
+                cpu_val = round(float(sys_stats_h["cpu"]), 1)
             except (TypeError, ValueError):
                 pass
 
-        # Memory — normalise to integer percent
+        # 2. Fall back to older "sys_stats" dict
+        if cpu_val is None:
+            sys_stats = data.get("sys_stats") or {}
+            cpu_raw = (
+                sys_stats.get("cpu") or
+                sys_stats.get("loadavg_1") or
+                (data.get("cpu") or {}).get("avg_5s")
+            )
+            if cpu_raw is not None:
+                try:
+                    cpu_val = float(cpu_raw)
+                    if cpu_val <= 1.0:
+                        cpu_val = round(cpu_val * 100, 1)
+                except (TypeError, ValueError):
+                    pass
+
+        # ── Memory ───────────────────────────────────────────────────────────
         mem_val: Optional[int] = None
-        raw_mem = sys_stats.get("mem")
-        if raw_mem is not None:
+
+        # 1. UCG-Max "system-stats" — string percentage like "75.5"
+        if sys_stats_h.get("mem") is not None:
             try:
-                m = float(raw_mem)
+                m = float(sys_stats_h["mem"])
                 mem_val = round(m * 100) if m <= 1.0 else round(m)
             except (TypeError, ValueError):
                 pass
+
+        # 2. Older "sys_stats" fraction (0.0–1.0) or integer percent
         if mem_val is None:
-            # Some devices report raw totals
+            sys_stats = data.get("sys_stats") or {}
+            raw_mem = sys_stats.get("mem")
+            if raw_mem is not None:
+                try:
+                    m = float(raw_mem)
+                    mem_val = round(m * 100) if m <= 1.0 else round(m)
+                except (TypeError, ValueError):
+                    pass
+
+        # 3. Raw totals from sys_stats or top-level
+        if mem_val is None:
+            sys_stats = data.get("sys_stats") or {}
             m_total = sys_stats.get("mem_total") or data.get("mem_total")
             m_used  = sys_stats.get("mem_used")  or data.get("mem_used")
             if m_total and m_used:
@@ -200,17 +233,86 @@ class UniFiSSHClient:
                 except (TypeError, ValueError, ZeroDivisionError):
                     pass
 
+        # ── WAN / uplink data ─────────────────────────────────────────────────
+        active_wan_name  = ""
+        active_wan_ip    = ""
+        active_wan_type  = ""
+        rx_mbps          = 0.0
+        tx_mbps          = 0.0
+        wan_latency: Optional[int] = None
+        wan_uptime: Optional[int]  = None
+        wan_xput_down: Optional[float] = None
+        wan_xput_up:   Optional[float] = None
+
+        if isinstance(uplink_raw, str):
+            # ── UCG-Max layout ────────────────────────────────────────────────
+            # uplink is a bare interface name like "eth4"; full data in if_table
+            if_table: list[dict] = data.get("if_table") or []
+
+            # Active interface = entry whose "name" matches uplink string
+            active_iface = next(
+                (i for i in if_table if i.get("name") == uplink_raw), None
+            )
+
+            # If not found by name, fall back to first WAN-ish entry
+            if active_iface is None:
+                for i in if_table:
+                    comment = (i.get("comment") or "").upper()
+                    if comment.startswith("WAN"):
+                        active_iface = i
+                        break
+
+            if active_iface:
+                active_wan_name = active_iface.get("comment") or uplink_raw.upper()
+                active_wan_ip   = active_iface.get("ip", "")
+                active_wan_type = (active_iface.get("comment") or "").lower()
+                wan_latency     = active_iface.get("latency")
+                wan_uptime      = active_iface.get("uptime")
+                # rx_rate / tx_rate are bytes/sec
+                rx_bps = active_iface.get("rx_rate") or active_iface.get("rx_bytes-r") or 0
+                tx_bps = active_iface.get("tx_rate") or active_iface.get("tx_bytes-r") or 0
+                rx_mbps = round(rx_bps * 8 / 1_000_000, 2)
+                tx_mbps = round(tx_bps * 8 / 1_000_000, 2)
+
+            # uptime_stats may carry richer latency per-WAN
+            uptime_stats = data.get("uptime_stats") or {}
+            if active_wan_name and active_wan_name in uptime_stats:
+                entry = uptime_stats[active_wan_name]
+                if wan_latency is None:
+                    wan_latency = entry.get("latency_average")
+
+        elif isinstance(uplink_raw, dict):
+            # ── Older UDM / UDM-Pro layout ────────────────────────────────────
+            uplink = uplink_raw
+            active_wan_name = (
+                uplink.get("comment") or
+                uplink.get("name")    or
+                uplink.get("type")    or
+                ""
+            )
+            active_wan_type = uplink.get("type", "")
+            active_wan_ip   = uplink.get("ip", "")
+            wan_latency     = uplink.get("latency")
+            wan_uptime      = uplink.get("uptime")
+            wan_xput_down   = uplink.get("xput_down")
+            wan_xput_up     = uplink.get("xput_up")
+
+            rx = uplink.get("rx_bytes-r") or uplink.get("rxbytes-r") or 0
+            tx = uplink.get("tx_bytes-r") or uplink.get("txbytes-r") or 0
+            rx_mbps = round(rx * 8 / 1_000_000, 2)
+            tx_mbps = round(tx * 8 / 1_000_000, 2)
+
         return {
-            "active_wan":           wan_name,
-            "active_wan_type":      uplink.get("type", ""),
-            "active_wan_ip":        uplink.get("ip", ""),
-            "active_wan_rx_mbps":   round(rx * 8 / 1_000_000, 2),
-            "active_wan_tx_mbps":   round(tx * 8 / 1_000_000, 2),
-            "active_wan_latency":   uplink.get("latency"),
-            "active_wan_uptime":    uplink.get("uptime"),
-            "active_wan_xput_down": uplink.get("xput_down"),
-            "active_wan_xput_up":   uplink.get("xput_up"),
-            "gw_name":  data.get("name") or data.get("hostname", ""),
+            "active_wan":           active_wan_name,
+            "active_wan_type":      active_wan_type,
+            "active_wan_ip":        active_wan_ip,
+            "active_wan_rx_mbps":   rx_mbps,
+            "active_wan_tx_mbps":   tx_mbps,
+            "active_wan_latency":   wan_latency,
+            "active_wan_uptime":    wan_uptime,
+            "active_wan_xput_down": wan_xput_down,
+            "active_wan_xput_up":   wan_xput_up,
+            "gw_name":  data.get("hostname") or data.get("name", ""),
             "gw_model": data.get("model", ""),
             "gw_ip":    host,
             "gw_cpu":   cpu_val,
@@ -223,53 +325,104 @@ class UniFiSSHClient:
     async def get_gateway_health(self, primary: str = "wan", failover: str = "wan2") -> list[dict]:
         """Return a minimal WAN health list that ``determine_active_wan()`` can consume.
 
-        On UCG/UDM devices the WAN traffic lives in a separate network namespace so
-        ``ip route`` in the main shell won't show WAN default routes.  We therefore
-        prefer ``mca-dump`` which always reflects the real WAN state, and fall back to
-        ``ip route`` only when mca-dump is unavailable (e.g. plain OpenWrt via SSH).
+        Strategy 1: use ``uptime_stats`` from mca-dump — this dict is keyed by the
+        human WAN name ("WAN", "WAN3", …) and has an ``availability`` float (100 = up).
+        This works on UCG-Max where WAN traffic lives in a separate Linux routing
+        namespace, so ``ip route`` in the main shell shows no default routes at all.
+
+        Strategy 2: fall back to ``ip route show table all`` for non-UCG devices
+        (plain OpenWrt etc.).
         """
-        # ── Strategy 1: mca-dump ─────────────────────────────────────────────
+        # ── Strategy 1: mca-dump with uptime_stats ───────────────────────────
         try:
             mca_text = await self._run("mca-dump 2>/dev/null")
             if mca_text and "{" in mca_text:
-                data   = json.loads(mca_text.replace("\x00", ""))
-                uplink = data.get("uplink") or {}
-                wan_ip = uplink.get("ip", "")
+                data = json.loads(mca_text.replace("\x00", ""))
 
-                if wan_ip:
-                    # We have an active uplink — work out which WAN it is.
-                    # mca-dump reports the active WAN name in comment / name / type.
-                    active_id = (
-                        uplink.get("comment") or
-                        uplink.get("name")    or
-                        uplink.get("type")    or
-                        ""
-                    ).lower()
+                uptime_stats: dict = data.get("uptime_stats") or {}
+                if_table: list[dict] = data.get("if_table") or []
+                uplink_raw = data.get("uplink")
 
-                    if active_id == failover.lower():
-                        # Primary is down, failover is active
-                        return [
-                            {"subsystem": primary,  "status": "down", "wan_ip": ""},
-                            {"subsystem": failover, "status": "ok",   "wan_ip": wan_ip},
-                        ]
-                    else:
-                        # active_id matches primary, or it's unknown → assume primary
+                if uptime_stats:
+                    # Build health list directly from uptime_stats keys.
+                    # Keys are the human WAN names used in settings ("WAN", "WAN3", …)
+                    # availability=100.0 → up, anything lower or missing → down.
+                    health: list[dict] = []
+                    for wan_key in (primary, failover):
+                        # Match case-insensitively — settings may store "wan" / "wan2"
+                        # while uptime_stats has "WAN" / "WAN3" etc.
+                        matched_key = next(
+                            (k for k in uptime_stats if k.lower() == wan_key.lower()),
+                            None,
+                        )
+                        if matched_key:
+                            entry  = uptime_stats[matched_key]
+                            avail  = entry.get("availability", 0)
+                            status = "ok" if avail and avail >= 100.0 else "down"
+                            # Resolve IP from if_table using the WAN comment
+                            wan_ip = ""
+                            for iface in if_table:
+                                if (iface.get("comment") or "").lower() == matched_key.lower():
+                                    wan_ip = iface.get("ip", "")
+                                    break
+                            health.append({"subsystem": wan_key, "status": status, "wan_ip": wan_ip})
+                        else:
+                            health.append({"subsystem": wan_key, "status": "down", "wan_ip": ""})
+                    return health
+
+                # No uptime_stats — fall back to uplink string / ip field
+                if isinstance(uplink_raw, str) and if_table:
+                    active_iface = next(
+                        (i for i in if_table if i.get("name") == uplink_raw), None
+                    )
+                    if active_iface:
+                        active_comment = (active_iface.get("comment") or "").lower()
+                        wan_ip = active_iface.get("ip", "")
+                        if active_comment == failover.lower():
+                            return [
+                                {"subsystem": primary,  "status": "down", "wan_ip": ""},
+                                {"subsystem": failover, "status": "ok",   "wan_ip": wan_ip},
+                            ]
+                        else:
+                            return [
+                                {"subsystem": primary,  "status": "ok",   "wan_ip": wan_ip},
+                                {"subsystem": failover, "status": "down", "wan_ip": ""},
+                            ]
+
+                elif isinstance(uplink_raw, dict):
+                    # Older UDM layout
+                    wan_ip = uplink_raw.get("ip", "")
+                    if wan_ip:
+                        active_id = (
+                            uplink_raw.get("comment") or
+                            uplink_raw.get("name")    or
+                            uplink_raw.get("type")    or ""
+                        ).lower()
+                        if active_id == failover.lower():
+                            return [
+                                {"subsystem": primary,  "status": "down", "wan_ip": ""},
+                                {"subsystem": failover, "status": "ok",   "wan_ip": wan_ip},
+                            ]
                         return [
                             {"subsystem": primary,  "status": "ok",   "wan_ip": wan_ip},
                             {"subsystem": failover, "status": "down", "wan_ip": ""},
                         ]
-                else:
-                    # mca-dump parsed but uplink has no IP → WAN is down
-                    return [
-                        {"subsystem": primary,  "status": "down", "wan_ip": ""},
-                        {"subsystem": failover, "status": "down", "wan_ip": ""},
-                    ]
+                    else:
+                        return [
+                            {"subsystem": primary,  "status": "down", "wan_ip": ""},
+                            {"subsystem": failover, "status": "down", "wan_ip": ""},
+                        ]
         except Exception:
             pass
 
         # ── Strategy 2: ip route fallback (non-UCG/UDM devices) ─────────────
         try:
-            routes_text = await self._run("ip route show 2>/dev/null")
+            # On UCG/UDM main-ns ip route shows nothing useful; try table all first
+            routes_text = await self._run(
+                "ip route show table all 2>/dev/null | grep '^default' | head -10"
+            )
+            if not routes_text:
+                routes_text = await self._run("ip route show 2>/dev/null")
         except Exception:
             return []
 
