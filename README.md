@@ -250,7 +250,7 @@ services:
     container_name: wanifi-agent
     restart: unless-stopped
     environment:
-      WANIFI_URL: "http://192.168.1.100:4444"   # your WaniFi server
+      WANIFI_URL: "http://192.168.0.100:4444"   # your WaniFi server
       AGENT_API_KEY: "your-key-here"
     privileged: true
     pid: host
