@@ -21,13 +21,13 @@
 
     <div>
 
-      <div x-show="!settings.unifi_host || (!settings.unifi_api_key_set && !settings.unifi_api_key)"
+      <div x-show="!settings.unifi_host || (!settings.unifi_ssh_mode && !settings.unifi_api_key_set && !settings.unifi_api_key)"
            class="bg-slate-800/50 border border-dashed border-slate-700 rounded-2xl p-8 text-center">
         <div class="text-3xl mb-3 opacity-20">🔒</div>
         <div class="text-slate-500 text-sm">Fill in the UniFi connection above and click <span class="text-sky-400 font-medium">Test Connection</span> to discover your WAN interfaces</div>
       </div>
 
-      <div x-show="settings.unifi_host && (settings.unifi_api_key_set || settings.unifi_api_key)">
+      <div x-show="settings.unifi_host && (settings.unifi_ssh_mode || settings.unifi_api_key_set || settings.unifi_api_key)">
 
         <p class="text-xs text-slate-500 mb-3">Drag your WAN interfaces to the correct slots:</p>
         <div class="grid md:grid-cols-[minmax(0,0.28fr)_1fr_240px] gap-0 items-stretch">          <div class="flex flex-col gap-3">

@@ -322,6 +322,91 @@ class UniFiSSHClient:
 
     # ── Public API (shape-compatible with UniFiClient) ───────────────────────
 
+    async def discover_wans(self) -> list[dict]:
+        """Return WAN interface list in the same format as the /api/test-unifi endpoint.
+
+        Each entry:
+          subsystem    – lowercase WAN name used in settings ("wan", "wan3", …)
+          status       – "ok" or "down"
+          wan_ip       – current WAN IP
+          isp_name     – ISP name from geo_info if available
+          active       – True for the currently active uplink
+          device_model – gateway model (reported by mca-dump)
+          device_name  – gateway hostname
+        """
+        try:
+            mca_text = await self._run("mca-dump 2>/dev/null")
+            if not (mca_text and "{" in mca_text):
+                return []
+            data = json.loads(mca_text.replace("\x00", ""))
+        except Exception:
+            return []
+
+        uplink_raw   = data.get("uplink", "")
+        if_table:    list[dict] = data.get("if_table") or []
+        geo_info:    dict = data.get("geo_info")    or {}
+        uptime_stats: dict = data.get("uptime_stats") or {}
+        gw_model = data.get("model", "")
+        gw_name  = data.get("hostname") or data.get("name", "")
+
+        if if_table:
+            # UCG-Max layout: find all WAN interfaces in if_table
+            wan_ifaces = [
+                i for i in if_table
+                if (i.get("comment") or "").upper().startswith("WAN")
+            ]
+            result: list[dict] = []
+            for iface in wan_ifaces:
+                comment    = iface.get("comment", "")       # "WAN", "WAN3", …
+                name_lower = comment.lower()                 # "wan", "wan3", …
+
+                # Active = the interface whose Linux name matches the uplink string
+                is_active = isinstance(uplink_raw, str) and iface.get("name") == uplink_raw
+
+                # Status from uptime_stats if available, else from if_table "up" flag
+                status = "down"
+                if comment in uptime_stats:
+                    avail  = uptime_stats[comment].get("availability", 0)
+                    status = "ok" if avail and avail >= 100.0 else "down"
+                elif iface.get("up"):
+                    status = "ok"
+
+                # ISP from geo_info
+                isp_name: Optional[str] = None
+                if comment in geo_info:
+                    isp_name = geo_info[comment].get("isp_name")
+
+                result.append({
+                    "subsystem":    name_lower,
+                    "status":       status,
+                    "wan_ip":       iface.get("ip", ""),
+                    "isp_name":     isp_name,
+                    "active":       is_active,
+                    "device_model": gw_model,
+                    "device_name":  gw_name,
+                })
+            return result
+
+        # Older UDM layout (uplink is a dict) — build minimal list from uplink data
+        if isinstance(uplink_raw, dict):
+            active_name = (
+                uplink_raw.get("comment") or
+                uplink_raw.get("name")    or
+                uplink_raw.get("type")    or "wan"
+            ).lower()
+            wan_ip = uplink_raw.get("ip", "")
+            return [{
+                "subsystem":    active_name,
+                "status":       "ok" if wan_ip else "down",
+                "wan_ip":       wan_ip,
+                "isp_name":     None,
+                "active":       True,
+                "device_model": gw_model,
+                "device_name":  gw_name,
+            }]
+
+        return []
+
     async def get_gateway_health(self, primary: str = "wan", failover: str = "wan2") -> list[dict]:
         """Return a minimal WAN health list that ``determine_active_wan()`` can consume.
 

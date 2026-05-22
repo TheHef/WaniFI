@@ -143,7 +143,7 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
 async def test_unifi_ssh(_: bool = Depends(require_auth)):
     host     = get_setting("unifi_host", "")
     port     = int(get_setting("unifi_ssh_port", "22"))
-    username = get_setting("unifi_ssh_username", "admin")
+    username = get_setting("unifi_ssh_username", "root")
     password = get_setting("unifi_ssh_password", "")
     if not host:
         return JSONResponse({"ok": False, "error": "No UniFi host configured"}, status_code=400)
@@ -155,7 +155,13 @@ async def test_unifi_ssh(_: bool = Depends(require_auth)):
         ok, msg = await client.test_connection()
         if not ok:
             return JSONResponse({"ok": False, "error": msg}, status_code=400)
-        return {"ok": True, "message": msg}
+        # Discover WAN interfaces from mca-dump so the UI can populate the drag area
+        discovered = await client.discover_wans()
+        return {
+            "ok":             True,
+            "message":        msg,
+            "discovered_wans": discovered,
+        }
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
     finally:

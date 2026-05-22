@@ -289,7 +289,14 @@ window.app = function () {
         const r = await fetch('/api/settings/test-ssh', { method: 'POST' });
         const d = await r.json();
         if (d.ok) {
-          this.settingsMsg = '✓ ' + (d.message || 'SSH connected');
+          const wans = d.discovered_wans || [];
+          if (wans.length) {
+            this.discoveredWans = wans;
+            localStorage.setItem('wanifi_discovered_wans', JSON.stringify(wans));
+            this.settingsMsg = `✓ ${d.message || 'SSH connected'} — ${wans.length} WAN(s) found`;
+          } else {
+            this.settingsMsg = '✓ ' + (d.message || 'SSH connected');
+          }
         } else {
           this.settingsMsg = '✗ ' + (d.error || 'SSH test failed');
         }
