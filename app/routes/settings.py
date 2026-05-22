@@ -15,7 +15,7 @@ EXPORT_KEYS = (
     "unifi_host", "unifi_api_key", "unifi_site",
     "primary_wan", "failover_wan",
     "openwrt_url", "openwrt_username", "openwrt_password",
-    "openwrt_primary_iface", "openwrt_failover_iface",
+    "openwrt_primary_iface", "openwrt_failover_iface", "openwrt_router_model",
     "primary_wan_name", "failover_wan_name",
     "poll_interval", "event_retention_days",
     "latency_threshold_ms", "latency_cooldown_min",

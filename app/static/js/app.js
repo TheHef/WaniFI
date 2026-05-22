@@ -116,8 +116,6 @@ window.app = function () {
       if (saved) { try { this.discoveredWans = JSON.parse(saved); } catch {} }
       const savedOwrt = localStorage.getItem('wanifi_discovered_owrt');
       if (savedOwrt) { try { this.openwrtDiscoveredIfaces = JSON.parse(savedOwrt); } catch {} }
-      const savedOwrtModel = localStorage.getItem('wanifi_owrt_model');
-      if (savedOwrtModel) this.openwrtRouterModel = savedOwrtModel;
 
       const pathMap = { '/overview':'dashboard', '/rules':'rules', '/settings':'settings', '/events':'events' };
       const tabPaths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
@@ -313,6 +311,7 @@ window.app = function () {
     async loadOpenwrtSettings() {
       const s = await fetch('/api/openwrt/settings').then(r => r.json());
       this.openwrtSettings = { ...s, openwrt_password: '' };
+      if (s.openwrt_router_model) this.openwrtRouterModel = s.openwrt_router_model;
     },
 
     async saveOpenwrtSettings() {
@@ -340,7 +339,6 @@ window.app = function () {
         this.openwrtDiscoveredIfaces = d.interfaces || [];
         this.openwrtRouterModel = d.router_model || 'OPENWRT';
         localStorage.setItem('wanifi_discovered_owrt', JSON.stringify(this.openwrtDiscoveredIfaces));
-        localStorage.setItem('wanifi_owrt_model', this.openwrtRouterModel);
         this.openwrtMsg = `✓ ${d.message}`;
       } else {
         this.openwrtDiscoveredIfaces = [];

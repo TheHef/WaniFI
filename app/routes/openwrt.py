@@ -21,6 +21,7 @@ async def get_openwrt_settings(_=Depends(require_auth)):
         "openwrt_password_set":   bool(get_setting("openwrt_password")),
         "openwrt_primary_iface":  get_setting("openwrt_primary_iface", "wan"),
         "openwrt_failover_iface": get_setting("openwrt_failover_iface", "wwan"),
+        "openwrt_router_model":   get_setting("openwrt_router_model", "OPENWRT"),
     }
 
 
@@ -52,6 +53,7 @@ async def test_openwrt_connection(_=Depends(require_auth)):
         wan_ifaces  = await client.get_wan_interfaces()
         from ..openwrt import _router_model
         model = _router_model(all_ifaces)
+        set_setting("openwrt_router_model", model)
         return {
             "ok": True,
             "message": msg,
