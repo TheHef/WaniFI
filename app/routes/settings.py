@@ -109,6 +109,36 @@ async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
     return {"ok": True}
 
 
+@router.get("/debug-ssh")
+async def debug_unifi_ssh(_: bool = Depends(require_auth)):
+    """Return raw mca-dump + ip route output for diagnosing SSH WAN detection."""
+    host     = get_setting("unifi_host", "")
+    port     = int(get_setting("unifi_ssh_port", "22"))
+    username = get_setting("unifi_ssh_username", "root")
+    password = get_setting("unifi_ssh_password", "")
+    if not (host and password):
+        return JSONResponse({"ok": False, "error": "Not configured"}, status_code=400)
+    from ..unifi_ssh import UniFiSSHClient
+    client = UniFiSSHClient(host, port, username, password)
+    result: dict = {}
+    try:
+        for label, cmd in [
+            ("mca_dump",     "mca-dump 2>/dev/null || echo 'NOT_FOUND'"),
+            ("ip_route",     "ip route show 2>/dev/null"),
+            ("ip_route_all", "ip route show table all 2>/dev/null | head -40"),
+            ("hostname",     "hostname 2>/dev/null"),
+        ]:
+            try:
+                result[label] = await client.run_raw(cmd)
+            except Exception as e:
+                result[label] = f"ERROR: {e}"
+        return {"ok": True, "results": result}
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+    finally:
+        await client.close()
+
+
 @router.post("/test-ssh")
 async def test_unifi_ssh(_: bool = Depends(require_auth)):
     host     = get_setting("unifi_host", "")

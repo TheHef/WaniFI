@@ -55,6 +55,10 @@ class UniFiSSHClient:
         r = await self._conn.run(cmd, check=False, timeout=10)
         return (r.stdout or "").strip()
 
+    async def run_raw(self, cmd: str) -> str:
+        """Public wrapper used by the debug endpoint."""
+        return await self._run(cmd)
+
     async def close(self):
         if self._conn:
             try:
@@ -146,12 +150,58 @@ class UniFiSSHClient:
         uplink    = data.get("uplink") or {}
         sys_stats = data.get("sys_stats") or {}
 
+        # WAN identifier — try every field that might carry the logical WAN name.
+        # On older UDM/UCG: uplink.comment = "WAN" or uplink.name = "WAN"
+        # On UCG-Max / newer OS: uplink.type = "wan" / "wan2" / "wan3"
+        # uplink.ifname is the Linux device name (eth8 etc.) — less useful for matching
+        wan_name = (
+            uplink.get("comment") or
+            uplink.get("name")    or
+            uplink.get("type")    or   # "wan", "wan2", "wan3" — matches setting values
+            ""
+        )
+
         # mca-dump reports per-second byte rates in rx_bytes-r / tx_bytes-r
         rx = uplink.get("rx_bytes-r") or uplink.get("rxbytes-r") or 0
         tx = uplink.get("tx_bytes-r") or uplink.get("txbytes-r") or 0
 
+        # CPU — normalise both 0-100 integers and 0.0-1.0 floats
+        cpu_raw = (
+            sys_stats.get("cpu") or
+            sys_stats.get("loadavg_1") or          # some UCG-Max versions
+            (data.get("cpu") or {}).get("avg_5s") or
+            None
+        )
+        cpu_val: Optional[float] = None
+        if cpu_raw is not None:
+            try:
+                cpu_val = float(cpu_raw)
+                if cpu_val <= 1.0:               # 0-1 fraction → percent
+                    cpu_val = round(cpu_val * 100, 1)
+            except (TypeError, ValueError):
+                pass
+
+        # Memory — normalise to integer percent
+        mem_val: Optional[int] = None
+        raw_mem = sys_stats.get("mem")
+        if raw_mem is not None:
+            try:
+                m = float(raw_mem)
+                mem_val = round(m * 100) if m <= 1.0 else round(m)
+            except (TypeError, ValueError):
+                pass
+        if mem_val is None:
+            # Some devices report raw totals
+            m_total = sys_stats.get("mem_total") or data.get("mem_total")
+            m_used  = sys_stats.get("mem_used")  or data.get("mem_used")
+            if m_total and m_used:
+                try:
+                    mem_val = round(int(m_used) / int(m_total) * 100)
+                except (TypeError, ValueError, ZeroDivisionError):
+                    pass
+
         return {
-            "active_wan":           uplink.get("comment", "") or uplink.get("name", ""),
+            "active_wan":           wan_name,
             "active_wan_type":      uplink.get("type", ""),
             "active_wan_ip":        uplink.get("ip", ""),
             "active_wan_rx_mbps":   round(rx * 8 / 1_000_000, 2),
@@ -163,8 +213,8 @@ class UniFiSSHClient:
             "gw_name":  data.get("name") or data.get("hostname", ""),
             "gw_model": data.get("model", ""),
             "gw_ip":    host,
-            "gw_cpu":   sys_stats.get("cpu") or (data.get("cpu") or {}).get("avg_5s"),
-            "gw_mem":   sys_stats.get("mem"),
+            "gw_cpu":   cpu_val,
+            "gw_mem":   mem_val,
             "extra_devices": [],
         }
 
@@ -173,11 +223,51 @@ class UniFiSSHClient:
     async def get_gateway_health(self, primary: str = "wan", failover: str = "wan2") -> list[dict]:
         """Return a minimal WAN health list that ``determine_active_wan()`` can consume.
 
-        Strategy: if ``mca-dump`` is available its ``active_wan`` field is picked up via
-        ``state.live_gw_info`` in the watcher loop.  Here we only need to provide enough
-        of a health list so that the by-name lookup at the bottom of ``determine_active_wan``
-        works as a fallback when mca-dump isn't available.
+        On UCG/UDM devices the WAN traffic lives in a separate network namespace so
+        ``ip route`` in the main shell won't show WAN default routes.  We therefore
+        prefer ``mca-dump`` which always reflects the real WAN state, and fall back to
+        ``ip route`` only when mca-dump is unavailable (e.g. plain OpenWrt via SSH).
         """
+        # ── Strategy 1: mca-dump ─────────────────────────────────────────────
+        try:
+            mca_text = await self._run("mca-dump 2>/dev/null")
+            if mca_text and "{" in mca_text:
+                data   = json.loads(mca_text.replace("\x00", ""))
+                uplink = data.get("uplink") or {}
+                wan_ip = uplink.get("ip", "")
+
+                if wan_ip:
+                    # We have an active uplink — work out which WAN it is.
+                    # mca-dump reports the active WAN name in comment / name / type.
+                    active_id = (
+                        uplink.get("comment") or
+                        uplink.get("name")    or
+                        uplink.get("type")    or
+                        ""
+                    ).lower()
+
+                    if active_id == failover.lower():
+                        # Primary is down, failover is active
+                        return [
+                            {"subsystem": primary,  "status": "down", "wan_ip": ""},
+                            {"subsystem": failover, "status": "ok",   "wan_ip": wan_ip},
+                        ]
+                    else:
+                        # active_id matches primary, or it's unknown → assume primary
+                        return [
+                            {"subsystem": primary,  "status": "ok",   "wan_ip": wan_ip},
+                            {"subsystem": failover, "status": "down", "wan_ip": ""},
+                        ]
+                else:
+                    # mca-dump parsed but uplink has no IP → WAN is down
+                    return [
+                        {"subsystem": primary,  "status": "down", "wan_ip": ""},
+                        {"subsystem": failover, "status": "down", "wan_ip": ""},
+                    ]
+        except Exception:
+            pass
+
+        # ── Strategy 2: ip route fallback (non-UCG/UDM devices) ─────────────
         try:
             routes_text = await self._run("ip route show 2>/dev/null")
         except Exception:
@@ -189,14 +279,11 @@ class UniFiSSHClient:
                 {"subsystem": primary,  "status": "down", "wan_ip": ""},
                 {"subsystem": failover, "status": "down", "wan_ip": ""},
             ]
-
-        # Map lowest-metric (active) route to primary, next to failover
         if len(routes) == 1:
             return [
                 {"subsystem": primary,  "status": "ok",   "wan_ip": routes[0]["via"]},
                 {"subsystem": failover, "status": "down", "wan_ip": ""},
             ]
-
         return [
             {"subsystem": primary,  "status": "ok", "wan_ip": routes[0]["via"]},
             {"subsystem": failover, "status": "ok", "wan_ip": routes[1]["via"]},

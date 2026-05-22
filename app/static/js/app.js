@@ -283,14 +283,33 @@ window.app = function () {
     },
 
     async testUnifiSsh() {
-      await this.saveSettings();
-      this.settingsMsg = 'Testing SSH…';
-      const d = await fetch('/api/settings/test-ssh', { method: 'POST' }).then(r => r.json());
-      if (d.ok) {
-        this.settingsMsg = '✓ ' + (d.message || 'SSH connected');
-      } else {
-        this.settingsMsg = '✗ ' + (d.error || 'SSH test failed');
+      try {
+        await this.saveSettings();
+        this.settingsMsg = 'Testing SSH…';
+        const r = await fetch('/api/settings/test-ssh', { method: 'POST' });
+        const d = await r.json();
+        if (d.ok) {
+          this.settingsMsg = '✓ ' + (d.message || 'SSH connected');
+        } else {
+          this.settingsMsg = '✗ ' + (d.error || 'SSH test failed');
+        }
+      } catch (e) {
+        this.settingsMsg = '✗ ' + (e.message || 'Request failed');
       }
+    },
+
+    clearUnifiSettings() {
+      this.settings.unifi_host = '';
+      this.settings.unifi_api_key = '';
+      this.settings.unifi_api_key_set = false;
+      this.settings.unifi_ssh_password_set = false;
+      if (this.$refs.unifiApiKey) this.$refs.unifiApiKey.value = '';
+      if (this.$refs.unifiSshPassword) this.$refs.unifiSshPassword.value = '';
+      this.discoveredWans = [];
+      localStorage.removeItem('wanifi_discovered_wans');
+      this.debugMsg = '';
+      this.settingsMsg = '';
+      this.saveSettings(true);
     },
 
     dropWan(event, role) {
