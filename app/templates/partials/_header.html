@@ -48,11 +48,16 @@
               x-text="t[1]"></button>
     </template>
     <div class="ml-auto flex items-center gap-3 py-2 pr-1">
-      <span class="text-xs font-medium" :class="status.docker_ok ? 'text-emerald-400' : 'text-red-400'"
-            x-text="status.docker_ok ? 'Docker Connected' : 'Docker Disconnected'"></span>
-      <span class="text-slate-700">|</span>
+      <template x-if="status.docker_ok">
+        <span class="text-xs font-medium text-emerald-400">Docker Connected</span>
+      </template>
+      <template x-if="status.docker_ok">
+        <span class="text-slate-700">|</span>
+      </template>
       <span class="text-xs font-medium" :class="liveConnected ? 'text-emerald-400' : 'text-red-400'"
-            x-text="liveConnected ? 'UniFi API Connected' : 'UniFi API Disconnected'"></span>
+            x-text="liveConnected
+              ? (settings.router_type === 'unifi' ? 'UniFi Connected' : 'OpenWrt Connected')
+              : 'Router not connected'"></span>
       <template x-if="versionStatus !== null">
         <span class="text-slate-700">|</span>
       </template>
