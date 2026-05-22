@@ -9,26 +9,28 @@
       <option value="warn">Warn</option>
       <option value="error">Error</option>
     </select>
-    <button @click="exportEvents()" x-data="{ h: false }" @mouseenter="h=true" @mouseleave="h=false"
-            class="flex items-center justify-center overflow-hidden min-w-[2.25rem] h-9 px-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-500 text-slate-300 transition-all duration-200">
-      <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 opacity-0 whitespace-nowrap"
-            :style="h ? 'max-width:8rem; opacity:1; transition-delay:0ms' : 'max-width:0; opacity:0; transition-delay:200ms'">
-        <span class="pr-1.5">Export</span>
-      </span>
-      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M12 3v13M7 11l5 5 5-5M4 20h16"/>
-      </svg>
-    </button>
-    <button @click="clearAllEvents()" x-data="{ h: false }" @mouseenter="h=true" @mouseleave="h=false"
-            class="flex items-center justify-center overflow-hidden min-w-[2.25rem] h-9 px-2 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/50 text-red-400 transition-all duration-200">
-      <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 opacity-0 whitespace-nowrap"
-            :style="h ? 'max-width:8rem; opacity:1; transition-delay:0ms' : 'max-width:0; opacity:0; transition-delay:200ms'">
-        <span class="pr-1.5">Clear all events</span>
-      </span>
-      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <path d="M2 2l8 8M10 2L2 10"/>
-      </svg>
-    </button>
+    <div x-data="{ h: false }" @mouseenter="h=true" @mouseleave="h=false" class="flex items-center gap-2">
+      <button @click="exportEvents()"
+              class="flex items-center justify-center overflow-hidden min-w-[2.25rem] h-9 px-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-500 text-slate-300 transition-all duration-200">
+        <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 whitespace-nowrap"
+              :style="h ? 'max-width:8rem; opacity:1' : 'max-width:0; opacity:0'">
+          <span class="pr-1.5">Export</span>
+        </span>
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 3v13M7 11l5 5 5-5M4 20h16"/>
+        </svg>
+      </button>
+      <button @click="clearAllEvents()"
+              class="flex items-center justify-center overflow-hidden min-w-[2.25rem] h-9 px-2 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/50 text-red-400 transition-all duration-200">
+        <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 whitespace-nowrap"
+              :style="h ? 'max-width:8rem; opacity:1' : 'max-width:0; opacity:0'">
+          <span class="pr-1.5">Clear all events</span>
+        </span>
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M2 2l8 8M10 2L2 10"/>
+        </svg>
+      </button>
+    </div>
   </div>
   <div class="bg-slate-900 border border-slate-700/60 rounded-2xl table-shell">
     <table class="w-full text-sm">
