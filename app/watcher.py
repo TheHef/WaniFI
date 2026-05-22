@@ -867,11 +867,14 @@ async def apply_rules(new_state: str):
 
 async def live_stats_loop():
     log.info("Live stats loop started")
-    # UniFi state
+    # UniFi API state
     unifi_client: Optional[UniFiClient] = None
     unifi_last_settings: Optional[tuple] = None
     _cpu_ema: Optional[float] = None
     _EMA_ALPHA = 0.2
+    # UniFi SSH state
+    unifi_ssh_client = None
+    unifi_ssh_last_settings: Optional[tuple] = None
     # OpenWrt state
     owrt_client: Optional[OpenWrtClient] = None
     owrt_last_settings: Optional[tuple] = None
@@ -960,27 +963,58 @@ async def live_stats_loop():
                     await owrt_client.close()
                     owrt_client, owrt_last_settings = None, None
 
-                host    = get_setting("unifi_host")
-                api_key = get_setting("unifi_api_key")
-                site    = get_setting("unifi_site", "default")
-                if not (host and api_key):
-                    await asyncio.sleep(LIVE_INTERVAL)
-                    continue
+                host     = get_setting("unifi_host")
+                site     = get_setting("unifi_site", "default")
+                ssh_mode = get_setting("unifi_ssh_mode", "0") == "1"
 
-                current = (host, api_key, site)
-                if unifi_client is None or current != unifi_last_settings:
+                if ssh_mode:
+                    # ---- SSH path ----
                     if unifi_client:
                         await unifi_client.close()
-                    unifi_client = UniFiClient(host, api_key, site)
-                    unifi_last_settings = current
-                    _cpu_ema = None
+                        unifi_client, unifi_last_settings, _cpu_ema = None, None, None
 
-                info = await unifi_client.get_gateway_info()
-                raw_cpu = info.get("gw_cpu")
-                if raw_cpu is not None:
-                    _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
-                    info["gw_cpu"] = _cpu_ema
-                state.live_gw_info = info
+                    ssh_port = int(get_setting("unifi_ssh_port", "22"))
+                    ssh_user = get_setting("unifi_ssh_username", "admin")
+                    ssh_pass = get_setting("unifi_ssh_password", "")
+                    if not (host and ssh_pass):
+                        await asyncio.sleep(LIVE_INTERVAL)
+                        continue
+
+                    current = (host, ssh_port, ssh_user, ssh_pass)
+                    if unifi_ssh_client is None or current != unifi_ssh_last_settings:
+                        if unifi_ssh_client:
+                            await unifi_ssh_client.close()
+                        from .unifi_ssh import UniFiSSHClient
+                        unifi_ssh_client = UniFiSSHClient(host, ssh_port, ssh_user, ssh_pass)
+                        unifi_ssh_last_settings = current
+
+                    info = await unifi_ssh_client.get_gateway_info()
+                    state.live_gw_info = info
+                else:
+                    # ---- API key path ----
+                    if unifi_ssh_client:
+                        await unifi_ssh_client.close()
+                        unifi_ssh_client, unifi_ssh_last_settings = None, None
+
+                    api_key = get_setting("unifi_api_key")
+                    if not (host and api_key):
+                        await asyncio.sleep(LIVE_INTERVAL)
+                        continue
+
+                    current = (host, api_key, site)
+                    if unifi_client is None or current != unifi_last_settings:
+                        if unifi_client:
+                            await unifi_client.close()
+                        unifi_client = UniFiClient(host, api_key, site)
+                        unifi_last_settings = current
+                        _cpu_ema = None
+
+                    info = await unifi_client.get_gateway_info()
+                    raw_cpu = info.get("gw_cpu")
+                    if raw_cpu is not None:
+                        _cpu_ema = raw_cpu if _cpu_ema is None else round(_EMA_ALPHA * raw_cpu + (1 - _EMA_ALPHA) * _cpu_ema, 1)
+                        info["gw_cpu"] = _cpu_ema
+                    state.live_gw_info = info
 
             ticks += 1
             if ticks % metrics_every == 0:
@@ -1001,7 +1035,7 @@ async def live_stats_loop():
                         event="high_latency",
                     ))
         except asyncio.CancelledError:
-            for c in (unifi_client, owrt_client):
+            for c in (unifi_client, unifi_ssh_client, owrt_client):
                 if c:
                     await c.close()
             raise
@@ -1009,18 +1043,24 @@ async def live_stats_loop():
             log.warning("Live stats error: %s", e)
             if unifi_client:
                 await unifi_client.close()
+            if unifi_ssh_client:
+                await unifi_ssh_client.close()
             if owrt_client:
                 await owrt_client.close()
             unifi_client, unifi_last_settings, _cpu_ema = None, None, None
+            unifi_ssh_client, unifi_ssh_last_settings = None, None
             owrt_client, owrt_last_settings = None, None
         await asyncio.sleep(LIVE_INTERVAL)
 
 
 async def watcher_loop():
     log.info("Watcher loop started")
-    # UniFi client
+    # UniFi API client
     unifi_client: Optional[UniFiClient] = None
     unifi_last_settings: Optional[tuple] = None
+    # UniFi SSH client
+    unifi_ssh_client = None
+    unifi_ssh_last_settings: Optional[tuple] = None
     # OpenWrt client
     owrt_client: Optional[OpenWrtClient] = None
     owrt_last_settings: Optional[tuple] = None
@@ -1076,26 +1116,59 @@ async def watcher_loop():
                     await owrt_client.close()
                     owrt_client, owrt_last_settings = None, None
 
-                host    = get_setting("unifi_host")
-                api_key = get_setting("unifi_api_key")
-                site    = get_setting("unifi_site", "default")
+                host     = get_setting("unifi_host")
+                site     = get_setting("unifi_site", "default")
                 primary  = get_setting("primary_wan", "wan")
                 failover = get_setting("failover_wan", "wan2")
-                if not (host and api_key):
-                    state.last_error = "UniFi not configured"
-                    await asyncio.sleep(10)
-                    continue
+                ssh_mode = get_setting("unifi_ssh_mode", "0") == "1"
 
-                current = (host, api_key, site)
-                if unifi_client is None or current != unifi_last_settings:
+                if ssh_mode:
+                    # ---- SSH path ----
                     if unifi_client:
                         await unifi_client.close()
-                    unifi_client = UniFiClient(host, api_key, site)
-                    unifi_last_settings = current
+                        unifi_client, unifi_last_settings = None, None
 
-                wans = await unifi_client.get_gateway_health()
-                state.last_wans = wans
-                new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
+                    ssh_port = int(get_setting("unifi_ssh_port", "22"))
+                    ssh_user = get_setting("unifi_ssh_username", "admin")
+                    ssh_pass = get_setting("unifi_ssh_password", "")
+                    if not (host and ssh_pass):
+                        state.last_error = "UniFi SSH not configured (missing host or password)"
+                        await asyncio.sleep(10)
+                        continue
+
+                    current = (host, ssh_port, ssh_user, ssh_pass)
+                    if unifi_ssh_client is None or current != unifi_ssh_last_settings:
+                        if unifi_ssh_client:
+                            await unifi_ssh_client.close()
+                        from .unifi_ssh import UniFiSSHClient
+                        unifi_ssh_client = UniFiSSHClient(host, ssh_port, ssh_user, ssh_pass)
+                        unifi_ssh_last_settings = current
+
+                    wans = await unifi_ssh_client.get_gateway_health(primary, failover)
+                    state.last_wans = wans
+                    new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
+                else:
+                    # ---- API key path ----
+                    if unifi_ssh_client:
+                        await unifi_ssh_client.close()
+                        unifi_ssh_client, unifi_ssh_last_settings = None, None
+
+                    api_key = get_setting("unifi_api_key")
+                    if not (host and api_key):
+                        state.last_error = "UniFi not configured"
+                        await asyncio.sleep(10)
+                        continue
+
+                    current = (host, api_key, site)
+                    if unifi_client is None or current != unifi_last_settings:
+                        if unifi_client:
+                            await unifi_client.close()
+                        unifi_client = UniFiClient(host, api_key, site)
+                        unifi_last_settings = current
+
+                    wans = await unifi_client.get_gateway_health()
+                    state.last_wans = wans
+                    new_state = determine_active_wan(wans, primary, failover, state.live_gw_info)
 
             state.last_check = datetime.now(timezone.utc).isoformat()
             if state.controller_offline:
@@ -1161,7 +1234,7 @@ async def watcher_loop():
             await asyncio.sleep(interval)
         except asyncio.CancelledError:
             log.info("Watcher loop cancelled")
-            for c in (unifi_client, owrt_client):
+            for c in (unifi_client, unifi_ssh_client, owrt_client):
                 if c:
                     await c.close()
             raise
@@ -1186,8 +1259,11 @@ async def watcher_loop():
                 _last_err_time = now
             if unifi_client:
                 await unifi_client.close()
+            if unifi_ssh_client:
+                await unifi_ssh_client.close()
             if owrt_client:
                 await owrt_client.close()
             unifi_client, unifi_last_settings = None, None
+            unifi_ssh_client, unifi_ssh_last_settings = None, None
             owrt_client, owrt_last_settings = None, None
             await asyncio.sleep(15)

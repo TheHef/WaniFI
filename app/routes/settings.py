@@ -2,6 +2,7 @@
 import json
 
 from fastapi import APIRouter, Depends, Response
+from fastapi.responses import JSONResponse
 
 from ..auth import require_auth
 from ..config import POLL_INTERVAL_DEFAULT
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/api/settings")
 EXPORT_KEYS = (
     "router_type",
     "unifi_host", "unifi_api_key", "unifi_site",
+    "unifi_ssh_mode", "unifi_ssh_port", "unifi_ssh_username", "unifi_ssh_password",
     "primary_wan", "failover_wan",
     "openwrt_url", "openwrt_username", "openwrt_password",
     "openwrt_primary_iface", "openwrt_failover_iface", "openwrt_router_model",
@@ -63,18 +65,22 @@ EXPORT_KEYS = (
 @router.get("")
 async def get_settings(_: bool = Depends(require_auth)):
     return {
-        "router_type":          get_setting("router_type", "unifi"),
-        "unifi_host":           get_setting("unifi_host", ""),
-        "unifi_api_key_set":    bool(get_setting("unifi_api_key")),
-        "unifi_site":           get_setting("unifi_site", "default"),
-        "primary_wan":          get_setting("primary_wan", "wan"),
-        "failover_wan":         get_setting("failover_wan", "wan2"),
-        "primary_wan_name":     get_setting("primary_wan_name", ""),
-        "failover_wan_name":    get_setting("failover_wan_name", ""),
-        "poll_interval":        int(get_setting("poll_interval", str(POLL_INTERVAL_DEFAULT))),
-        "event_retention_days": int(get_setting("event_retention_days", "30")),
-        "latency_threshold_ms": int(get_setting("latency_threshold_ms", "0")),
-        "latency_cooldown_min": int(get_setting("latency_cooldown_min", "5")),
+        "router_type":              get_setting("router_type", "unifi"),
+        "unifi_host":               get_setting("unifi_host", ""),
+        "unifi_api_key_set":        bool(get_setting("unifi_api_key")),
+        "unifi_site":               get_setting("unifi_site", "default"),
+        "primary_wan":              get_setting("primary_wan", "wan"),
+        "failover_wan":             get_setting("failover_wan", "wan2"),
+        "primary_wan_name":         get_setting("primary_wan_name", ""),
+        "failover_wan_name":        get_setting("failover_wan_name", ""),
+        "poll_interval":            int(get_setting("poll_interval", str(POLL_INTERVAL_DEFAULT))),
+        "event_retention_days":     int(get_setting("event_retention_days", "30")),
+        "latency_threshold_ms":     int(get_setting("latency_threshold_ms", "0")),
+        "latency_cooldown_min":     int(get_setting("latency_cooldown_min", "5")),
+        "unifi_ssh_mode":           get_setting("unifi_ssh_mode", "0") == "1",
+        "unifi_ssh_port":           int(get_setting("unifi_ssh_port", "22")),
+        "unifi_ssh_username":       get_setting("unifi_ssh_username", "admin"),
+        "unifi_ssh_password_set":   bool(get_setting("unifi_ssh_password")),
     }
 
 
@@ -94,8 +100,36 @@ async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
     set_setting("event_retention_days", str(max(1, payload.event_retention_days)))
     set_setting("latency_threshold_ms", str(max(0, payload.latency_threshold_ms)))
     set_setting("latency_cooldown_min", str(max(1, payload.latency_cooldown_min)))
+    set_setting("unifi_ssh_mode",     "1" if payload.unifi_ssh_mode else "0")
+    set_setting("unifi_ssh_port",     str(max(1, min(65535, payload.unifi_ssh_port))))
+    set_setting("unifi_ssh_username", payload.unifi_ssh_username.strip() or "admin")
+    if payload.unifi_ssh_password:
+        set_setting("unifi_ssh_password", payload.unifi_ssh_password)
     log_event("info", "Settings updated")
     return {"ok": True}
+
+
+@router.post("/test-ssh")
+async def test_unifi_ssh(_: bool = Depends(require_auth)):
+    host     = get_setting("unifi_host", "")
+    port     = int(get_setting("unifi_ssh_port", "22"))
+    username = get_setting("unifi_ssh_username", "admin")
+    password = get_setting("unifi_ssh_password", "")
+    if not host:
+        return JSONResponse({"ok": False, "error": "No UniFi host configured"}, status_code=400)
+    if not password:
+        return JSONResponse({"ok": False, "error": "No SSH password saved — enter and save first"}, status_code=400)
+    from ..unifi_ssh import UniFiSSHClient
+    client = UniFiSSHClient(host, port, username, password)
+    try:
+        ok, msg = await client.test_connection()
+        if not ok:
+            return JSONResponse({"ok": False, "error": msg}, status_code=400)
+        return {"ok": True, "message": msg}
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+    finally:
+        await client.close()
 
 
 @router.get("/export")

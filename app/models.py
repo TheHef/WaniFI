@@ -50,6 +50,10 @@ class SettingsIn(BaseModel):
     event_retention_days: int = 30
     latency_threshold_ms: int = 0
     latency_cooldown_min: int = 5
+    unifi_ssh_mode: bool = False
+    unifi_ssh_port: int = 22
+    unifi_ssh_username: str = "admin"
+    unifi_ssh_password: Optional[str] = None
 
 
 class OpenWrtSettingsIn(BaseModel):

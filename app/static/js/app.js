@@ -13,6 +13,8 @@ window.app = function () {
       primary_wan_name: '', failover_wan_name: '',
       poll_interval: 60, event_retention_days: 30,
       unifi_api_key_set: false,
+      unifi_ssh_mode: false, unifi_ssh_port: 22, unifi_ssh_username: 'admin',
+      unifi_ssh_password: null, unifi_ssh_password_set: false,
       latency_threshold_ms: 0, latency_cooldown_min: 5,
     },
     openwrtSettings: {
@@ -247,9 +249,11 @@ window.app = function () {
     },
 
     async saveSettings(silent = false) {
+      const sshPw = this.$refs.unifiSshPassword ? this.$refs.unifiSshPassword.value : '';
       const payload = {
         ...this.settings,
-        unifi_api_key: this.$refs.unifiApiKey ? this.$refs.unifiApiKey.value : this.settings.unifi_api_key,
+        unifi_api_key:      this.$refs.unifiApiKey ? this.$refs.unifiApiKey.value : this.settings.unifi_api_key,
+        unifi_ssh_password: sshPw || undefined,
       };
       const r = await fetch('/api/settings', {
         method: 'POST',
@@ -262,6 +266,7 @@ window.app = function () {
       }
       await this.loadSettings();
       if (this.$refs.unifiApiKey) this.$refs.unifiApiKey.value = '';
+      if (this.$refs.unifiSshPassword) this.$refs.unifiSshPassword.value = '';
     },
 
     async testUnifi() {
@@ -274,6 +279,17 @@ window.app = function () {
         this.settingsMsg = `✓ OK — ${this.discoveredWans.length} WAN(s) found`;
       } else {
         this.settingsMsg = '✗ ' + (d.error || 'Test failed');
+      }
+    },
+
+    async testUnifiSsh() {
+      await this.saveSettings();
+      this.settingsMsg = 'Testing SSH…';
+      const d = await fetch('/api/settings/test-ssh', { method: 'POST' }).then(r => r.json());
+      if (d.ok) {
+        this.settingsMsg = '✓ ' + (d.message || 'SSH connected');
+      } else {
+        this.settingsMsg = '✗ ' + (d.error || 'SSH test failed');
       }
     },
 

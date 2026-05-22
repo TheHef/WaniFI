@@ -140,7 +140,7 @@
         <div class="flex flex-col justify-start gap-2 shrink-0 w-36">
           <button @click="saveSettings()"
                   class="w-full bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-xl px-3 py-2.5 text-sm transition">Save</button>
-          <button @click="testUnifi()"
+          <button @click="settings.unifi_ssh_mode ? testUnifiSsh() : testUnifi()"
                   class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl px-3 py-2.5 text-sm transition">Test Connection</button>
           <button @click="debugMsg ? debugMsg = '' : (speedtestServerOpen = false, debugDump())"
                   class="w-full text-sm transition py-1"
@@ -154,17 +154,50 @@
         <!-- Right: settings rows -->
         <div class="flex-1 min-w-0 divide-y divide-slate-800/80 border border-slate-800 rounded-xl overflow-hidden">
           <div class="flex items-center justify-between px-4 py-2.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Auth Mode</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs transition-colors" :class="!settings.unifi_ssh_mode ? 'text-slate-200 font-semibold' : 'text-slate-500'">API</span>
+              <button @click="settings.unifi_ssh_mode = !settings.unifi_ssh_mode; saveSettings(true)"
+                      class="relative w-10 h-5 rounded-full transition-colors focus:outline-none"
+                      :class="settings.unifi_ssh_mode ? 'bg-sky-500' : 'bg-slate-600'">
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+                      :class="settings.unifi_ssh_mode ? 'translate-x-5' : 'translate-x-0'"></span>
+              </button>
+              <span class="text-xs transition-colors" :class="settings.unifi_ssh_mode ? 'text-slate-200 font-semibold' : 'text-slate-500'">SSH</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Controller URL</span>
-            <input x-model="settings.unifi_host" placeholder="https://192.168.1.1"
+            <input x-model="settings.unifi_host" placeholder="https://192.168.0.1"
                    autocomplete="off" spellcheck="false"
                    class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
           </div>
-          <div class="flex items-center justify-between px-4 py-2.5">
+          <div x-show="!settings.unifi_ssh_mode" class="flex items-center justify-between px-4 py-2.5">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">API Key
               <span x-show="settings.unifi_api_key_set" class="normal-case font-normal text-emerald-500 ml-1">(already saved)</span>
             </span>
             <input x-ref="unifiApiKey" type="password" placeholder="••••••••••••••••"
                    @input="settings.unifi_api_key = $event.target.value"
+                   autocomplete="new-password" spellcheck="false"
+                   class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+          </div>
+          <div x-show="settings.unifi_ssh_mode" class="flex items-center justify-between px-4 py-2.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SSH Port</span>
+            <input x-model.number="settings.unifi_ssh_port" type="number" min="1" max="65535"
+                   class="w-20 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none">
+          </div>
+          <div x-show="settings.unifi_ssh_mode" class="flex items-center justify-between px-4 py-2.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SSH Username</span>
+            <input x-model="settings.unifi_ssh_username" placeholder="admin"
+                   autocomplete="off" spellcheck="false"
+                   class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
+          </div>
+          <div x-show="settings.unifi_ssh_mode" class="flex items-center justify-between px-4 py-2.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SSH Password
+              <span x-show="settings.unifi_ssh_password_set" class="normal-case font-normal text-emerald-500 ml-1">(saved)</span>
+            </span>
+            <input x-ref="unifiSshPassword" type="password" placeholder="••••••••••••••••"
+                   @input="settings.unifi_ssh_password = $event.target.value"
                    autocomplete="new-password" spellcheck="false"
                    class="w-40 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-right text-slate-200 focus:outline-none focus:border-blue-500 transition">
           </div>
