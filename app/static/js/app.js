@@ -90,6 +90,7 @@ window.app = function () {
 
     runMsg: null,
     dragSrcIndex: null, dragOverIndex: null,
+    agentDragSrcIndex: null, agentDragOverIndex: null,
 
     eventsLimit: 20, eventsSearch: '', eventsLevel: '',
 
@@ -1173,6 +1174,19 @@ window.app = function () {
     // ---- Agents -----------------------------------------------------------
     async loadAgents() {
       try { this.agents = await fetch('/api/agents').then(r => r.json()); } catch {}
+    },
+
+    async reorderAgents(fromIndex, toIndex) {
+      if (fromIndex === null || fromIndex === toIndex) return;
+      const arr = [...this.agents];
+      const [moved] = arr.splice(fromIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      this.agents = arr;
+      await fetch('/api/agents/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: arr.map(a => a.id) }),
+      });
     },
 
     async addAgent() {

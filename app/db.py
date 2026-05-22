@@ -75,6 +75,11 @@ def init_db():
             );
             """
         )
+        agent_cols = {r[1] for r in conn.execute("PRAGMA table_info(agents)").fetchall()}
+        if "sort_order" not in agent_cols:
+            conn.execute("ALTER TABLE agents ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0")
+            conn.execute("UPDATE agents SET sort_order = id")
+
         cols = {r[1] for r in conn.execute("PRAGMA table_info(rules)").fetchall()}
         for col, ddl in (
             ("rule_type",      "TEXT NOT NULL DEFAULT 'docker'"),
@@ -243,7 +248,7 @@ async def a_set_state(key: str, value: str):
 # ---------------------------------------------------------------------------
 def list_agents() -> list[dict]:
     with db() as conn:
-        rows = conn.execute("SELECT id, name, api_key, created_at FROM agents ORDER BY id").fetchall()
+        rows = conn.execute("SELECT id, name, api_key, created_at FROM agents ORDER BY sort_order, id").fetchall()
     return [dict(r) for r in rows]
 
 
@@ -256,7 +261,11 @@ def get_agent_by_key(api_key: str) -> Optional[dict]:
 def create_agent(name: str, api_key: str) -> dict:
     ts = int(time.time())
     with db() as conn:
-        conn.execute("INSERT INTO agents(name, api_key, created_at) VALUES(?,?,?)", (name, api_key, ts))
+        conn.execute(
+            "INSERT INTO agents(name, api_key, created_at, sort_order) "
+            "VALUES(?,?,?,(SELECT COALESCE(MAX(sort_order),0)+1 FROM agents))",
+            (name, api_key, ts),
+        )
         row = conn.execute("SELECT id, name, api_key, created_at FROM agents WHERE api_key=?", (api_key,)).fetchone()
     return dict(row)
 

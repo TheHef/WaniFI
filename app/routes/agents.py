@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from ..agent_hub import deliver_response, is_online, online_keys, register, send_command, unregister
 from ..auth import require_auth
-from ..db import create_agent, delete_agent, get_agent_by_key, list_agents
+from ..db import create_agent, db as db_conn, delete_agent, get_agent_by_key, list_agents
 
 router = APIRouter(prefix="/api/agents")
 
@@ -36,6 +36,17 @@ async def add_agent(body: AgentIn, _=Depends(require_auth)):
     agent = create_agent(body.name.strip(), api_key)
     agent["online"] = False
     return agent
+
+
+@router.post("/reorder")
+async def reorder_agents(payload: dict, _=Depends(require_auth)):
+    ids = payload.get("ids", [])
+    if not ids:
+        return {"ok": True}
+    with db_conn() as conn:
+        for order, agent_id in enumerate(ids):
+            conn.execute("UPDATE agents SET sort_order=? WHERE id=?", (order, agent_id))
+    return {"ok": True}
 
 
 @router.delete("/{agent_id}")
