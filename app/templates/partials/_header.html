@@ -33,25 +33,16 @@
                 : status.active_wan === 'failover' ? (status.failover_wan_name || status.failover_wan)
                 : (status.active_wan || '—')"></span>
       </div>
-      <button x-data="{ h: false }" @mouseenter="h=true" @mouseleave="h=false"
-              @click="tab = 'settings'" title="Settings"
-              class="inline-flex items-center overflow-hidden bg-slate-800 border rounded-lg px-2 py-1.5 transition-all duration-200 text-xs font-semibold"
-              :class="tab === 'settings' ? 'border-blue-500 text-blue-400' : 'border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-700'">
-        <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 whitespace-nowrap"
-              :style="h ? 'max-width:8rem; opacity:1' : 'max-width:0; opacity:0'">
-          <span class="pr-1.5">Settings</span>
-        </span>
-        <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button @click="tab = 'settings'" title="Settings"
+              class="inline-flex items-center bg-slate-800 border rounded-lg px-2.5 py-1.5 transition text-slate-400 hover:text-white hover:border-slate-500"
+              :class="tab === 'settings' ? 'border-blue-500 text-blue-400' : 'border-slate-700'">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       </button>
-      <form method="post" action="/logout" x-data="{ h: false }" @mouseenter="h=true" @mouseleave="h=false">
-        <button type="submit" class="inline-flex items-center overflow-hidden text-xs font-semibold text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 px-2 py-1.5 rounded-lg transition-all duration-200">
-          <span class="inline-flex overflow-hidden transition-[max-width,opacity] duration-200 whitespace-nowrap"
-                :style="h ? 'max-width:8rem; opacity:1' : 'max-width:0; opacity:0'">
-            <span class="pr-1.5">Log out</span>
-          </span>
-          <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <form method="post" action="/logout">
+        <button type="submit" title="Log out" class="inline-flex items-center text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 px-2.5 py-1.5 rounded-lg transition">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </button>
