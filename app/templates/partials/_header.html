@@ -53,6 +53,15 @@
       <span class="text-slate-700">|</span>
       <span class="text-xs font-medium" :class="liveConnected ? 'text-emerald-400' : 'text-red-400'"
             x-text="liveConnected ? 'UniFi API Connected' : 'UniFi API Disconnected'"></span>
+      <template x-if="versionStatus !== null">
+        <span class="text-slate-700">|</span>
+      </template>
+      <template x-if="versionStatus !== null">
+        <span class="text-xs font-medium"
+              :class="versionStatus.up_to_date ? 'text-emerald-400' : 'text-red-400'"
+              :title="'Running: ' + (versionStatus.current || '?') + '  Latest: ' + (versionStatus.latest || '?')"
+              x-text="versionStatus.up_to_date ? 'WaniFi up to date ✓' : 'WaniFi UPDATE AVAILABLE!'"></span>
+      </template>
     </div>
   </div>
 </header>

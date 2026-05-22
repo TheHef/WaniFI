@@ -21,6 +21,8 @@ COPY app/ ./app/
 COPY --from=frontend /build/app/static/css/tailwind.css ./app/static/css/tailwind.css
 COPY --from=frontend /build/app/static/js/alpine.min.js  ./app/static/js/alpine.min.js
 COPY --from=frontend /build/app/static/js/chart.min.js   ./app/static/js/chart.min.js
+ARG GIT_SHA=dev
+RUN echo "$GIT_SHA" > ./app/VERSION
 ENV PYTHONUNBUFFERED=1 \
     DATA_DIR=/data \
     PORT=8000

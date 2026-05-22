@@ -95,6 +95,7 @@ window.app = function () {
 
     timer: null, liveTimer: null,
     liveConnected: false, appConnected: false,
+    versionStatus: null,
 
     // ---- Derived ----------------------------------------------------------
     get filteredEvents() {
@@ -197,6 +198,16 @@ window.app = function () {
       await this.refreshLiveStats();
       this.timer     = setInterval(() => this.refreshLive(),     5000);
       this.liveTimer = setInterval(() => this.refreshLiveStats(), 2000);
+      this.checkVersion();
+      setInterval(() => this.checkVersion(), 3600000);
+    },
+
+    // ---- Version check ----------------------------------------------------
+    async checkVersion() {
+      try {
+        const d = await fetch('/api/version').then(r => r.json());
+        this.versionStatus = d;
+      } catch {}
     },
 
     // ---- Polling ----------------------------------------------------------

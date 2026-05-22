@@ -32,6 +32,7 @@ from .routes import openwrt as openwrt_routes
 from .routes import settings as settings_routes
 from .routes import stats as stats_routes
 from .routes import system as system_routes
+from .routes import version as version_routes
 from .watcher import live_stats_loop, state, watcher_loop
 
 BASE_DIR = Path(__file__).parent
@@ -99,6 +100,7 @@ app.include_router(network_routes.router)
 app.include_router(integrations_routes.router)
 app.include_router(stats_routes.router)
 app.include_router(backup_routes.router)
+app.include_router(version_routes.router)
 
 
 def _shell(request: Request):
