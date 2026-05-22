@@ -52,7 +52,7 @@ class SettingsIn(BaseModel):
     latency_cooldown_min: int = 5
     unifi_ssh_mode: bool = False
     unifi_ssh_port: int = 22
-    unifi_ssh_username: str = "admin"
+    unifi_ssh_username: str = "root"
     unifi_ssh_password: Optional[str] = None
 
 

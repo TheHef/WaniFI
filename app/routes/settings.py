@@ -79,7 +79,7 @@ async def get_settings(_: bool = Depends(require_auth)):
         "latency_cooldown_min":     int(get_setting("latency_cooldown_min", "5")),
         "unifi_ssh_mode":           get_setting("unifi_ssh_mode", "0") == "1",
         "unifi_ssh_port":           int(get_setting("unifi_ssh_port", "22")),
-        "unifi_ssh_username":       get_setting("unifi_ssh_username", "admin"),
+        "unifi_ssh_username":       get_setting("unifi_ssh_username", "root"),
         "unifi_ssh_password_set":   bool(get_setting("unifi_ssh_password")),
     }
 
@@ -102,7 +102,7 @@ async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
     set_setting("latency_cooldown_min", str(max(1, payload.latency_cooldown_min)))
     set_setting("unifi_ssh_mode",     "1" if payload.unifi_ssh_mode else "0")
     set_setting("unifi_ssh_port",     str(max(1, min(65535, payload.unifi_ssh_port))))
-    set_setting("unifi_ssh_username", payload.unifi_ssh_username.strip() or "admin")
+    set_setting("unifi_ssh_username", payload.unifi_ssh_username.strip() or "root")
     if payload.unifi_ssh_password:
         set_setting("unifi_ssh_password", payload.unifi_ssh_password)
     log_event("info", "Settings updated")

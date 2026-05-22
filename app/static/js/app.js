@@ -13,7 +13,7 @@ window.app = function () {
       primary_wan_name: '', failover_wan_name: '',
       poll_interval: 60, event_retention_days: 30,
       unifi_api_key_set: false,
-      unifi_ssh_mode: false, unifi_ssh_port: 22, unifi_ssh_username: 'admin',
+      unifi_ssh_mode: false, unifi_ssh_port: 22, unifi_ssh_username: 'root',
       unifi_ssh_password: null, unifi_ssh_password_set: false,
       latency_threshold_ms: 0, latency_cooldown_min: 5,
     },

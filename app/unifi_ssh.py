@@ -22,7 +22,7 @@ class UniFiSSHClient:
     2. /proc fallback — ``ip route``, ``/proc/net/dev``, ``/proc/loadavg``, ``/proc/meminfo``.
     """
 
-    def __init__(self, host: str, port: int = 22, username: str = "admin", password: str = ""):
+    def __init__(self, host: str, port: int = 22, username: str = "root", password: str = ""):
         # Accept both a bare hostname and a URL like "https://192.168.1.1"
         if "://" in host:
             parsed = urlparse(host)

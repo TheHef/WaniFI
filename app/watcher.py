@@ -974,7 +974,7 @@ async def live_stats_loop():
                         unifi_client, unifi_last_settings, _cpu_ema = None, None, None
 
                     ssh_port = int(get_setting("unifi_ssh_port", "22"))
-                    ssh_user = get_setting("unifi_ssh_username", "admin")
+                    ssh_user = get_setting("unifi_ssh_username", "root")
                     ssh_pass = get_setting("unifi_ssh_password", "")
                     if not (host and ssh_pass):
                         await asyncio.sleep(LIVE_INTERVAL)
@@ -1129,7 +1129,7 @@ async def watcher_loop():
                         unifi_client, unifi_last_settings = None, None
 
                     ssh_port = int(get_setting("unifi_ssh_port", "22"))
-                    ssh_user = get_setting("unifi_ssh_username", "admin")
+                    ssh_user = get_setting("unifi_ssh_username", "root")
                     ssh_pass = get_setting("unifi_ssh_password", "")
                     if not (host and ssh_pass):
                         state.last_error = "UniFi SSH not configured (missing host or password)"
