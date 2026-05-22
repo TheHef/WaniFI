@@ -87,7 +87,7 @@
         <span class="text-xs font-medium"
               :class="versionStatus.up_to_date ? 'text-emerald-400' : 'text-red-400'"
               :title="versionStatus.up_to_date ? 'Running latest' : ('Running: ' + (versionStatus.current || '?') + '  Latest: ' + (versionStatus.latest || '?'))"
-              x-text="versionStatus.up_to_date ? 'WaniFi up to date ✓' : 'WaniFi UPDATE AVAILABLE!'"></span>
+              x-text="versionStatus.up_to_date ? 'Up to date ✓' : 'UPDATE AVAILABLE ✗'"></span>
       </template>
     </div>
   </div>
