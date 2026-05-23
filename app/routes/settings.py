@@ -154,6 +154,46 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
                 "print(json.dumps({'uplink':u,'rx_rate':a.get('rx_rate'),'rx_bytes_r':a.get('rx_bytes-r'),'tx_rate':a.get('tx_rate'),'tx_bytes_r':a.get('tx_bytes-r'),'speed':a.get('speed'),'xput_down':a.get('xput_down'),'xput_up':a.get('xput_up'),'full_keys':list(a.keys())}))"
                 "\" 2>/dev/null || echo 'python3_failed'"
             )),
+            # ── Throughput investigation: what /proc/net/dev actually shows ────────
+            # Show all interfaces visible in the CURRENT (main) namespace
+            ("proc_dev_raw", "cat /proc/net/dev 2>/dev/null || echo 'failed'"),
+            # List network namespaces — WAN traffic may be in a separate ns on UCG-Max
+            ("wan_netns_list", "ip netns list 2>/dev/null; ls /var/run/netns/ 2>/dev/null || echo 'no_netns'"),
+            # 5-second live rate measurement for eth4 + VPN ifaces from main ns
+            # This shows exactly what our /proc/net/dev approach would compute
+            ("proc_dev_5s_delta", (
+                "python3 -c \""
+                "import time,re;"
+                "def rd():"
+                "    out={};"
+                "    [out.update({m.group(1):(int(m.group(2)),int(m.group(3)))})"
+                "     for line in open('/proc/net/dev') for m in [re.search(r'^\\s*(\\S+?):\\s*(\\d+)(?:\\s+\\d+){6}\\s+\\d+\\s+(\\d+)',line)] if m];"
+                "    return out;"
+                "t1=rd();t0=time.monotonic();time.sleep(5);t2=rd();dt=time.monotonic()-t0;"
+                "vpfx=('tunovpnc','wgsrv','wgsts','gre');"
+                "show=['eth0','eth1','eth2','eth3','eth4','eth5','gre1'];"
+                "show+=[k for k in t2 if any(k.startswith(p) for p in vpfx)];"
+                "[print(f'{k}: rx={round((t2[k][0]-t1[k][0])*8/dt/1e6,2)}Mbps tx={round((t2[k][1]-t1[k][1])*8/dt/1e6,2)}Mbps') for k in dict.fromkeys(show) if k in t1 and k in t2]"
+                "\" 2>/dev/null || echo 'python3_failed'"
+            )),
+            # Try reading /proc/net/dev from WAN namespace if one exists
+            ("wan_ns_proc_dev", (
+                "for ns in $(ip netns list 2>/dev/null | awk '{print $1}'); do "
+                "echo \"=== ns: $ns ===\"; "
+                "ip netns exec $ns cat /proc/net/dev 2>/dev/null | grep -E 'eth[0-9]|gre[0-9]'; "
+                "done; "
+                "echo '---nsenter-ubios---'; "
+                "nsenter -n -t $(pgrep -f 'ubios-network\\|udapi-server' 2>/dev/null | head -1) -- cat /proc/net/dev 2>/dev/null | grep -E 'eth[0-9]|gre[0-9]|wg|tunov' || echo 'nsenter_failed'"
+            )),
+            # Show ALL if_table entries from mca-dump with their rates
+            ("if_table_all_ifaces", (
+                "python3 -c \""
+                "import json,subprocess;"
+                "d=json.loads(subprocess.check_output(['mca-dump']).replace(b'\\x00',b''));"
+                "ifs=d.get('if_table',[]);"
+                "[print(json.dumps({'name':i.get('name'),'comment':i.get('comment'),'rx_rate':i.get('rx_rate'),'tx_rate':i.get('tx_rate'),'ip':i.get('ip','')})) for i in ifs if i.get('rx_rate') or i.get('tx_rate')]"
+                "\" 2>/dev/null || echo 'python3_failed'"
+            )),
             # ── NAT/iptables WAN counters (internet-only traffic, excludes VPN) ──
             ("nat_counters", (
                 "iptables -t nat -L POSTROUTING -v -n -x 2>/dev/null | grep -E 'MASQUERADE|eth[0-9]' | head -10 || echo 'iptables_failed'"
@@ -163,6 +203,37 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
             )),
             # ── ULP backup file (Strategy 3 — present on UCG-Max) ────────────────
             ("ulp_devices_file", "cat /data/ulp-go/ws/backup_unifi_devices.json 2>/dev/null | head -c 6000 || echo 'ulp_file_not_found'"),
+            # ── U5G-Max signal investigation ──────────────────────────────────────
+            # What ports are open on the U5G-Max LAN IP?
+            ("u5g_ports", (
+                "for p in 80 443 6080 8080 8443 8880 10001; do "
+                "(echo >/dev/tcp/192.168.50.2/$p) 2>/dev/null "
+                "&& echo \"OPEN:$p\" || echo \"CLOSED:$p\"; "
+                "done 2>/dev/null"
+            )),
+            # Try U5G-Max local API over LAN
+            ("u5g_api_root",   "curl -sk --connect-timeout 3 'https://192.168.50.2/' 2>/dev/null | head -c 800 || echo 'conn_failed'"),
+            ("u5g_api_system", "curl -sk --connect-timeout 3 'https://192.168.50.2/api/system' 2>/dev/null | head -c 1000 || echo 'conn_failed'"),
+            ("u5g_api_wan",    "curl -sk --connect-timeout 3 'https://192.168.50.2/api/v1/wan' 2>/dev/null | head -c 1000 || echo 'conn_failed'"),
+            ("u5g_api_lte",    "curl -sk --connect-timeout 3 'https://192.168.50.2/api/v1/lte' 2>/dev/null | head -c 1000 || echo 'conn_failed'"),
+            # What local ports does the UCG-Max itself listen on?
+            ("local_ports", "ss -tlnp 2>/dev/null | head -40 || netstat -tlnp 2>/dev/null | head -40 || echo 'ss_failed'"),
+            # ulp-go local API (manages adopted devices, might expose signal data)
+            ("ulp_local_api",  "for p in 8084 8085 8086 11080 12080 12443; do (echo >/dev/tcp/127.0.0.1/$p) 2>/dev/null && echo \"OPEN:$p\" || true; done 2>/dev/null"),
+            ("ulp_api_v1",     "curl -s --connect-timeout 2 'http://127.0.0.1:8084/v1/devices' 2>/dev/null | head -c 2000 || echo 'conn_failed'"),
+            ("ulp_api_system", "curl -s --connect-timeout 2 'http://127.0.0.1:11080/v1/devices' 2>/dev/null | head -c 2000 || echo 'conn_failed'"),
+            # mca-dump: look for any LTE/5G/cellular/signal keys
+            ("mca_cellular", (
+                "python3 -c \""
+                "import json,subprocess;"
+                "d=json.loads(subprocess.check_output(['mca-dump']).replace(b'\\x00',b''));"
+                "keys=[k for k in d if any(x in k.lower() for x in ['lte','5g','cellular','signal','rsrp','rsrq','sinr','modem','wan_rate'])];"
+                "print('keys:',keys);"
+                "[print(k,'=',d[k]) for k in keys]"
+                "\" 2>/dev/null || echo 'python3_failed'"
+            )),
+            # U5G-Max might respond to UBNT discovery on UDP 10001
+            ("ubnt_discover", "ubnt-discover 192.168.50.2 2>/dev/null | head -c 500 || echo 'discover_failed'"),
         ]:
             try:
                 result[label] = await client.run_raw(cmd)
