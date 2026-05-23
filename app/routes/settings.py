@@ -134,6 +134,12 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
             ("db_socket",    "ls /var/run/mongodb/ /run/mongodb/ 2>/dev/null || echo 'no_mongo_socket'"),
             ("db_files",     "find /data/unifi/data/sites /mnt/data/unifi-os/unifi/data/sites -name '*.json' 2>/dev/null | head -10 || echo 'no_site_files'"),
             ("arp_table",    "ip neigh show 2>/dev/null | head -20"),
+            # ── Local UniFi controller API (read-only curl) ───────────────────
+            ("ctrl_api_proxy",  "curl -sk https://localhost/proxy/network/api/s/default/stat/device 2>/dev/null | head -c 3000 || echo 'proxy_path_failed'"),
+            ("ctrl_api_direct", "curl -s http://127.0.0.1:8080/api/s/default/stat/device 2>/dev/null | head -c 3000 || echo 'direct_path_failed'"),
+            # ── Controller filesystem: sites dir + device JSON files ──────────
+            ("ctrl_fs_sites",   "ls /mnt/data/unifi-os/unifi/data/sites/ 2>/dev/null || ls /data/unifi/data/sites/ 2>/dev/null || echo 'no_sites_dir'"),
+            ("ctrl_fs_devices", "find /mnt/data /data /persistent -maxdepth 8 \\( -name 'device*.json' -o -name '*devices*.json' \\) 2>/dev/null | head -10 || echo 'no_device_files'"),
         ]:
             try:
                 result[label] = await client.run_raw(cmd)
@@ -145,6 +151,17 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
             probe_results: dict = {}
             for iface, remote_ip in gre_remotes.items():
                 probe_info: dict = {"ip": remote_ip}
+                # Port scan: find which TCP ports are open on the remote device
+                try:
+                    scan_out = await client.run_raw(
+                        f"for p in 22 222 2222 22022 22222 8022; do "
+                        f"(echo >/dev/tcp/{remote_ip}/$p) 2>/dev/null "
+                        f"&& echo \"OPEN:$p\" || echo \"CLOSED:$p\"; "
+                        f"done 2>/dev/null"
+                    )
+                    probe_info["port_scan"] = scan_out or "(no output)"
+                except Exception as pse:
+                    probe_info["port_scan"] = f"ERROR: {pse}"
                 # Strategy 1 raw: run ssh client on the gateway shell directly
                 # so we can see the exact output / error for diagnosis.
                 try:
