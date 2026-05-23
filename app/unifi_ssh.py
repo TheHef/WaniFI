@@ -6,6 +6,7 @@ from typing import Optional
 from urllib.parse import urlparse
 
 from .config import log
+from .db import get_setting
 
 try:
     import asyncssh
@@ -46,7 +47,7 @@ class UniFiSSHClient:
         self._prev_bytes: dict = {}  # iface -> (rx_bytes, tx_bytes, monotonic_ts)
         # Cache for adopted-device list (refreshed every 120 s to avoid hitting
         # MongoDB on every live-stats poll without being permanently stale).
-        self._adopted_cache: Optional[tuple[float, list[dict]]] = None
+        self._adopted_cache: Optional[tuple[float, list[dict], str]] = None
 
     # ── Connection ───────────────────────────────────────────────────────────
 
@@ -579,7 +580,10 @@ class UniFiSSHClient:
         Returns list of {model, name, ip} dicts.
         """
         now = time.monotonic()
-        if self._adopted_cache is not None and now - self._adopted_cache[0] <= 120:
+        override_model = get_setting("gre_device_model", "")
+        if (self._adopted_cache is not None
+                and now - self._adopted_cache[0] <= 120
+                and self._adopted_cache[2] == override_model):
             return self._adopted_cache[1]
 
         extra: list[dict] = []
@@ -618,7 +622,20 @@ class UniFiSSHClient:
                     if not (d.get("model") == gw_model and d.get("name") == gw_name)
                 ]
 
-        self._adopted_cache = (now, extra)
+        # Strategy 4: manual override from Settings UI.
+        # Used when all automated discovery fails (e.g. MongoDB not running,
+        # secondary device ports closed, ULP file empty).
+        if not extra and override_model:
+            gre_remotes = await self._get_gre_remotes()
+            if gre_remotes:
+                extra = [
+                    {"model": override_model, "name": override_model, "ip": ip}
+                    for ip in gre_remotes.values()
+                ]
+            else:
+                extra = [{"model": override_model, "name": override_model, "ip": ""}]
+
+        self._adopted_cache = (now, extra, override_model)
         return extra
 
     # ── Public API (shape-compatible with UniFiClient) ───────────────────────

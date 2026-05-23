@@ -133,6 +133,50 @@
       </div>
     </div>
 
+    <!-- Secondary Gateway override — shown only in SSH mode -->
+    <div x-show="settings.unifi_ssh_mode" class="mt-4 bg-slate-800/40 border border-slate-700/60 rounded-xl p-4">
+      <div class="flex items-start gap-3 mb-3">
+        <div>
+          <div class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Secondary Gateway Override</div>
+          <div class="text-xs text-slate-600 mt-0.5">Used when the secondary device (e.g. WAN3 via GRE tunnel) cannot be auto-detected. Select the model and the correct device icon will appear on the failover card.</div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between gap-4">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0">Device Model</span>
+        <div class="flex items-center gap-2">
+          <template x-if="settings.gre_device_model">
+            <img :src="deviceIcon(settings.gre_device_model)" class="w-6 h-6 object-contain shrink-0"
+                 x-show="deviceIcon(settings.gre_device_model)">
+          </template>
+          <select x-model="settings.gre_device_model"
+                  class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition">
+            <option value="">— Auto-detect —</option>
+            <option value="U5GMAX">U5G-Max</option>
+            <option value="UCGMAX">UCG-Max</option>
+            <option value="UCGULTRA">UCG-Ultra</option>
+            <option value="UXGPRO">Gateway Pro</option>
+            <option value="UXGMAX">Gateway Max</option>
+            <option value="UXGLITE">Gateway Lite</option>
+            <option value="UXGE">Gateway Enterprise</option>
+            <option value="UDM">Dream Machine</option>
+            <option value="UDMPRO">Dream Machine Pro</option>
+            <option value="UDMPROMAX">Dream Machine Pro Max</option>
+            <option value="UDMSE">Dream Machine SE</option>
+            <option value="UDMPROSE">Dream Machine Pro SE</option>
+            <option value="UDR">Dream Router</option>
+            <option value="UX">UniFi Express</option>
+            <option value="USG">Security Gateway</option>
+            <option value="USG3P">Security Gateway 3P</option>
+            <option value="USGPRO4">Security Gateway Pro 4</option>
+            <option value="UMR">Mobile Router</option>
+            <option value="UMRPRO">Mobile Router Pro</option>
+            <option value="ULTE">U-LTE</option>
+            <option value="ULTEPRO">U-LTE Pro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="mt-6 pt-6 border-t border-slate-800">
       <div class="flex gap-5 items-stretch">
 

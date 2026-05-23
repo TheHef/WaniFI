@@ -54,6 +54,7 @@ class SettingsIn(BaseModel):
     unifi_ssh_port: int = 22
     unifi_ssh_username: str = "root"
     unifi_ssh_password: Optional[str] = None
+    gre_device_model: str = ""
 
 
 class OpenWrtSettingsIn(BaseModel):

@@ -15,6 +15,7 @@ EXPORT_KEYS = (
     "router_type",
     "unifi_host", "unifi_api_key", "unifi_site",
     "unifi_ssh_mode", "unifi_ssh_port", "unifi_ssh_username", "unifi_ssh_password",
+    "gre_device_model",
     "primary_wan", "failover_wan",
     "openwrt_url", "openwrt_username", "openwrt_password",
     "openwrt_primary_iface", "openwrt_failover_iface", "openwrt_router_model",
@@ -81,6 +82,7 @@ async def get_settings(_: bool = Depends(require_auth)):
         "unifi_ssh_port":           int(get_setting("unifi_ssh_port", "22")),
         "unifi_ssh_username":       get_setting("unifi_ssh_username", "root"),
         "unifi_ssh_password_set":   bool(get_setting("unifi_ssh_password")),
+        "gre_device_model":         get_setting("gre_device_model", ""),
     }
 
 
@@ -105,6 +107,7 @@ async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
     set_setting("unifi_ssh_username", payload.unifi_ssh_username.strip() or "root")
     if payload.unifi_ssh_password:
         set_setting("unifi_ssh_password", payload.unifi_ssh_password)
+    set_setting("gre_device_model", payload.gre_device_model.strip().upper())
     log_event("info", "Settings updated")
     return {"ok": True}
 
