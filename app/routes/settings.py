@@ -140,6 +140,8 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
             # ── Controller filesystem: sites dir + device JSON files ──────────
             ("ctrl_fs_sites",   "ls /mnt/data/unifi-os/unifi/data/sites/ 2>/dev/null || ls /data/unifi/data/sites/ 2>/dev/null || echo 'no_sites_dir'"),
             ("ctrl_fs_devices", "find /mnt/data /data /persistent -maxdepth 8 \\( -name 'device*.json' -o -name '*devices*.json' \\) 2>/dev/null | head -10 || echo 'no_device_files'"),
+            # ── ULP backup file (Strategy 3 — present on UCG-Max) ────────────────
+            ("ulp_devices_file", "cat /data/ulp-go/ws/backup_unifi_devices.json 2>/dev/null | head -c 6000 || echo 'ulp_file_not_found'"),
         ]:
             try:
                 result[label] = await client.run_raw(cmd)

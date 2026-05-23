@@ -502,6 +502,69 @@ class UniFiSSHClient:
 
         return result
 
+    async def _query_ulp_backup_file(self) -> list[dict]:
+        """Read /data/ulp-go/ws/backup_unifi_devices.json and return device records.
+
+        The UniFi Location Platform (ulp-go) service writes this backup file on
+        UCG-Max devices. It contains adopted device data (model, name, ip, mac)
+        and is readable without credentials — useful when MongoDB is not running
+        and secondary devices block SSH entirely.
+
+        Returns list of {model, name, mac, ip} dicts.
+        """
+        try:
+            raw = await self._run(
+                "cat /data/ulp-go/ws/backup_unifi_devices.json 2>/dev/null"
+            )
+            if not raw or not ("{" in raw or "[" in raw):
+                return []
+            data = json.loads(raw)
+        except Exception:
+            return []
+
+        # Normalise: may be a bare list or wrapped in a dict key
+        entries: list = []
+        if isinstance(data, list):
+            entries = data
+        elif isinstance(data, dict):
+            for key in ("data", "devices", "device_list", "list"):
+                val = data.get(key)
+                if isinstance(val, list):
+                    entries = val
+                    break
+            if not entries and data.get("model"):
+                entries = [data]
+
+        devices: list[dict] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            model = (
+                entry.get("model") or
+                entry.get("device_type") or
+                ""
+            )
+            name = (
+                entry.get("name") or
+                entry.get("hostname") or
+                entry.get("alias") or
+                ""
+            )
+            ip = (
+                entry.get("ip") or
+                entry.get("ip_addr") or
+                entry.get("ipAddress") or
+                ""
+            )
+            mac = (
+                entry.get("mac") or
+                entry.get("macAddress") or
+                ""
+            )
+            if model or mac:
+                devices.append({"model": model, "name": name, "mac": mac, "ip": ip})
+        return devices
+
     async def _get_extra_devices_cached(self, gw_model: str, gw_name: str) -> list[dict]:
         """Return non-gateway WAN devices with a 120 s TTL cache.
 
@@ -510,6 +573,8 @@ class UniFiSSHClient:
           credentials (UniFi shares SSH password across all adopted devices).
           Reads /proc/ubnthal/system_info → model, hostname, and the LAN IP
           is taken from the tunnel remote address.
+        Strategy 3: read /data/ulp-go/ws/backup_unifi_devices.json — present on
+          UCG-Max; does not require MongoDB or SSH access to secondary devices.
 
         Returns list of {model, name, ip} dicts.
         """
@@ -540,8 +605,18 @@ class UniFiSSHClient:
                     return_exceptions=True,
                 )
                 for probe in probes:
-                    if isinstance(probe, dict):
+                    if isinstance(probe, dict) and (probe.get("model") or probe.get("name")):
                         extra.append(probe)
+
+        # Strategy 3: ULP backup file (UCG-Max specific, read-only cat).
+        # Skipped if Strategy 1/2 already found devices.
+        if not extra:
+            ulp_devices = await self._query_ulp_backup_file()
+            if ulp_devices:
+                extra = [
+                    d for d in ulp_devices
+                    if not (d.get("model") == gw_model and d.get("name") == gw_name)
+                ]
 
         self._adopted_cache = (now, extra)
         return extra
