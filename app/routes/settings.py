@@ -151,8 +151,15 @@ async def debug_unifi_ssh(_: bool = Depends(require_auth)):
                 "u=d.get('uplink','');"
                 "ifs=d.get('if_table',[]);"
                 "a=next((i for i in ifs if i.get('name')==u),{});"
-                "print(json.dumps({'uplink':u,'rx_rate':a.get('rx_rate'),'rx_bytes_r':a.get('rx_bytes-r'),'tx_rate':a.get('tx_rate'),'tx_bytes_r':a.get('tx_bytes-r'),'speed':a.get('speed'),'full_keys':list(a.keys())}))"
+                "print(json.dumps({'uplink':u,'rx_rate':a.get('rx_rate'),'rx_bytes_r':a.get('rx_bytes-r'),'tx_rate':a.get('tx_rate'),'tx_bytes_r':a.get('tx_bytes-r'),'speed':a.get('speed'),'xput_down':a.get('xput_down'),'xput_up':a.get('xput_up'),'full_keys':list(a.keys())}))"
                 "\" 2>/dev/null || echo 'python3_failed'"
+            )),
+            # ── NAT/iptables WAN counters (internet-only traffic, excludes VPN) ──
+            ("nat_counters", (
+                "iptables -t nat -L POSTROUTING -v -n -x 2>/dev/null | grep -E 'MASQUERADE|eth[0-9]' | head -10 || echo 'iptables_failed'"
+            )),
+            ("nft_masq", (
+                "nft list table ip nat 2>/dev/null | grep -A2 'masquerade' | head -20 || echo 'nft_failed'"
             )),
             # ── ULP backup file (Strategy 3 — present on UCG-Max) ────────────────
             ("ulp_devices_file", "cat /data/ulp-go/ws/backup_unifi_devices.json 2>/dev/null | head -c 6000 || echo 'ulp_file_not_found'"),
