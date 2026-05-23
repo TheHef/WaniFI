@@ -272,11 +272,10 @@ class UniFiSSHClient:
                 active_wan_type = (active_iface.get("comment") or "").lower()
                 wan_latency     = active_iface.get("latency")
                 wan_uptime      = active_iface.get("uptime")
-                # rx_rate / tx_rate are bytes/sec
-                rx_bps = active_iface.get("rx_rate") or active_iface.get("rx_bytes-r") or 0
-                tx_bps = active_iface.get("tx_rate") or active_iface.get("tx_bytes-r") or 0
-                rx_mbps = round(rx_bps * 8 / 1_000_000, 2)
-                tx_mbps = round(tx_bps * 8 / 1_000_000, 2)
+                # mca-dump rx_rate/tx_rate on UCG-Max counts all-direction port traffic
+                # and is massively inflated (~10-18 MB/s at idle 5 Mbps actual load).
+                # get_gateway_info() overrides rx_mbps/tx_mbps with a /proc/net/dev delta;
+                # leave them at 0.0 here so SSH failures show 0 rather than 130 Mbps.
 
             # uptime_stats may carry richer latency per-WAN
             uptime_stats = data.get("uptime_stats") or {}
