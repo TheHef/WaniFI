@@ -248,6 +248,7 @@ services:
   wanifi-agent:
     image: ghcr.io/thehef/wanifi-agent:latest
     container_name: wanifi-agent
+    hostname: my-server          # shown in WaniFi UI — set to something recognisable
     restart: unless-stopped
     environment:
       WANIFI_URL: "http://192.168.0.100:4444"   # your WaniFi server
