@@ -1288,8 +1288,22 @@ window.app = function () {
     },
 
     async deleteAgent(id) {
-      await fetch('/api/agents/' + id, {method: 'DELETE'});
-      await this.loadAgents();
+      const agent = this.agents.find(a => a.id === id);
+      const name = agent?.name ?? 'this agent';
+      this.confirmModal = {
+        open: true,
+        label: `Delete agent "${name}"? This cannot be undone.`,
+        confirm: async () => {
+          this.confirmModal.open = false;
+          await fetch(`/api/agents/${id}`, { method: 'DELETE' });
+          await this.loadAgents();
+        },
+      };
+    },
+
+    async toggleRouterType(type) {
+      this.settings.router_type = this.settings.router_type === type ? '' : type;
+      await this.saveSettings(true);
     },
 
     cliSnippet() {

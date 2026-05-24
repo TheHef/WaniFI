@@ -67,7 +67,7 @@ EXPORT_KEYS = (
 @router.get("")
 async def get_settings(_: bool = Depends(require_auth)):
     return {
-        "router_type":              get_setting("router_type", "unifi"),
+        "router_type":              get_setting("router_type", ""),
         "unifi_host":               get_setting("unifi_host", ""),
         "unifi_api_key_set":        bool(get_setting("unifi_api_key")),
         "unifi_site":               get_setting("unifi_site", "default"),
@@ -89,7 +89,7 @@ async def get_settings(_: bool = Depends(require_auth)):
 
 @router.post("")
 async def save_settings(payload: SettingsIn, _: bool = Depends(require_auth)):
-    rtype = payload.router_type.strip() if payload.router_type in ("unifi", "openwrt", "glinet") else "unifi"
+    rtype = payload.router_type.strip() if payload.router_type in ("", "unifi", "openwrt", "glinet") else ""
     set_setting("router_type",         rtype)
     set_setting("unifi_host",          payload.unifi_host.strip())
     if payload.unifi_api_key:
