@@ -89,7 +89,7 @@ window.app = function () {
     rules: [], events: [], containers: [], discoveredWans: [], agents: [],
     agentContainers: [], agentContainersLoading: false,
     agentDockerAction: 'stop', agentDockerContainer: '',
-    newAgentName: '', newAgentKey: '', agentMsg: '', keyTab: 'cli', keyMode: 'docker', copiedKey: null,
+    newAgentName: '', newAgentKey: '', agentMsg: '', keyTab: 'cli', keyMode: 'docker', copiedKey: null, revealKey: null,
     newRule: { rule_type: 'host_command', name: '', container: '', trigger: 'failover', action: 'stop', command: '', delay_seconds: 0 },
     confirmModal: { open: false, label: '', confirm: () => {} },
     editModal:    { open: false, rule: {} },
