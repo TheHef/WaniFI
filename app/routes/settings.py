@@ -60,6 +60,7 @@ EXPORT_KEYS = (
     "integration_nodered", "integration_nzbget", "integration_gotify",
     "speedtest_server_id", "speedtest_server_name", "speedtest_source_ip",
     "integration_speedtest", "integration_npm", "integration_cloudflare", "integration_nut",
+    "backup_schedule_enabled", "backup_schedule_interval", "backup_schedule_time", "backup_retention_count",
 )
 
 

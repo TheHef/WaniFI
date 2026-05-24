@@ -84,6 +84,7 @@ window.app = function () {
       speedtest: false, npm: false, cloudflare: false, nut: false,
     },
     categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
+    openIntegration: null,
     stats: {},
     rules: [], events: [], containers: [], discoveredWans: [], agents: [],
     agentContainers: [], agentContainersLoading: false,
@@ -1371,12 +1372,18 @@ window.app = function () {
       if (d.ok) {
         this.integrations[name] = d.enabled;
         if (d.enabled) {
-          if (['emby', 'jellyfin', 'plex', 'sonarr', 'radarr'].includes(name))                      this.categoryOpen.media = true;
-          else if (['qb', 'sabnzbd', 'transmission', 'deluge', 'nzbget'].includes(name))                    this.categoryOpen.downloaders = true;
-          else if (['ntfy', 'discord', 'telegram', 'pushover', 'gotify'].includes(name))                    this.categoryOpen.notifications = true;
+          if (['emby', 'jellyfin', 'plex', 'sonarr', 'radarr'].includes(name))                       this.categoryOpen.media = true;
+          else if (['qb', 'sabnzbd', 'transmission', 'deluge', 'nzbget'].includes(name))              this.categoryOpen.downloaders = true;
+          else if (['ntfy', 'discord', 'telegram', 'pushover', 'gotify'].includes(name))              this.categoryOpen.notifications = true;
           else if (['homeassistant', 'proxmox', 'portainer', 'truenas', 'unraid', 'nodered'].includes(name)) this.categoryOpen.homelab = true;
-          else if (['pihole', 'adguard', 'speedtest'].includes(name))                                        this.categoryOpen.network = true;
-          else if (['npm', 'cloudflare', 'nut'].includes(name))                                              this.categoryOpen.homelab = true;
+          else if (['pihole', 'adguard', 'speedtest'].includes(name))                                 this.categoryOpen.network = true;
+          else if (['npm', 'cloudflare', 'nut'].includes(name))                                       this.categoryOpen.homelab = true;
+          // Auto-expand the settings section for integrations that have one
+          const hasSettings = ['emby','jellyfin','plex','qb','sabnzbd','transmission','deluge',
+            'sonarr','radarr','nzbget','discord','telegram','pushover','ntfy','gotify',
+            'homeassistant','proxmox','portainer','truenas','unraid','nodered',
+            'adguard','pihole','npm','cloudflare','nut'];
+          if (hasSettings.includes(name)) this.openIntegration = name;
         }
       }
     },
