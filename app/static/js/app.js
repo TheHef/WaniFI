@@ -4,6 +4,8 @@ window.app = function () {
   return {
     // ---- State ------------------------------------------------------------
     tab: 'dashboard',
+    settingsSection: 'router',  // 'router' | 'apis' | 'agents' | 'backup'
+    prevTab: 'dashboard',       // tab to return to when Back is pressed in settings
     status:    { active_wan: null, raw_wans: [] },
     liveStats: {},
     settings:  {
@@ -121,22 +123,37 @@ window.app = function () {
 
       const pathMap = { '/overview':'dashboard', '/rules':'rules', '/settings':'settings', '/events':'events' };
       const tabPaths = { dashboard:'/overview', rules:'/rules', settings:'/settings', events:'/events' };
+      const SECTIONS = ['router', 'apis', 'agents', 'backup'];
       const fromPath = pathMap[location.pathname];
       if (fromPath) this.tab = fromPath;
 
-      // Stamp current state so every entry in history has a tab key
-      history.replaceState({ tab: this.tab }, '', tabPaths[this.tab] || '/overview');
+      // Read settings sub-section from ?s= query param on initial load
+      const _sp = new URLSearchParams(location.search);
+      const _sec = _sp.get('s');
+      if (_sec && SECTIONS.includes(_sec)) this.settingsSection = _sec;
 
-      // Use the browser URL as source of truth — if the URL already matches the
-      // target tab (e.g. browser just moved via popstate) we skip pushState entirely.
-      // No flags needed; this works regardless of whether $watch fires sync or async.
+      // Stamp current state so every entry in history has a tab + section key
+      const _initQ = this.tab === 'settings' ? `?s=${this.settingsSection}` : '';
+      history.replaceState({ tab: this.tab, section: this.settingsSection }, '', (tabPaths[this.tab] || '/overview') + _initQ);
+
+      // Sync URL when tab changes
       this.$watch('tab', val => {
-        const target = tabPaths[val] || '/overview';
-        if (location.pathname === target) return;
-        history.pushState({ tab: val }, '', target);
+        const q = val === 'settings' ? `?s=${this.settingsSection}` : '';
+        const target = (tabPaths[val] || '/overview') + q;
+        if (location.pathname + location.search === target) return;
+        history.pushState({ tab: val, section: this.settingsSection }, '', target);
         window.scrollTo(0, 0);
         if (val === 'rules') this._setDefaultRuleType();
         if (val === 'events') this.eventsLimit = 20;
+      });
+
+      // Sync URL when settings sub-section changes
+      this.$watch('settingsSection', val => {
+        if (this.tab !== 'settings') return;
+        const target = `/settings?s=${val}`;
+        if (location.pathname + location.search === target) return;
+        history.pushState({ tab: 'settings', section: val }, '', target);
+        window.scrollTo(0, 0);
       });
 
       window.addEventListener('keydown', e => {
@@ -152,6 +169,8 @@ window.app = function () {
           this.tab = t;
           window.scrollTo(0, 0);
         }
+        const sec = e.state?.section || new URLSearchParams(location.search).get('s');
+        if (sec && SECTIONS.includes(sec)) this.settingsSection = sec;
       });
 
       await this.loadSettings();

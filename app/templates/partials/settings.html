@@ -1,4 +1,4 @@
-<section x-show="tab === 'settings'">  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
+<section x-show="tab === 'settings'">  <div x-show="settingsSection === 'router'" class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Router Type</div>
     <div class="flex gap-2 mb-6">
       <button @click="settings.router_type = 'unifi'; saveSettings(true)"
@@ -544,7 +544,7 @@
     </div>
   </div><!-- end x-show openwrt -->
 
-  </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
+  </div>  <div x-show="settingsSection === 'apis'" class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">API's</div>    <div class="space-y-2 mb-6">      <div class="grid grid-cols-3 gap-2">        <div :class="integrations.host_command ? 'border-red-500/40 bg-red-500/5' : 'border-slate-700/80 opacity-50'"
              class="flex items-center gap-3 p-3.5 rounded-xl border w-full cursor-default select-none">
           <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -1635,7 +1635,7 @@
         <span class="text-sm font-medium" :class="gotifyMsg.startsWith('✓') ? 'text-emerald-400' : gotifyMsg === 'Sending…' ? 'text-slate-400' : 'text-red-400'" x-show="gotifyMsg" x-text="gotifyMsg"></span>
       </div>
     </div></div>
-  </div>  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
+  </div>  <div x-show="settingsSection === 'agents'" class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5 mb-4">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Agents</div>
 
     <!-- Registered agents -->
@@ -1729,7 +1729,7 @@
     </div>
   </div>
 
-  <div class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
+  <div x-show="settingsSection === 'backup'" class="bg-slate-900 border border-slate-700/60 rounded-2xl p-5">
     <div class="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Backup &amp; Restore</div>
     <div class="flex gap-3 flex-wrap items-center">
       <a href="/api/backup/export"
