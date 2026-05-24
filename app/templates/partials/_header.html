@@ -84,12 +84,6 @@
     </template>
 
     <div class="ml-auto flex items-center gap-3 py-2 pr-1">
-      <template x-if="status.docker_ok">
-        <span class="text-xs font-medium text-emerald-400">Docker Connected</span>
-      </template>
-      <template x-if="status.docker_ok">
-        <span class="text-slate-700">|</span>
-      </template>
       <span class="text-xs font-medium"
             :class="liveConnected ? 'text-emerald-400' : status.controller_offline ? 'text-amber-400' : 'text-red-400'"
             x-text="liveConnected
