@@ -1691,19 +1691,19 @@
     <!-- ── Agent cards ───────────────────────────────────────────────── -->
     <div class="space-y-3">
       <template x-for="(a, index) in agents" :key="a.id">
-        <div class="rounded-xl border transition select-none"
+        <div class="rounded-xl border transition"
              :class="agentDragOverIndex === index && agentDragSrcIndex !== index
                        ? 'border-blue-500/40 bg-blue-500/5'
                        : a.online ? 'border-slate-700 bg-slate-800/30' : 'border-slate-800 bg-slate-800/20'"
-             draggable="true"
-             @dragstart="agentDragSrcIndex = index; $event.dataTransfer.effectAllowed = 'move'"
              @dragover.prevent="agentDragOverIndex = index; $event.dataTransfer.dropEffect = 'move'"
              @dragleave="agentDragOverIndex = null"
              @drop.prevent="reorderAgents(agentDragSrcIndex, index); agentDragSrcIndex = null; agentDragOverIndex = null"
              @dragend="agentDragSrcIndex = null; agentDragOverIndex = null">
 
-          <!-- Header row: drag · status · name · hostname · [caps] · Online · × -->
-          <div class="flex items-center gap-2.5 px-4 py-3 cursor-grab">
+          <!-- Header row — only this row is draggable -->
+          <div class="flex items-center gap-2.5 px-4 py-3 cursor-grab select-none"
+               draggable="true"
+               @dragstart="agentDragSrcIndex = index; $event.dataTransfer.effectAllowed = 'move'">
             <svg class="w-3.5 h-3.5 text-slate-700 shrink-0" fill="currentColor" viewBox="0 0 24 24">
               <circle cx="9" cy="5" r="1.2"/><circle cx="15" cy="5" r="1.2"/>
               <circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/>
@@ -1765,7 +1765,16 @@
               </div>
               <div class="bg-slate-900/60 rounded-lg px-3 py-2">
                 <div class="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-0.5">Version</div>
-                <div class="text-xs font-mono text-slate-300" x-text="(a.online && a.caps?.version) ? a.caps.version : '—'"></div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-mono"
+                        :class="(a.online && a.caps?.version && a.caps.version !== 'dev' && versionStatus?.latest && !versionStatus.latest.startsWith(a.caps.version) && !a.caps.version.startsWith(versionStatus.latest)) ? 'text-red-400' : 'text-slate-300'"
+                        x-text="(a.online && a.caps?.version) ? a.caps.version : '—'"></span>
+                  <template x-if="a.online && a.caps?.version && a.caps.version !== 'dev' && versionStatus?.latest && !versionStatus.latest.startsWith(a.caps.version) && !a.caps.version.startsWith(versionStatus.latest)">
+                    <svg class="w-3.5 h-3.5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" title="Update available">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                    </svg>
+                  </template>
+                </div>
               </div>
             </div>
 

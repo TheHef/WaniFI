@@ -16,7 +16,18 @@ log = logging.getLogger("wanifi-agent")
 
 WANIFI_URL: str = os.environ["WANIFI_URL"].rstrip("/")   # e.g. wss://wanifi.example.com
 AGENT_KEY:  str = os.environ["AGENT_API_KEY"]
-AGENT_VERSION: str = os.environ.get("AGENT_VERSION", "latest")
+
+def _read_version() -> str:
+    """Read baked-in git SHA from /app/VERSION, fall back to env var or 'dev'."""
+    try:
+        v = open("/app/VERSION").read().strip()
+        if v and v != "dev":
+            return v[:7]  # short SHA
+    except Exception:
+        pass
+    return os.environ.get("AGENT_VERSION", "dev")
+
+AGENT_VERSION: str = _read_version()
 RECONNECT_DELAY = 10  # seconds between reconnect attempts
 
 WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws"
@@ -65,47 +76,74 @@ def detect_caps() -> dict:
     except Exception:
         pass
 
-    # Host IP: with pid:host, /proc/1/net/fib_trie is the HOST's routing table.
-    # Parse it for "host LOCAL" entries and prefer non-Docker-bridge addresses.
+    # Host IP — three methods tried in order:
+    # 1. nsenter: run `ip route get` inside host's network namespace (most reliable)
+    # 2. fib_trie: parse /proc/1/net/fib_trie (works with pid:host, no extra tools)
+    # 3. UDP trick: container's own outbound IP (fallback)
     ip = ""
-    try:
-        candidates = []
-        prev_ip = None
-        with open("/proc/1/net/fib_trie") as f:
-            for line in f:
-                s = line.strip()
-                if s.startswith("-- "):
-                    candidate = s[3:].split("/")[0].strip()
-                    try:
-                        socket.inet_aton(candidate)
-                        prev_ip = candidate
-                    except Exception:
-                        prev_ip = None
-                elif "/32 host LOCAL" in s and prev_ip:
-                    if not prev_ip.startswith("127.") and not prev_ip.startswith("0."):
-                        candidates.append(prev_ip)
-                    prev_ip = None
-        # Prefer real LAN IPs — skip Docker bridge range (172.16-31.x.x)
-        for candidate in candidates:
-            parts = candidate.split(".")
-            if parts[0] == "172" and 16 <= int(parts[1]) <= 31:
-                continue
-            if not candidate.startswith("169.254."):
-                ip = candidate
-                break
-        if not ip and candidates:
-            ip = candidates[0]
-    except Exception:
-        pass
 
-    # Fallback: UDP trick (gives container IP, but better than nothing)
+    # Method 1: nsenter (requires util-linux + iproute2 in image)
     if not ip:
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.settimeout(2)
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            s.close()
+            r = subprocess.run(
+                ["nsenter", "-t", "1", "-n", "--", "ip", "route", "get", "8.8.8.8"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if r.returncode == 0:
+                tokens = r.stdout.split()
+                for i, tok in enumerate(tokens):
+                    if tok == "src" and i + 1 < len(tokens):
+                        candidate = tokens[i + 1]
+                        try:
+                            socket.inet_aton(candidate)
+                            ip = candidate
+                        except Exception:
+                            pass
+                        break
+        except Exception:
+            pass
+
+    # Method 2: parse /proc/1/net/fib_trie (host network namespace via pid:host)
+    if not ip:
+        try:
+            candidates = []
+            prev_ip = None
+            with open("/proc/1/net/fib_trie") as f:
+                for line in f:
+                    s = line.strip()
+                    if s.startswith("-- "):
+                        candidate = s[3:].split("/")[0].strip()
+                        try:
+                            socket.inet_aton(candidate)
+                            prev_ip = candidate
+                        except Exception:
+                            prev_ip = None
+                    elif "/32 host LOCAL" in s and prev_ip:
+                        if not prev_ip.startswith("127.") and not prev_ip.startswith("0."):
+                            candidates.append(prev_ip)
+                        prev_ip = None
+            # Skip Docker bridge range (172.16–31.x.x) and link-local
+            for candidate in candidates:
+                parts = candidate.split(".")
+                if parts[0] == "172" and 16 <= int(parts[1]) <= 31:
+                    continue
+                if candidate.startswith("169.254."):
+                    continue
+                ip = candidate
+                break
+            if not ip and candidates:
+                ip = candidates[0]
+        except Exception:
+            pass
+
+    # Method 3: UDP trick — gives the container's own outbound IP
+    if not ip:
+        try:
+            _s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            _s.settimeout(2)
+            _s.connect(("8.8.8.8", 80))
+            ip = _s.getsockname()[0]
+            _s.close()
         except Exception:
             pass
 
