@@ -236,8 +236,9 @@ window.app = function () {
         this.containers = c.containers;
         this.agents     = a;
         this.appConnected = true;
-        // Docker availability is determined by socket mount — sync and lock the toggle
-        if (s.docker_ok !== undefined) this.integrations.docker = s.docker_ok;
+        // Auto-detected integrations: lock toggle to runtime state, ignore DB value
+        if (s.docker_ok       !== undefined) this.integrations.docker       = s.docker_ok;
+        if (s.host_command_ok !== undefined) this.integrations.host_command = s.host_command_ok;
         await this.loadStats();
       } catch { this.appConnected = false; }
     },

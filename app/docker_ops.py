@@ -41,6 +41,41 @@ def docker_ok() -> bool:
         return False
 
 
+_host_cmd_ok_cache: tuple[bool, float] = (False, 0.0)
+_HOST_CMD_OK_TTL = 30.0
+
+
+def host_command_ok() -> bool:
+    """Return True if the container has both privileged + pid:host.
+
+    Detected entirely from /proc/self/status — no subprocess needed:
+    - CapEff must include CAP_SYS_ADMIN (bit 21) → privileged
+    - NSpid must have exactly one value → pid:host (no nested PID namespace)
+    """
+    global _host_cmd_ok_cache
+    ok, ts = _host_cmd_ok_cache
+    if time.monotonic() - ts < _HOST_CMD_OK_TTL:
+        return ok
+    try:
+        with open("/proc/self/status") as f:
+            content = f.read()
+        cap_eff = 0
+        nspid_count = 2  # default to "nested" (not pid:host)
+        for line in content.splitlines():
+            if line.startswith("CapEff:"):
+                cap_eff = int(line.split()[1], 16)
+            elif line.startswith("NSpid:"):
+                nspid_count = len(line.split()) - 1  # subtract label
+        has_priv     = bool(cap_eff & (1 << 21))  # CAP_SYS_ADMIN
+        has_pid_host = nspid_count == 1
+        result = has_priv and has_pid_host
+        _host_cmd_ok_cache = (result, time.monotonic())
+        return result
+    except Exception:
+        _host_cmd_ok_cache = (False, time.monotonic())
+        return False
+
+
 def list_containers() -> list[dict]:
     try:
         containers = get_client().containers.list(all=True)
