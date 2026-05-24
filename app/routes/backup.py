@@ -252,6 +252,7 @@ async def get_backup_schedule(_: bool = Depends(require_auth)):
     return {
         "enabled":   get_setting("backup_schedule_enabled",  "0") == "1",
         "interval":  get_setting("backup_schedule_interval", "daily"),
+        "time":      get_setting("backup_schedule_time",     "02:00"),
         "retention": int(get_setting("backup_retention_count", "10")),
     }
 
@@ -261,6 +262,15 @@ async def save_backup_schedule(request: Request, _: bool = Depends(require_auth)
     body = await request.json()
     set_setting("backup_schedule_enabled",  "1" if body.get("enabled") else "0")
     set_setting("backup_schedule_interval", body.get("interval", "daily"))
+    # Validate time format HH:MM
+    raw_time = body.get("time", "02:00")
+    try:
+        h, m = map(int, raw_time.split(":"))
+        if not (0 <= h <= 23 and 0 <= m <= 59):
+            raise ValueError
+        set_setting("backup_schedule_time", f"{h:02d}:{m:02d}")
+    except Exception:
+        set_setting("backup_schedule_time", "02:00")
     try:
         retention = max(1, int(body.get("retention", 10)))
     except (TypeError, ValueError):

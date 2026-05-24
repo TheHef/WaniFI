@@ -59,7 +59,7 @@ window.app = function () {
     speedtestServers: [], speedtestServerSearch: '', speedtestServerOpen: false, speedtestServersLoading: false, speedtestServersError: '',
 
     savedBackups: [], savedBackupsLoading: false,
-    backupSchedule: { enabled: false, interval: 'daily', retention: 10 },
+    backupSchedule: { enabled: false, interval: 'daily', time: '02:00', retention: 10 },
     backupMsg: '', backupScheduleMsg: '',
 
     embyMsg: '', jellyfinMsg: '', plexMsg: '',

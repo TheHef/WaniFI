@@ -1857,6 +1857,11 @@
           </select>
         </div>
         <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-400">Time</span>
+          <input type="time" x-model="backupSchedule.time"
+                 class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 transition [color-scheme:dark]">
+        </div>
+        <div class="flex items-center gap-2">
           <span class="text-xs text-slate-400">Keep last</span>
           <input type="number" x-model.number="backupSchedule.retention" min="1" max="100"
                  class="w-16 bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 transition">

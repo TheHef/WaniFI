@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shlex
+import socket
 import subprocess
 import time
 
@@ -15,6 +16,7 @@ log = logging.getLogger("wanifi-agent")
 
 WANIFI_URL: str = os.environ["WANIFI_URL"].rstrip("/")   # e.g. wss://wanifi.example.com
 AGENT_KEY:  str = os.environ["AGENT_API_KEY"]
+AGENT_VERSION: str = os.environ.get("AGENT_VERSION", "latest")
 RECONNECT_DELAY = 10  # seconds between reconnect attempts
 
 WS_URL = WANIFI_URL.replace("http://", "ws://").replace("https://", "wss://") + "/api/agents/ws"
@@ -27,6 +29,60 @@ def get_docker():
     if _docker_client is None:
         _docker_client = docker.DockerClient(base_url="unix:///var/run/docker.sock")
     return _docker_client
+
+
+def detect_caps() -> dict:
+    """Auto-detect runtime capabilities to report to the WaniFi server."""
+    # Docker: try to ping the socket
+    docker_ok = False
+    try:
+        c = docker.DockerClient(base_url="unix:///var/run/docker.sock")
+        c.ping()
+        docker_ok = True
+    except Exception:
+        pass
+
+    # Host command: requires privileged (CAP_SYS_ADMIN) + pid:host (NSpid count == 1)
+    host_command_ok = False
+    try:
+        with open("/proc/self/status") as f:
+            content = f.read()
+        cap_eff = 0
+        nspid_count = 2
+        for line in content.splitlines():
+            if line.startswith("CapEff:"):
+                cap_eff = int(line.split()[1], 16)
+            elif line.startswith("NSpid:"):
+                nspid_count = len(line.split()) - 1
+        host_command_ok = bool(cap_eff & (1 << 21)) and nspid_count == 1
+    except Exception:
+        pass
+
+    # Hostname
+    hostname = ""
+    try:
+        hostname = socket.gethostname()
+    except Exception:
+        pass
+
+    # Best-effort outbound IP
+    ip = ""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(2)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
+    return {
+        "docker":       docker_ok,
+        "host_command": host_command_ok,
+        "hostname":     hostname,
+        "ip":           ip,
+        "version":      AGENT_VERSION,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -109,8 +165,12 @@ async def run():
         try:
             log.info("Connecting to WaniFi server")
             async with websockets.connect(WS_URL) as ws:
-                # Authenticate via first message
-                await ws.send(json.dumps({"type": "auth", "key": AGENT_KEY}))
+                # Detect capabilities and authenticate
+                caps = detect_caps()
+                log.info("Caps: docker=%s host_command=%s ip=%s hostname=%s version=%s",
+                         caps["docker"], caps["host_command"], caps["ip"],
+                         caps["hostname"], caps["version"])
+                await ws.send(json.dumps({"type": "auth", "key": AGENT_KEY, "caps": caps}))
                 ack = json.loads(await ws.recv())
                 if not ack.get("ok"):
                     log.error("Authentication rejected: %s", ack.get("error", "unknown"))

@@ -859,17 +859,36 @@ async def fire_trigger(trigger: str):
 
 
 async def maybe_run_scheduled_backup():
-    """Save an automatic backup if the configured schedule interval has elapsed."""
+    """Save an automatic backup according to the configured schedule and time of day."""
     if get_setting("backup_schedule_enabled", "0") != "1":
         return
+
+    # Parse scheduled time of day (HH:MM, default 02:00)
+    sched_time_str = get_setting("backup_schedule_time", "02:00")
+    try:
+        sched_h, sched_m = map(int, sched_time_str.split(":"))
+    except Exception:
+        sched_h, sched_m = 2, 0
+
+    now = datetime.now()
+    sched_today = now.replace(hour=sched_h, minute=sched_m, second=0, microsecond=0)
+
+    # Not yet reached today's scheduled time — bail
+    if now < sched_today:
+        return
+
     _intervals = {"daily": 86_400, "weekly": 604_800, "monthly": 2_592_000}
     interval_sec = _intervals.get(get_setting("backup_schedule_interval", "daily"), 86_400)
+
     try:
         last_ts = float(get_setting("backup_last_auto_ts", "0"))
     except ValueError:
         last_ts = 0.0
-    if time.time() - last_ts < interval_sec:
+
+    # Use 90% of the interval so the scheduled time-of-day aligns cleanly
+    if time.time() - last_ts < interval_sec * 0.9:
         return
+
     try:
         from .routes.backup import _build_payload, _enforce_retention
         import json as _json
