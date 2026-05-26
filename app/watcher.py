@@ -877,6 +877,8 @@ async def maybe_run_scheduled_backup():
     if now < sched_today:
         return
 
+    sched_today_ts = sched_today.timestamp()
+
     _intervals = {"daily": 86_400, "weekly": 604_800, "monthly": 2_592_000}
     interval_sec = _intervals.get(get_setting("backup_schedule_interval", "daily"), 86_400)
 
@@ -885,8 +887,15 @@ async def maybe_run_scheduled_backup():
     except ValueError:
         last_ts = 0.0
 
-    # Use 90% of the interval so the scheduled time-of-day aligns cleanly
-    if time.time() - last_ts < interval_sec * 0.9:
+    # Already ran since today's scheduled window — bail
+    # (for daily this replaces the 90%-interval check so the backup always fires
+    # at the configured time rather than drifting forward each day)
+    if last_ts >= sched_today_ts:
+        return
+
+    # For weekly / monthly: also require that at least 90% of the interval has
+    # elapsed since the last run, in case the scheduled time hasn't come around yet
+    if interval_sec > 86_400 and last_ts > 0 and (time.time() - last_ts) < interval_sec * 0.9:
         return
 
     try:
