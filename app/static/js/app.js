@@ -85,6 +85,7 @@ window.app = function () {
     },
     categoryOpen: { media: false, downloaders: false, notifications: false, homelab: false, network: false },
     openIntegration: null,
+    openEventGroups: {},
     stats: {},
     rules: [], events: [], containers: [], discoveredWans: [], agents: [],
     agentContainers: [], agentContainersLoading: false,
@@ -117,6 +118,44 @@ window.app = function () {
           || e.ts.toLowerCase().includes(q)
           || e.level.toLowerCase().includes(q);
       });
+    },
+
+    get groupedEvents() {
+      const WINDOW_MS = 120_000;
+      const asc = [...this.filteredEvents].reverse(); // oldest first
+      const groups = [];
+      let i = 0;
+      while (i < asc.length) {
+        const evt = asc[i];
+        const msg = evt.message || '';
+        if (msg.startsWith('WAN state change:')) {
+          const anchorTs = new Date(evt.ts).getTime();
+          const children = [];
+          let j = i + 1;
+          while (j < asc.length) {
+            const c = asc[j];
+            if ((c.message || '').startsWith('WAN state change:')) break;
+            if (new Date(c.ts).getTime() - anchorTs > WINDOW_MS) break;
+            children.push(c);
+            j++;
+          }
+          if (children.length > 0) {
+            groups.push({ anchorItem: { type: 'anchor', event: evt, groupId: evt.id, childCount: children.length }, childItems: children.map(c => ({ type: 'child', event: c, groupId: evt.id })) });
+          } else {
+            groups.push({ anchorItem: { type: 'solo', event: evt }, childItems: [] });
+          }
+          i = j;
+        } else {
+          groups.push({ anchorItem: { type: 'solo', event: evt }, childItems: [] });
+          i++;
+        }
+      }
+      const flat = [];
+      for (const g of [...groups].reverse()) {
+        flat.push(g.anchorItem);
+        for (const c of g.childItems) flat.push(c);
+      }
+      return flat;
     },
 
     // ---- Lifecycle --------------------------------------------------------
@@ -1299,6 +1338,10 @@ window.app = function () {
           await this.loadAgents();
         },
       };
+    },
+
+    toggleEventGroup(id) {
+      this.openEventGroups[id] = !this.openEventGroups[id];
     },
 
     async toggleRouterType(type) {

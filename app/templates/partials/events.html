@@ -43,29 +43,40 @@
         </tr>
       </thead>
       <tbody>
-        <template x-for="e in filteredEvents.slice(0, eventsLimit)" :key="e.id">
+        <template x-for="item in groupedEvents.slice(0, eventsLimit)" :key="item.type + '-' + item.event.id">
           <tr class="border-t border-slate-800 group"
+              x-show="item.type !== 'child' || openEventGroups[item.groupId]"
               :class="{
-                'bg-red-500/5':     e.level === 'error' || e.message.includes('-> down'),
-                'bg-emerald-500/5': e.message.includes('-> primary'),
-              }">
-            <td class="px-5 py-3 font-mono text-xs whitespace-nowrap text-slate-500" x-text="new Date(e.ts).toLocaleString()"></td>
+                'bg-red-500/5':     item.event.level === 'error' || item.event.message.includes('-> down'),
+                'bg-emerald-500/5': item.event.message.includes('-> primary'),
+                'bg-slate-800/30 border-slate-800/50': item.type === 'child',
+                'cursor-pointer select-none': item.type === 'anchor',
+              }"
+              @click="item.type === 'anchor' && toggleEventGroup(item.groupId)">
+            <td class="px-5 py-3 font-mono text-xs whitespace-nowrap text-slate-500" x-text="new Date(item.event.ts).toLocaleString()"></td>
             <td class="px-5 py-3">
               <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
                     :class="{
-                      'bg-emerald-500/20 text-emerald-300': e.message.includes('-> primary'),
-                      'bg-red-500/20 text-red-300':         e.level === 'error' || e.message.includes('-> down'),
-                      'bg-amber-500/20 text-amber-300':     e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
-                    }" x-text="e.level"></span>
+                      'bg-emerald-500/20 text-emerald-300': item.event.message.includes('-> primary'),
+                      'bg-red-500/20 text-red-300':         item.event.level === 'error' || item.event.message.includes('-> down'),
+                      'bg-amber-500/20 text-amber-300':     item.event.level !== 'error' && !item.event.message.includes('-> down') && !item.event.message.includes('-> primary'),
+                    }" x-text="item.event.level"></span>
             </td>
             <td class="px-5 py-3 font-medium"
                 :class="{
-                  'text-red-300':     e.level === 'error' || e.message.includes('-> down'),
-                  'text-emerald-300': e.message.includes('-> primary'),
-                  'text-amber-300':   e.level !== 'error' && !e.message.includes('-> down') && !e.message.includes('-> primary'),
-                }" x-text="e.message"></td>
+                  'text-red-300':     item.event.level === 'error' || item.event.message.includes('-> down'),
+                  'text-emerald-300': item.event.message.includes('-> primary'),
+                  'text-amber-300':   item.event.level !== 'error' && !item.event.message.includes('-> down') && !item.event.message.includes('-> primary'),
+                }">
+              <div class="flex items-center gap-2">
+                <svg x-show="item.type === 'anchor'" class="w-3 h-3 shrink-0 transition-transform duration-150" :class="openEventGroups[item.groupId] ? 'rotate-90' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                <span class="w-3 h-3 shrink-0 inline-block" x-show="item.type === 'child'"></span>
+                <span x-text="item.event.message"></span>
+                <span x-show="item.type === 'anchor'" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-500 font-mono shrink-0 ml-1" x-text="'+ ' + item.childCount + ' events'"></span>
+              </div>
+            </td>
             <td class="px-4 py-3 text-right">
-              <button @click="deleteEvent(e.id, e.message)"
+              <button @click.stop="deleteEvent(item.event.id, item.event.message)"
                       class="w-6 h-6 flex items-center justify-center rounded text-slate-700 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition ml-auto" title="Delete event">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
@@ -80,7 +91,7 @@
         </tr>
       </tbody>
     </table>
-    <div x-show="filteredEvents.length > eventsLimit" class="border-t border-slate-800 px-5 py-4 flex items-center justify-between">
+    <div x-show="groupedEvents.length > eventsLimit" class="border-t border-slate-800 px-5 py-4 flex items-center justify-between">
       <span class="text-xs text-slate-500" x-text="'Showing ' + Math.min(eventsLimit, filteredEvents.length) + ' of ' + filteredEvents.length + ' events'"></span>
       <button @click="eventsLimit += 20"
               class="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-slate-200 text-sm font-semibold px-5 py-2 rounded-xl transition">

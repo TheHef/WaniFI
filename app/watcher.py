@@ -668,7 +668,7 @@ async def run_webhook_action(url: str, method: str = "POST") -> tuple[bool, str]
 async def fire_trigger(trigger: str):
     with db() as conn:
         rules = conn.execute(
-            "SELECT * FROM rules WHERE enabled=1 AND trigger=?", (trigger,)
+            "SELECT * FROM rules WHERE enabled=1 AND trigger=? ORDER BY sort_order, id", (trigger,)
         ).fetchall()
     if not rules:
         return
